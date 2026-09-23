@@ -83,6 +83,8 @@ import com.metrolist.music.db.entities.SpeedDialItem
 import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.ExoDownloadService
+import com.metrolist.music.playback.WatchExportState
+import com.metrolist.music.ui.utils.rememberSharedStorageAction
 import com.metrolist.music.playback.queues.YouTubeQueue
 import com.metrolist.music.ui.component.DefaultDialog
 import com.metrolist.music.ui.component.ListDialog
@@ -122,6 +124,10 @@ fun SongMenu(
     val download by downloadUtil
         .getDownload(originalSong.id)
         .collectAsStateWithLifecycle(initialValue = null)
+    val watchExportState by downloadUtil
+        .getWatchExportState(originalSong.id)
+        .collectAsStateWithLifecycle(initialValue = WatchExportState.NotExported)
+    val exportForWatch = rememberSharedStorageAction { downloadUtil.watchExportManager.export(song) }
     val coroutineScope = rememberCoroutineScope()
     val syncUtils = LocalSyncUtils.current
     val listenTogetherManager = LocalListenTogetherManager.current
@@ -959,7 +965,12 @@ fun SongMenu(
                                 )
                             }
                         },
-                    ),
+                        if (download?.state == Download.STATE_COMPLETED) {
+                            watchExportMenuItem(watchExportState, exportForWatch)
+                        } else {
+                            null
+                        },
+                    ).filterNotNull(),
             )
         }
 
@@ -1142,4 +1153,52 @@ fun SongMenu(
             )
         }
     }
+}
+
+internal fun watchExportMenuItem(
+    state: WatchExportState,
+    onExport: () -> Unit,
+): Material3MenuItemData {
+    val busy = state is WatchExportState.Exporting || state == WatchExportState.Queued
+    return Material3MenuItemData(
+        title = {
+            Text(
+                text = stringResource(
+                    if (state is WatchExportState.Exported) R.string.exported_for_watch else R.string.export_for_watch,
+                ),
+            )
+        },
+        description = {
+            Text(
+                text = when (state) {
+                    is WatchExportState.Exported -> stringResource(R.string.exported_for_watch_desc)
+                    is WatchExportState.Failed -> stringResource(R.string.export_for_watch_retry_desc, state.message)
+                    is WatchExportState.Exporting -> {
+                        val total = state.totalBytes
+                        if (total != null && total > 0) {
+                            "${stringResource(R.string.exporting_for_watch)} · ${(state.bytesCopied * 100 / total).coerceIn(0, 100)}%"
+                        } else {
+                            stringResource(R.string.exporting_for_watch)
+                        }
+                    }
+                    WatchExportState.Queued -> stringResource(R.string.exporting_for_watch)
+                    WatchExportState.NotExported -> stringResource(R.string.export_for_watch_desc)
+                },
+            )
+        },
+        icon = {
+            if (busy) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp,
+                )
+            } else {
+                Icon(
+                    painter = painterResource(R.drawable.watch_check),
+                    contentDescription = null,
+                )
+            }
+        },
+        onClick = { if (!busy) onExport() },
+    )
 }

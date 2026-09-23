@@ -1257,6 +1257,13 @@ interface DatabaseDao {
     @Query("UPDATE song SET isDownloaded = :downloaded, dateDownload = :date WHERE id = :songId")
     fun updateDownloadedInfo(songId: String, downloaded: Boolean, date: LocalDateTime?)
 
+    @Query("SELECT id FROM song WHERE isDownloaded = 1")
+    fun downloadedSongIdsBlocking(): List<String>
+
+    /** Marks a verified download without resetting the date the user originally downloaded it. */
+    @Query("UPDATE song SET isDownloaded = 1, dateDownload = COALESCE(dateDownload, :date) WHERE id = :songId")
+    fun markDownloadCompleted(songId: String, date: LocalDateTime)
+
     @Query("UPDATE song SET playbackPosition = :position WHERE id = :songId")
     fun updatePlaybackPosition(songId: String, position: Long?)
 

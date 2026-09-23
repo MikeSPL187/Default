@@ -9,11 +9,13 @@ import android.content.Context
 import android.net.ConnectivityManager
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
+import androidx.media3.common.C
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.Cache
 import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.datasource.cache.ContentMetadata
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
@@ -71,6 +73,7 @@ constructor(
     val databaseProvider: DatabaseProvider,
     @DownloadCache val downloadCache: Cache,
     @PlayerCache val playerCache: Cache,
+    val watchExportManager: WatchExportManager,
 ) {
     private val TAG = "DownloadUtil"
     private val connectivityManager = context.getSystemService<ConnectivityManager>()!!
@@ -100,7 +103,8 @@ constructor(
                 .setCache(playerCache)
                 .setCacheWriteDataSinkFactory(null)
                 .setUpstreamDataSourceFactory(
-                    OkHttpDataSource.Factory(streamHttpClient),
+                    OkHttpDataSource.Factory(streamHttpClient)
+                        .setContentTypePredicate(::isAudioContentType),
                 ),
         ) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
@@ -129,6 +133,8 @@ constructor(
                 )
             }.getOrThrow()
             val format = playbackData.format
+            // Compressed transfers hide the real length and make partial spans unverifiable.
+            val streamHeaders = playbackData.streamHeaders + ("Accept-Encoding" to "identity")
 
             val actualContentLength =
                 format.contentLength?.takeIf { it > 0L } ?: run {
@@ -136,7 +142,7 @@ constructor(
                         .get()
                         .url(playbackData.streamUrl)
                         .apply {
-                            playbackData.streamHeaders.forEach { (name, value) ->
+                            streamHeaders.forEach { (name, value) ->
                                 header(name, value)
                             }
                         }
@@ -203,7 +209,7 @@ constructor(
             songUrlCache.put(
                 mediaId = mediaId,
                 url = streamUrl,
-                requestHeaders = playbackData.streamHeaders,
+                requestHeaders = streamHeaders,
                 clientName = playbackData.streamClient,
                 expiresInSeconds = playbackData.streamExpiresInSeconds,
                 requireBoundedRange = playbackData.requireBoundedRange,
@@ -214,7 +220,7 @@ constructor(
             dataSpec.withResolvedStream(
                 CachedStreamUrl(
                     url = streamUrl,
-                    requestHeaders = playbackData.streamHeaders,
+                    requestHeaders = streamHeaders,
                     clientName = playbackData.streamClient,
                     requireBoundedRange = playbackData.requireBoundedRange,
                     rangeChunkSizeBytes = playbackData.rangeChunkSizeBytes,
@@ -277,17 +283,16 @@ constructor(
                         val downloadId = download.request.id
                         songUrlCache.invalidate(downloadId)
 
-                        runCatching {
-                            database.updateDownloadedInfo(downloadId, false, null)
-                        }.onSuccess {
-                            downloads.update { map ->
-                                map.toMutableMap().apply {
-                                    remove(downloadId)
-                                }
+                        // Listener callbacks run on the main thread; keep the database write off it.
+                        scope.launch {
+                            runCatching {
+                                database.updateDownloadedInfo(downloadId, false, null)
+                            }.onSuccess {
+                                downloads.update { map -> map - downloadId }
+                                Timber.tag(TAG).d("Successfully removed download $downloadId from in-memory map")
+                            }.onFailure { error ->
+                                Timber.tag(TAG).e(error, "Failed to update database for removed download $downloadId, keeping in-memory entry")
                             }
-                            Timber.tag(TAG).d("Successfully removed download $downloadId from in-memory map")
-                        }.onFailure { error ->
-                            Timber.tag(TAG).e(error, "Failed to update database for removed download $downloadId, keeping in-memory entry")
                         }
                     }
                 }
@@ -302,14 +307,45 @@ constructor(
             }
         }
         downloads.value = result
-        scope.launch {
-            result.values
-                .filter { it.state == Download.STATE_COMPLETED }
-                .forEach { removeFromPlayerCache(it.request.id) }
+        scope.launch { reconcileDownloads(result) }
+    }
+
+    /**
+     * Brings the download index, the offline cache and the song table back in sync: completed
+     * downloads whose cache spans vanished are removed, and `isDownloaded` flags are corrected.
+     */
+    private fun reconcileDownloads(index: Map<String, Download>) {
+        val completedIds = index.values.filter { it.state == Download.STATE_COMPLETED }.map { it.request.id }.toSet()
+        val intactIds =
+            completedIds.filterTo(mutableSetOf()) { songId ->
+                runCatching {
+                    val length =
+                        maxOf(
+                            index[songId]?.contentLength ?: C.LENGTH_UNSET.toLong(),
+                            ContentMetadata.getContentLength(downloadCache.getContentMetadata(songId)),
+                        ).takeIf { it > 0 } ?: 1L
+                    downloadCache.isCached(songId, 0, length)
+                }.onFailure { Timber.tag(TAG).e(it, "Unable to verify downloaded media $songId") }
+                    .getOrDefault(true)
+            }
+
+        (completedIds - intactIds).forEach { songId ->
+            Timber.tag(TAG).w("Completed download $songId has missing cache spans; scheduling removal")
+            DownloadService.sendRemoveDownload(context, ExoDownloadService::class.java, songId, false)
         }
+
+        database.query {
+            downloadedSongIdsBlocking()
+                .filter { it !in intactIds && it !in completedIds }
+                .forEach { updateDownloadedInfo(it, false, null) }
+            intactIds.forEach { markDownloadCompleted(it, LocalDateTime.now()) }
+        }
+        intactIds.forEach(::removeFromPlayerCache)
     }
 
     fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }
+
+    fun getWatchExportState(songId: String): Flow<WatchExportState> = watchExportManager.state(songId)
 
     fun download(song: Song) = download(song.toMediaMetadata())
 
@@ -413,6 +449,11 @@ constructor(
 }
 
 internal fun shouldPrepareDownload(downloadState: Int?): Boolean = downloadState != Download.STATE_COMPLETED
+
+/** Rejects error pages that some CDNs return with a 200 status instead of audio bytes. */
+internal fun isAudioContentType(contentType: String): Boolean =
+    !contentType.startsWith("text/html", ignoreCase = true) &&
+        !contentType.startsWith("application/json", ignoreCase = true)
 
 internal fun downloadArtworkUrls(
     songArtwork: String?,

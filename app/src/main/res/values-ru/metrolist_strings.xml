@@ -882,4 +882,25 @@
     <string name="discord_integration">Интеграция с Discord</string>
     <string name="enable_discord_rpc">Включить Rich Presence</string>
     <string name="force_bottom_navbar">Всегда использовать нижнюю панель навигации</string>
+
+    <!-- Huawei Watch export -->
+    <string name="export_for_watch">Экспортировать для часов</string>
+    <string name="export_for_watch_desc">Сохранить AAC-копию в Music/Metrolist Watch для Huawei Health</string>
+    <string name="exported_for_watch">Экспортировано для часов</string>
+    <string name="exported_for_watch_desc">Совместимая копия находится в Music/Metrolist Watch. Нажмите, чтобы заменить её.</string>
+    <string name="exporting_for_watch">Экспортируется для часов</string>
+    <string name="export_for_watch_retry_desc">Предыдущий экспорт завершился ошибкой: %1$s. Нажмите, чтобы повторить.</string>
+    <string name="export_for_watch_success">«%1$s» сохранён в Music/Metrolist Watch</string>
+    <string name="export_for_watch_failed">Не удалось экспортировать трек: %1$s</string>
+    <string name="export_for_watch_progress">Экспортировано: %1$d из %2$d</string>
+    <string name="export_all_for_watch">Экспортировать загрузки для часов</string>
+    <string name="export_all_for_watch_desc">Создать в медиатеке телефона AAC-копии, совместимые с Huawei Watch</string>
+    <string name="export_all_for_watch_confirm">Экспортировать все завершённые загрузки? Для треков в Opus потребуется интернет, чтобы получить совместимую AAC-копию.</string>
+    <string name="export_all_for_watch_result">Экспорт завершён: успешно — %1$d, с ошибкой — %2$d</string>
+    <string name="no_downloads_to_export">Нет завершённых загрузок для экспорта</string>
+    <string name="watch_export_error_format">Для этого трека недоступна совместимая AAC-версия.</string>
+    <string name="watch_export_error_incomplete">Не удалось полностью загрузить AAC-файл после нескольких попыток.</string>
+    <string name="watch_export_error_permission">На Android 8 и 9 требуется разрешение на доступ к хранилищу.</string>
+    <string name="watch_export_error_prepare">Не удалось подготовить совместимый AAC-поток. Проверьте подключение и повторите попытку.</string>
+    <string name="watch_export_error_storage">Не удалось безопасно сохранить файл в медиатеку телефона.</string>
 </resources>

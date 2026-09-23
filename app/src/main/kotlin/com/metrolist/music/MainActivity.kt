@@ -175,6 +175,7 @@ import com.metrolist.music.extensions.toEnum
 import com.metrolist.music.lyrics.LyricsProviderRegistry
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.DownloadUtil
+import com.metrolist.music.playback.WatchExportEvent
 import com.metrolist.music.playback.MusicService
 import com.metrolist.music.playback.MusicService.MusicBinder
 import com.metrolist.music.playback.PlayerConnection
@@ -988,6 +989,21 @@ class MainActivity : FragmentActivity() {
                     mutableStateOf(null)
                 }
                 val snackbarHostState = remember { SnackbarHostState() }
+
+                LaunchedEffect(Unit) {
+                    downloadUtil.watchExportManager.events.collect { event ->
+                        val message =
+                            when (event) {
+                                is WatchExportEvent.Success ->
+                                    getString(R.string.export_for_watch_success, event.songTitle)
+                                is WatchExportEvent.Failure ->
+                                    getString(R.string.export_for_watch_failed, event.message)
+                                is WatchExportEvent.BatchFinished ->
+                                    getString(R.string.export_all_for_watch_result, event.succeeded, event.failed)
+                            }
+                        snackbarHostState.showSnackbar(message)
+                    }
+                }
 
                 LaunchedEffect(Unit) {
                     if (pendingIntent != null) {

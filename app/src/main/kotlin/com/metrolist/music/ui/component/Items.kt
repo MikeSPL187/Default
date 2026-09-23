@@ -119,6 +119,7 @@ import com.metrolist.music.db.entities.Playlist
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.models.MediaMetadata
+import com.metrolist.music.playback.WatchExportState
 import com.metrolist.music.playback.queues.LocalAlbumRadio
 import com.metrolist.music.ui.utils.resize
 import com.metrolist.music.utils.joinByBullet
@@ -502,6 +503,9 @@ fun SongListItem(
             val download by LocalDownloadUtil.current.getDownload(song.id)
                 .collectAsStateWithLifecycle(initialValue = null)
             Icon.Download(download?.state)
+            val watchExport by LocalDownloadUtil.current.getWatchExportState(song.id)
+                .collectAsStateWithLifecycle(initialValue = WatchExportState.NotExported)
+            Icon.WatchExport(watchExport)
         }
     },
     isSelected: Boolean = false,
@@ -591,6 +595,9 @@ fun SongGridItem(
         if (showDownloadIcon) {
             val download by LocalDownloadUtil.current.getDownload(song.id).collectAsStateWithLifecycle(initialValue = null)
             Icon.Download(download?.state)
+            val watchExport by LocalDownloadUtil.current.getWatchExportState(song.id)
+                .collectAsStateWithLifecycle(initialValue = WatchExportState.NotExported)
+            Icon.WatchExport(watchExport)
         }
     },
     isActive: Boolean = false,
@@ -1962,6 +1969,28 @@ object Icon {
                     .padding(end = 2.dp)
             )
             else -> { /* no icon */ }
+        }
+    }
+
+    @Composable
+    fun WatchExport(state: WatchExportState) {
+        when (state) {
+            is WatchExportState.Exported -> Icon(
+                painter = painterResource(R.drawable.watch_check),
+                contentDescription = stringResource(R.string.exported_for_watch),
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(18.dp)
+                    .padding(end = 2.dp)
+            )
+            is WatchExportState.Exporting, WatchExportState.Queued -> CircularProgressIndicator(
+                strokeWidth = 2.dp,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(16.dp)
+                    .padding(end = 2.dp)
+            )
+            is WatchExportState.Failed, WatchExportState.NotExported -> Unit
         }
     }
 

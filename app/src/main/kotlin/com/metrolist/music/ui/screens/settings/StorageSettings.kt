@@ -46,7 +46,12 @@ import coil3.SingletonImageLoader
 import coil3.annotation.DelicateCoilApi
 import coil3.annotation.ExperimentalCoilApi
 import coil3.imageLoader
+import android.widget.Toast
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.exoplayer.offline.DownloadService
 import com.metrolist.music.LocalDatabase
+import com.metrolist.music.LocalDownloadUtil
+import com.metrolist.music.playback.ExoDownloadService
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
@@ -60,12 +65,14 @@ import com.metrolist.music.ui.component.Material3SettingsGroup
 import com.metrolist.music.ui.component.Material3SettingsItem
 import android.text.format.Formatter
 import com.metrolist.music.ui.utils.backToMain
+import com.metrolist.music.ui.utils.rememberSharedStorageAction
 import com.metrolist.music.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okio.ByteString.Companion.encodeUtf8
 import java.io.File
 import kotlin.math.roundToInt
@@ -98,6 +105,10 @@ fun StorageSettings(
     )
 
     var clearDownloads by remember { mutableStateOf(false) }
+    var exportAllForWatchDialog by remember { mutableStateOf(false) }
+    val downloadUtil = LocalDownloadUtil.current
+    val watchExportBatch by downloadUtil.watchExportManager.batchState.collectAsStateWithLifecycle()
+    val requestExportAllForWatch = rememberSharedStorageAction { exportAllForWatchDialog = true }
     var clearCacheDialog by remember { mutableStateOf(false) }
     var clearImageCacheDialog by remember { mutableStateOf(false) }
 
@@ -175,6 +186,9 @@ fun StorageSettings(
             title = stringResource(R.string.clear_all_downloads),
             onDismiss = { clearDownloads = false },
             onConfirm = {
+                // Going through the download service also clears the download index and the
+                // "downloaded" flags; removing cache keys alone left songs marked as offline.
+                DownloadService.sendRemoveAllDownloads(context, ExoDownloadService::class.java, false)
                 coroutineScope.launch(Dispatchers.IO) {
                     downloadCache.keys.forEach { key ->
                         downloadCache.removeResource(key)
@@ -185,6 +199,27 @@ fun StorageSettings(
             onCancel = { clearDownloads = false },
             content = {
                 Text(text = stringResource(R.string.clear_downloads_dialog))
+            },
+        )
+    }
+    if (exportAllForWatchDialog) {
+        ActionPromptDialog(
+            title = stringResource(R.string.export_all_for_watch),
+            onDismiss = { exportAllForWatchDialog = false },
+            onConfirm = {
+                exportAllForWatchDialog = false
+                coroutineScope.launch {
+                    val songs = withContext(Dispatchers.IO) { database.downloadedSongsByNameAsc().first() }
+                    if (songs.isEmpty()) {
+                        Toast.makeText(context, R.string.no_downloads_to_export, Toast.LENGTH_SHORT).show()
+                    } else {
+                        downloadUtil.watchExportManager.exportAll(songs)
+                    }
+                }
+            },
+            onCancel = { exportAllForWatchDialog = false },
+            content = {
+                Text(text = stringResource(R.string.export_all_for_watch_confirm))
             },
         )
     }
@@ -305,6 +340,33 @@ fun StorageSettings(
                         title = { Text(stringResource(R.string.downloaded_songs)) },
                         description = {
                             Text(text = Formatter.formatShortFileSize(context, downloadCacheSize))
+                        },
+                    ),
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.watch_check),
+                        title = { Text(stringResource(R.string.export_all_for_watch)) },
+                        description = {
+                            if (watchExportBatch.running) {
+                                Column {
+                                    Text(
+                                        stringResource(
+                                            R.string.export_for_watch_progress,
+                                            watchExportBatch.completed,
+                                            watchExportBatch.total,
+                                        ),
+                                    )
+                                    LinearProgressIndicator(
+                                        progress = { watchExportBatch.progress },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        strokeCap = StrokeCap.Round,
+                                    )
+                                }
+                            } else {
+                                Text(stringResource(R.string.export_all_for_watch_desc))
+                            }
+                        },
+                        onClick = {
+                            if (!watchExportBatch.running) requestExportAllForWatch()
                         },
                     ),
                     Material3SettingsItem(
