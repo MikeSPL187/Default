@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.player
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -26,7 +27,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -53,9 +53,9 @@ fun PlaybackError(
 ) {
     val context = LocalContext.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
-    val streamClient by playerConnection.currentStreamClient.collectAsState()
-    val isOnline by playerConnection.service.connectivityObserver.networkStatus.collectAsState()
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
+    val streamClient by playerConnection.currentStreamClient.collectAsStateWithLifecycle()
+    val isOnline by playerConnection.service.connectivityObserver.networkStatus.collectAsStateWithLifecycle()
     val causes = remember(error) { error.causeChain() }
     val rawErrorMessages =
         remember(causes) {

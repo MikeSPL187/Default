@@ -48,7 +48,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.mutableLongStateOf
@@ -161,8 +160,8 @@ fun DiscordSettings(
     var showBtn2UrlDialog by remember { mutableStateOf(false) }
     var showUserStatusDialog by remember { mutableStateOf(false) }
 
-    val fetchedUser by DiscordRpcManager.currentUser.collectAsState()
-    val accessToken by DiscordRpcManager.accessTokenFlow.collectAsState()
+    val fetchedUser by DiscordRpcManager.currentUser.collectAsStateWithLifecycle()
+    val accessToken by DiscordRpcManager.accessTokenFlow.collectAsStateWithLifecycle()
     val displayUser = fetchedUser
     val displayName = displayUser?.name?.ifEmpty { null } ?: discordName
     val displayUsername = displayUser?.username?.ifEmpty { null } ?: discordUsername
@@ -170,7 +169,7 @@ fun DiscordSettings(
     val isLoggedIn = !accessToken.isNullOrEmpty()
     var isBusy by remember { mutableStateOf(false) }
 
-    val connectionStatus by DiscordRpcManager.connectionStatus.collectAsState()
+    val connectionStatus by DiscordRpcManager.connectionStatus.collectAsStateWithLifecycle()
 
     val statusText = when {
         connectionStatus == DiscordRpcManager.Status.Connected -> stringResource(R.string.discord_status_connected)
@@ -180,7 +179,7 @@ fun DiscordSettings(
         else -> ""
     }
 
-    val lastErrorKey by DiscordRpcManager.lastError.collectAsState()
+    val lastErrorKey by DiscordRpcManager.lastError.collectAsStateWithLifecycle()
     val lastErrorText = lastErrorKey?.let { key ->
         val resId = when (key) {
             "discord_error_loopback_unbound" -> R.string.discord_error_loopback_unbound

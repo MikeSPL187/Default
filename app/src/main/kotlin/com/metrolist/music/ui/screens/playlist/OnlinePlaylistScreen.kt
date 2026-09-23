@@ -263,7 +263,11 @@ fun OnlinePlaylistScreen(
                         }
                     }
 
-                    itemsIndexed(filteredSongs) { index, (_, songItem) ->
+                    // Playlists can hold the same song twice, so the playlist position keeps keys unique.
+                    itemsIndexed(
+                        items = filteredSongs,
+                        key = { _, (position, songItem) -> "${songItem.id}_$position" },
+                    ) { index, (_, songItem) ->
                         val onCheckedChange: (Boolean) -> Unit = {
                             if (it) {
                                 selection.add(songItem.id)

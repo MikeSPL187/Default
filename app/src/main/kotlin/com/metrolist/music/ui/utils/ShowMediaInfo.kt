@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.utils
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -28,7 +29,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.runtime.mutableStateOf
@@ -84,7 +84,7 @@ fun ShowMediaInfo(videoId: String) {
     var currentFormat by remember { mutableStateOf<FormatEntity?>(null) }
 
     val playerConnection = LocalPlayerConnection.current
-    val currentStreamClient by playerConnection?.currentStreamClient?.collectAsState() ?: remember { mutableStateOf(null) }
+    val currentStreamClient by playerConnection?.currentStreamClient?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(null) }
     val context = LocalContext.current
     val artistNameAliases = LocalArtistNameAliases.current
 
@@ -105,7 +105,7 @@ fun ShowMediaInfo(videoId: String) {
         }
     }
 
-    val playCount by database.getLifetimePlayCount(videoId).collectAsState(initial = 0)
+    val playCount by database.getLifetimePlayCount(videoId).collectAsStateWithLifecycle(initialValue = 0)
 
     LaunchedEffect(Unit, videoId) {
         database.format(videoId).collect {
