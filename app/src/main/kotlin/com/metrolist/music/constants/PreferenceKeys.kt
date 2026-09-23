@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
@@ -150,6 +151,8 @@ val PreloadNextSongKey = booleanPreferencesKey("preloadNextSong")
 val AutoExportForWatchKey = booleanPreferencesKey("autoExportForWatch")
 val DownloadOnWifiOnlyKey = booleanPreferencesKey("downloadOnWifiOnly")
 val ShareYouTubeLinksKey = booleanPreferencesKey("shareYouTubeLinks")
+val NotRecommendedSongIdsKey = stringSetPreferencesKey("notRecommendedSongIds")
+val NotRecommendedArtistIdsKey = stringSetPreferencesKey("notRecommendedArtistIds")
 val PreferSyncedLyricsKey = booleanPreferencesKey("preferSyncedLyrics")
 val StopMusicOnTaskClearKey = booleanPreferencesKey("stopMusicOnTaskClear")
 val ShufflePlaylistFirstKey = booleanPreferencesKey("shufflePlaylistFirst")

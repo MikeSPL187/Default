@@ -63,6 +63,7 @@ fun YouTubeArtistMenu(
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
     val isPinned by database.speedDialDao.isPinned(artist.id).collectAsStateWithLifecycle(initialValue = false)
     val coroutineScope = rememberCoroutineScope()
+    val notRecommended by rememberNotRecommended()
 
     YouTubeListItem(
         item = artist,
@@ -197,7 +198,13 @@ fun YouTubeArtistMenu(
                                 }
                             }
                         }
-                    )
+                    ),
+                    notRecommendedArtistMenuItem(artist.id in notRecommended.artistIds) {
+                        coroutineScope.launch {
+                            toggleArtistNotRecommended(context, artist.id, artist.id !in notRecommended.artistIds, playerConnection)
+                            onDismiss()
+                        }
+                    },
                 )
             )
         }

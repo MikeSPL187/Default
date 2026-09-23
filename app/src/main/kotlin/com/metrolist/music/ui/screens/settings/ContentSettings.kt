@@ -5,6 +5,11 @@
 
 package com.metrolist.music.ui.screens.settings
 
+import android.widget.Toast
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import com.metrolist.music.utils.clearNotRecommended
+import com.metrolist.music.ui.menu.rememberNotRecommended
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
@@ -117,6 +122,41 @@ fun ContentSettings(
     val (hideExplicit, onHideExplicitChange) = rememberPreference(key = HideExplicitKey, defaultValue = false)
     val (hideVideoSongs, onHideVideoSongsChange) = rememberPreference(key = HideVideoSongsKey, defaultValue = false)
     val (hideYoutubeShorts, onHideYoutubeShortsChange) = rememberPreference(key = HideYoutubeShortsKey, defaultValue = false)
+    val notRecommended by rememberNotRecommended()
+    var showResetNotRecommendedDialog by rememberSaveable { mutableStateOf(false) }
+    val notRecommendedScope = rememberCoroutineScope()
+
+    if (showResetNotRecommendedDialog) {
+        AlertDialog(
+            onDismissRequest = { showResetNotRecommendedDialog = false },
+            title = { Text(stringResource(R.string.not_recommended_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.not_recommended_summary,
+                        notRecommended.songIds.size,
+                        notRecommended.artistIds.size,
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showResetNotRecommendedDialog = false
+                        notRecommendedScope.launch {
+                            context.clearNotRecommended()
+                            Toast.makeText(context, R.string.not_recommended_cleared, Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                ) { Text(stringResource(android.R.string.ok)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showResetNotRecommendedDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+        )
+    }
     val (showArtistDescription, onShowArtistDescriptionChange) = rememberPreference(key = ShowArtistDescriptionKey, defaultValue = true)
     val (showArtistSubscriberCount, onShowArtistSubscriberCountChange) = rememberPreference(key = ShowArtistSubscriberCountKey, defaultValue = true)
     val (showMonthlyListeners, onShowMonthlyListenersChange) = rememberPreference(key = ShowMonthlyListenersKey, defaultValue = true)
@@ -829,6 +869,25 @@ fun ContentSettings(
                         )
                     },
                     onClick = { onHideYoutubeShortsChange(!hideYoutubeShorts) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.not_recommended),
+                    title = { Text(stringResource(R.string.not_recommended_title)) },
+                    description = {
+                        Text(
+                            if (notRecommended.isEmpty) {
+                                stringResource(R.string.not_recommended_empty)
+                            } else {
+                                stringResource(
+                                    R.string.not_recommended_summary,
+                                    notRecommended.songIds.size,
+                                    notRecommended.artistIds.size,
+                                )
+                            },
+                        )
+                    },
+                    enabled = !notRecommended.isEmpty,
+                    onClick = { showResetNotRecommendedDialog = true },
                 )
             )
         )

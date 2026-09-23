@@ -107,6 +107,7 @@ fun YouTubeSongMenu(
     val librarySong by database.song(song.id).collectAsStateWithLifecycle(initialValue = null)
     val download by downloadUtil.getDownload(song.id).collectAsStateWithLifecycle(initialValue = null)
     val coroutineScope = rememberCoroutineScope()
+    val notRecommended by rememberNotRecommended()
     val syncUtils = LocalSyncUtils.current
     val listenTogetherManager = LocalListenTogetherManager.current
     val isPinned by database.speedDialDao.isPinned(song.id).collectAsStateWithLifecycle(initialValue = false)
@@ -692,6 +693,16 @@ fun YouTubeSongMenu(
                                     onDismiss()
                                 }
                             )
+                        )
+                    }
+                    if (!isPodcast) {
+                        add(
+                            notRecommendedSongMenuItem(song.id in notRecommended.songIds) {
+                                coroutineScope.launch {
+                                    toggleSongNotRecommended(context, song.id, song.id !in notRecommended.songIds, playerConnection)
+                                    onDismiss()
+                                }
+                            },
                         )
                     }
                     add(

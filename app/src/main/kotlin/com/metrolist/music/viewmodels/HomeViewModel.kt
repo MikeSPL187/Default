@@ -5,6 +5,8 @@
 
 package com.metrolist.music.viewmodels
 
+import com.metrolist.music.utils.filterNotRecommended
+import com.metrolist.music.utils.notRecommended
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -323,11 +325,14 @@ class HomeViewModel @Inject constructor(
     private suspend fun getQuickPicks() {
         val hideVideoSongs = context.dataStore.read(HideVideoSongsKey, false)
         val hideExplicit = context.dataStore.read(HideExplicitKey, false)
+        val notRecommended = context.notRecommended()
         when (quickPicksEnum.first()) {
             QuickPicks.QUICK_PICKS -> {
                 val relatedSongs = database.quickPicks().first().filterVideoSongs(hideVideoSongs).filterExplicit(hideExplicit)
+                    .filterNotRecommended(notRecommended)
                 val forgotten =
-                    database.forgottenFavorites().first().filterVideoSongs(hideVideoSongs).filterExplicit(hideExplicit).take(8)
+                    database.forgottenFavorites().first().filterVideoSongs(hideVideoSongs).filterExplicit(hideExplicit)
+                        .filterNotRecommended(notRecommended).take(8)
 
                 // Get similar songs from YouTube based on recent listening
                 val recentSong = database.latestEvent().first()?.song
@@ -340,7 +345,9 @@ class HomeViewModel @Inject constructor(
                             // Convert YouTube songs to local Song format if they exist in database
                             page.songs.take(10).forEach { ytSong ->
                                 database.song(ytSong.id).first()?.let { localSong ->
-                                    if ((!hideVideoSongs || !localSong.song.isVideo) && (!hideExplicit || !localSong.song.explicit)) {
+                                    if ((!hideVideoSongs || !localSong.song.isVideo) && (!hideExplicit || !localSong.song.explicit) &&
+                                        !notRecommended.blocks(localSong.id, localSong.artists.map { it.id })
+                                    ) {
                                         ytSimilarSongs.add(localSong)
                                     }
                                 }
@@ -364,6 +371,7 @@ class HomeViewModel @Inject constructor(
                         database.getRelatedSongs(song.id).first()
                             .filterVideoSongs(hideVideoSongs)
                             .filterExplicit(hideExplicit)
+                            .filterNotRecommended(notRecommended)
                             .shuffled()
                             .take(20)
                 }
@@ -481,7 +489,7 @@ class HomeViewModel @Inject constructor(
                                 .filterOutNulls()
                                 .filterExplicit(hideExplicit)
                                 .filterVideoSongs(hideVideoSongs)
-                                .filterYoutubeShorts(hideYoutubeShorts)
+                                .filterYoutubeShorts(hideYoutubeShorts).filterNotRecommended(context.notRecommended())
                             if (filtered.isEmpty()) null else section.copy(items = filtered)
                         }
                     )
@@ -604,7 +612,7 @@ class HomeViewModel @Inject constructor(
                         .filterOutNulls()
                         .filterExplicit(hideExplicit)
                         .filterVideoSongs(hideVideoSongs)
-                        .filterYoutubeShorts(hideYoutubeShorts)
+                        .filterYoutubeShorts(hideYoutubeShorts).filterNotRecommended(context.notRecommended())
                     if (filteredItems.isEmpty()) null else section.copy(items = filteredItems)
                 }
             )
@@ -633,7 +641,7 @@ class HomeViewModel @Inject constructor(
             homePage.value = nextSections.copy(
                 chips = homePage.value?.chips,
                 sections = nextSections.sections.mapNotNull { section ->
-                    section.copy(items = section.items.filterOutNulls().filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs).filterYoutubeShorts(hideYoutubeShorts))
+                    section.copy(items = section.items.filterOutNulls().filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs).filterYoutubeShorts(hideYoutubeShorts).filterNotRecommended(context.notRecommended()))
                 }
             )
             selectedChip.value = chip
@@ -705,7 +713,7 @@ class HomeViewModel @Inject constructor(
                     homePage.value = nextSections.copy(
                         chips = homePage.value?.chips,
                         sections = nextSections.sections.mapNotNull { section ->
-                            section.copy(items = section.items.filterOutNulls().filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs).filterYoutubeShorts(hideYoutubeShorts))
+                            section.copy(items = section.items.filterOutNulls().filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs).filterYoutubeShorts(hideYoutubeShorts).filterNotRecommended(context.notRecommended()))
                         }
                     )
                 }

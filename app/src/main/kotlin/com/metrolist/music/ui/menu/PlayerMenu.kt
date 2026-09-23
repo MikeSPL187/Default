@@ -137,6 +137,7 @@ fun PlayerMenu(
 
     val librarySong by database.song(mediaMetadata.id).collectAsStateWithLifecycle(initialValue = null)
     val coroutineScope = rememberCoroutineScope()
+    val notRecommended by rememberNotRecommended()
     val downloadUtil = LocalDownloadUtil.current
 
     val download by downloadUtil
@@ -673,6 +674,22 @@ fun PlayerMenu(
                                 },
                             ),
                         )
+
+                        if (!mediaMetadata.isEpisode) {
+                            add(
+                                notRecommendedSongMenuItem(mediaMetadata.id in notRecommended.songIds) {
+                                    coroutineScope.launch {
+                                        toggleSongNotRecommended(
+                                            context,
+                                            mediaMetadata.id,
+                                            mediaMetadata.id !in notRecommended.songIds,
+                                            playerConnection,
+                                        )
+                                        onDismiss()
+                                    }
+                                },
+                            )
+                        }
 
                         if (isQueueTrigger != true) {
                             add(

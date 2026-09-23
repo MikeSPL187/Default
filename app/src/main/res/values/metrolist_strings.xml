@@ -1054,4 +1054,18 @@
 
     <!-- Queue -->
     <string name="save_queue_as_playlist">Save queue as playlist</string>
+
+    <!-- Not recommended -->
+    <string name="dont_recommend_song">Don\'t recommend this song</string>
+    <string name="dont_recommend_song_desc">Leave it out of radio, mixes and suggestions</string>
+    <string name="dont_recommend_artist">Don\'t recommend this artist</string>
+    <string name="dont_recommend_artist_desc">Leave their songs out of radio, mixes and suggestions</string>
+    <string name="recommend_again">Recommend again</string>
+    <string name="recommend_again_desc">Allow it in radio, mixes and suggestions</string>
+    <string name="not_recommended_song_toast">This song won\'t be recommended</string>
+    <string name="not_recommended_artist_toast">This artist won\'t be recommended</string>
+    <string name="not_recommended_title">Not recommended</string>
+    <string name="not_recommended_summary">%1$d songs, %2$d artists. Tap to reset</string>
+    <string name="not_recommended_empty">Nothing hidden from recommendations</string>
+    <string name="not_recommended_cleared">Recommendations reset</string>
 </resources>

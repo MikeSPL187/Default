@@ -947,4 +947,18 @@
 
     <!-- Queue -->
     <string name="save_queue_as_playlist">Сохранить очередь как плейлист</string>
+
+    <!-- Not recommended -->
+    <string name="dont_recommend_song">Не рекомендовать трек</string>
+    <string name="dont_recommend_song_desc">Не включать в радио, миксы и подборки</string>
+    <string name="dont_recommend_artist">Не рекомендовать исполнителя</string>
+    <string name="dont_recommend_artist_desc">Не включать его треки в радио, миксы и подборки</string>
+    <string name="recommend_again">Снова рекомендовать</string>
+    <string name="recommend_again_desc">Разрешить в радио, миксах и подборках</string>
+    <string name="not_recommended_song_toast">Этот трек больше не будет рекомендоваться</string>
+    <string name="not_recommended_artist_toast">Этот исполнитель больше не будет рекомендоваться</string>
+    <string name="not_recommended_title">Скрыто из рекомендаций</string>
+    <string name="not_recommended_summary">Треков: %1$d, исполнителей: %2$d. Нажмите, чтобы сбросить</string>
+    <string name="not_recommended_empty">Ничего не скрыто из рекомендаций</string>
+    <string name="not_recommended_cleared">Рекомендации сброшены</string>
 </resources>

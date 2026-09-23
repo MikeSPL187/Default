@@ -63,6 +63,7 @@ fun ArtistMenu(
     val artistState = database.artist(originalArtist.id).collectAsStateWithLifecycle(initialValue = originalArtist)
     val artist = artistState.value ?: originalArtist
     val isPinned by database.speedDialDao.isPinned(artist.id).collectAsStateWithLifecycle(initialValue = false)
+    val notRecommended by rememberNotRecommended()
 
     ArtistListItem(
         artist = artist,
@@ -238,7 +239,13 @@ fun ArtistMenu(
                                 update(artist.artist.toggleLike())
                             }
                         }
-                    )
+                    ),
+                    notRecommendedArtistMenuItem(artist.id in notRecommended.artistIds) {
+                        coroutineScope.launch {
+                            toggleArtistNotRecommended(context, artist.id, artist.id !in notRecommended.artistIds, playerConnection)
+                            onDismiss()
+                        }
+                    },
                 )
             )
         }

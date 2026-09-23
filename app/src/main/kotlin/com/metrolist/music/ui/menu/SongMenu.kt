@@ -121,6 +121,7 @@ fun SongMenu(
     val playerConnection = LocalPlayerConnection.current ?: return
     val songState = database.song(originalSong.id).collectAsStateWithLifecycle(initialValue = originalSong)
     val song = songState.value ?: originalSong
+    val notRecommended by rememberNotRecommended()
     val downloadUtil = LocalDownloadUtil.current
     val download by downloadUtil
         .getDownload(originalSong.id)
@@ -970,6 +971,12 @@ fun SongMenu(
                             watchExportMenuItem(watchExportState, exportForWatch)
                         } else {
                             null
+                        },
+                        notRecommendedSongMenuItem(song.id in notRecommended.songIds) {
+                            coroutineScope.launch {
+                                toggleSongNotRecommended(context, song.id, song.id !in notRecommended.songIds, playerConnection)
+                                onDismiss()
+                            }
                         },
                     ).filterNotNull(),
             )

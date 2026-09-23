@@ -7,6 +7,9 @@
 
 package com.metrolist.music.playback
 
+import com.metrolist.music.utils.NotRecommended
+import com.metrolist.music.utils.notRecommended
+import com.metrolist.music.utils.filterNotRecommended
 import java.util.Locale
 import android.app.ForegroundServiceStartNotAllowedException
 import android.app.Notification
@@ -435,6 +438,11 @@ class MusicService :
         }
 
     private fun <T> pref(key: Preferences.Key<T>, defaultValue: T): T = preferences()[key] ?: defaultValue
+
+    private fun notRecommended() = preferences().notRecommended()
+
+    /** Queues whose upcoming songs are recommendations rather than the user's own list. */
+    private fun Queue.isRecommendation() = this is YouTubeQueue || this is YouTubeAlbumRadio || this is LocalAlbumRadio
 
     private val _playerFlow = MutableStateFlow<ExoPlayer?>(null)
     val playerFlow = _playerFlow.asStateFlow()
@@ -1931,6 +1939,7 @@ class MusicService :
                         .getInitialStatus()
                         .filterExplicit(cachedHideExplicit)
                         .filterVideoSongs(cachedHideVideoSongs)
+                        .let { if (queue is YouTubeQueue) it.filterNotRecommended(notRecommended()) else it }
                 }
             if (queue.preloadItem != null && player.playbackState == STATE_IDLE) return@launch
             if (initialStatus.title != null) {
@@ -2007,6 +2016,7 @@ class MusicService :
                             .getInitialStatus()
                             .filterExplicit(cachedHideExplicit)
                             .filterVideoSongs(cachedHideVideoSongs)
+                            .filterNotRecommended(notRecommended())
                     }
 
                 if (initialStatus.title != null) {
@@ -2051,6 +2061,7 @@ class MusicService :
                                     .map { it.toMediaItem() }
                                     .filterExplicit(cachedHideExplicit)
                                     .filterVideoSongs(cachedHideVideoSongs)
+                                    .filterNotRecommended(notRecommended())
 
                             if (radioItems.isNotEmpty()) {
                                 val itemCount = player.mediaItemCount
@@ -2086,16 +2097,16 @@ class MusicService :
                             YouTube
                                 .next(WatchEndpoint(playlistId = firstResult.endpoint.playlistId))
                                 .onSuccess { secondResult ->
-                                    automixItems.value =
+                                    automixItems.value = filteredAutomix(
                                         secondResult.items.map { song ->
                                             song.toMediaItem()
-                                        }
+                                        })
                                 }.onFailure {
                                     if (firstResult.items.isNotEmpty()) {
-                                        automixItems.value =
+                                        automixItems.value = filteredAutomix(
                                             firstResult.items.map { song ->
                                                 song.toMediaItem()
-                                            }
+                                            })
                                     }
                                 }
                         }.onFailure {
@@ -2113,7 +2124,7 @@ class MusicService :
                                                 .filter { it.id != currentSong.id }
                                                 .map { it.toMediaItem() }
                                         if (filteredItems.isNotEmpty()) {
-                                            automixItems.value = filteredItems
+                                            automixItems.value = filteredAutomix(filteredItems)
                                         }
                                     }.onFailure {
                                         YouTube
@@ -2127,7 +2138,7 @@ class MusicService :
                                                             .filter { it.id != currentSong.id }
                                                             .map { it.toMediaItem() }
                                                     if (relatedItems.isNotEmpty()) {
-                                                        automixItems.value = relatedItems
+                                                        automixItems.value = filteredAutomix(relatedItems)
                                                     }
                                                 }
                                             }
@@ -2137,6 +2148,28 @@ class MusicService :
                 } catch (_: Exception) {
                 }
             }
+        }
+    }
+
+    private fun filteredAutomix(items: List<MediaItem>) = items.filterNotRecommended(notRecommended())
+
+    /**
+     * Applies a just-changed "don't recommend" list to what is already queued: upcoming radio songs
+     * and automix suggestions go away, and a hidden radio song that is playing is skipped.
+     */
+    fun applyNotRecommended(notRecommended: NotRecommended) {
+        automixItems.value = automixItems.value.filterNotRecommended(notRecommended)
+        if (!currentQueue.isRecommendation() || player.mediaItemCount == 0) return
+        val currentIndex = player.currentMediaItemIndex
+        for (index in player.mediaItemCount - 1 downTo currentIndex + 1) {
+            val song = player.getMediaItemAt(index).metadata ?: continue
+            if (notRecommended.blocks(song.id, song.artists.map { it.id })) {
+                player.removeMediaItem(index)
+            }
+        }
+        val current = player.currentMetadata
+        if (current != null && notRecommended.blocks(current.id, current.artists.map { it.id }) && player.hasNextMediaItem()) {
+            player.seekToNextMediaItem()
         }
     }
 
@@ -2737,6 +2770,7 @@ class MusicService :
                             .nextPage()
                             .filterExplicit(cachedHideExplicit)
                             .filterVideoSongs(cachedHideVideoSongs)
+                            .let { if (currentQueue.isRecommendation()) it.filterNotRecommended(notRecommended()) else it }
                     }
                 if (player.playbackState != STATE_IDLE && mediaItems.isNotEmpty()) {
                     player.addMediaItems(mediaItems)
