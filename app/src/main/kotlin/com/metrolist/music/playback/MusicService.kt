@@ -245,6 +245,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -1297,7 +1298,12 @@ class MusicService :
                     }
                 }.onSuccess { playerState ->
                     scope.launch {
-                        delay(1000) // Wait for queue to be loaded
+                        // The queue is restored asynchronously; a fixed one-second wait was often
+                        // too short on slow starts, so playback restarted at the first song (#4365).
+                        playerInitialized.first { it }
+                        withTimeoutOrNull(QUEUE_RESTORE_TIMEOUT_MS) {
+                            while (player.mediaItemCount <= playerState.currentMediaItemIndex) delay(100)
+                        }
                         // Don't restore repeat/shuffle from playerState as they are already set from DataStore (source of truth)
                         // player.repeatMode = playerState.repeatMode
                         // player.shuffleModeEnabled = playerState.shuffleModeEnabled
@@ -5179,6 +5185,7 @@ class MusicService :
         private const val FINISHED_THRESHOLD_MS = 30_000L
         private const val AUDIO_FOCUS_RESUME_WINDOW_MS = 10 * 60 * 1000L
         private const val FOCUS_PAUSE_ECHO_MS = 1_000L
+        private const val QUEUE_RESTORE_TIMEOUT_MS = 15_000L
 
         const val ACTION_ALARM_TRIGGER = "com.metrolist.music.action.ALARM_TRIGGER"
         const val EXTRA_ALARM_ID = "extra_alarm_id"
