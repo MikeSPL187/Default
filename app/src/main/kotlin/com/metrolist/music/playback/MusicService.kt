@@ -30,6 +30,7 @@ import android.net.ConnectivityManager
 import android.os.Binder
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
@@ -302,6 +303,7 @@ class MusicService :
     private var audioFocusRequest: AudioFocusRequest? = null
     private var lastAudioFocusState = AudioManager.AUDIOFOCUS_NONE
     private var wasPlayingBeforeAudioFocusLoss = false
+    private var audioFocusPausedAtMs = 0L
     private var hasAudioFocus = false
     private var reentrantFocusGain = false
     private var wasPlayingBeforeVolumeMute = false
@@ -1444,6 +1446,13 @@ class MusicService :
                 hasAudioFocus = true
                 audioFocusVolumeMultiplier.value = 1f
 
+                // Only resume after a recent interruption (call, voice assistant); after a long
+                // one the user has moved on and sudden music is unwelcome (#4284).
+                if (wasPlayingBeforeAudioFocusLoss &&
+                    SystemClock.elapsedRealtime() - audioFocusPausedAtMs > AUDIO_FOCUS_RESUME_WINDOW_MS
+                ) {
+                    wasPlayingBeforeAudioFocusLoss = false
+                }
                 if (wasPlayingBeforeAudioFocusLoss && !player.isPlaying && !reentrantFocusGain) {
                     reentrantFocusGain = true
                     scope.launch {
@@ -1467,6 +1476,7 @@ class MusicService :
                 audioFocusVolumeMultiplier.value = 1f
                 wasPlayingBeforeAudioFocusLoss = player.isPlaying
                 if (player.isPlaying) {
+                    audioFocusPausedAtMs = SystemClock.elapsedRealtime()
                     player.pause()
                 }
                 abandonAudioFocus()
@@ -1478,15 +1488,16 @@ class MusicService :
                 audioFocusVolumeMultiplier.value = 1f
                 wasPlayingBeforeAudioFocusLoss = player.isPlaying
                 if (player.isPlaying) {
+                    audioFocusPausedAtMs = SystemClock.elapsedRealtime()
                     player.pause()
                 }
                 lastAudioFocusState = focusChange
             }
 
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                // Ducking keeps playing, so there is nothing to resume later.
                 hasAudioFocus = false
                 audioFocusVolumeMultiplier.value = 0.2f
-                wasPlayingBeforeAudioFocusLoss = player.isPlaying
                 if (player.isPlaying) {
                     applyEffectiveVolume()
                 }
@@ -2799,6 +2810,17 @@ class MusicService :
 
             if (!playWhenReady && !isPausedByVolumeMute) {
                 wasPlayingBeforeVolumeMute = false
+            }
+
+            // A pause the user asked for cancels any pending resume after an interruption.
+            // Pauses issued for focus loss arrive here too, right after they happened.
+            if (!playWhenReady &&
+                SystemClock.elapsedRealtime() - audioFocusPausedAtMs > FOCUS_PAUSE_ECHO_MS
+            ) {
+                wasPlayingBeforeAudioFocusLoss = false
+            }
+            if (playWhenReady) {
+                wasPlayingBeforeAudioFocusLoss = false
             }
         }
 
@@ -5155,6 +5177,8 @@ class MusicService :
     companion object {
         private const val PRELOAD_NEXT_SONG_DURATION_US = 5_000_000L
         private const val FINISHED_THRESHOLD_MS = 30_000L
+        private const val AUDIO_FOCUS_RESUME_WINDOW_MS = 10 * 60 * 1000L
+        private const val FOCUS_PAUSE_ECHO_MS = 1_000L
 
         const val ACTION_ALARM_TRIGGER = "com.metrolist.music.action.ALARM_TRIGGER"
         const val EXTRA_ALARM_ID = "extra_alarm_id"
