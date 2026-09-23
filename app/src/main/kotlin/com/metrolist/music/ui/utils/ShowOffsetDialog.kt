@@ -1,5 +1,6 @@
 package com.metrolist.music.ui.utils
 
+import kotlin.math.roundToInt
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -121,7 +122,7 @@ fun ShowOffsetDialog(songProvider: () -> SongEntity?) {
 
                         else -> {
                             limited.toIntOrNull()?.let { parsedValue ->
-                                val clampedValue = parsedValue.coerceIn(-9999, 9999)
+                                val clampedValue = parsedValue.coerceIn(-MAX_LYRICS_OFFSET_MS, MAX_LYRICS_OFFSET_MS)
                                 lyricsOffset = clampedValue
 
                                 if (parsedValue != clampedValue) {
@@ -191,7 +192,7 @@ fun ShowOffsetDialog(songProvider: () -> SongEntity?) {
         ) {
             IconButton(
                 onClick = {
-                    lyricsOffset = (lyricsOffset - 50).coerceIn(-3000, 3000)
+                    lyricsOffset = (lyricsOffset - 50).coerceIn(-MAX_LYRICS_OFFSET_MS, MAX_LYRICS_OFFSET_MS)
                     textFieldValue = lyricsOffset.toString()
                 }
             ) {
@@ -204,18 +205,18 @@ fun ShowOffsetDialog(songProvider: () -> SongEntity?) {
             Slider(
                 value = lyricsOffset.toFloat(),
                 onValueChange = { newValue ->
-                    val rounded = (newValue / 100).toInt() * 100
+                    val rounded = (newValue / 100).roundToInt() * 100
                     lyricsOffset = rounded
                     textFieldValue = rounded.toString()
                 },
-                valueRange = -3000f..3000f,
-                steps = 59,
+                // Same range as the text field and buttons, so dragging never clamps a typed value.
+                valueRange = -MAX_LYRICS_OFFSET_MS.toFloat()..MAX_LYRICS_OFFSET_MS.toFloat(),
                 modifier = Modifier.weight(1f)
             )
 
             IconButton(
                 onClick = {
-                    lyricsOffset = (lyricsOffset + 50).coerceIn(-3000, 3000)
+                    lyricsOffset = (lyricsOffset + 50).coerceIn(-MAX_LYRICS_OFFSET_MS, MAX_LYRICS_OFFSET_MS)
                     textFieldValue = lyricsOffset.toString()
                 }
             ) {
@@ -247,3 +248,6 @@ fun ShowOffsetDialog(songProvider: () -> SongEntity?) {
         }
     }
 }
+
+/** Music videos often start their song long after the audio track does (#3554). */
+private const val MAX_LYRICS_OFFSET_MS = 30_000
