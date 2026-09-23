@@ -395,7 +395,7 @@ constructor(
         database.song(songId).first()?.let(watchExportManager::exportInBackground)
     }
 
-    fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }
+    fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }.distinctUntilChanged()
 
     fun getWatchExportState(songId: String): Flow<WatchExportState> = watchExportManager.state(songId)
 
