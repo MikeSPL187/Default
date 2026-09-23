@@ -911,4 +911,7 @@
     <!-- Lyrics -->
     <string name="prefer_synced_lyrics">Предпочитать синхронизированный текст</string>
     <string name="prefer_synced_lyrics_desc">Проверять другие источники перед переходом к обычному тексту</string>
+
+    <!-- Search -->
+    <string name="search_failed">Не удалось загрузить результаты. Нажмите, чтобы повторить.</string>
 </resources>

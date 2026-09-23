@@ -9,6 +9,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -219,6 +220,16 @@ fun OnlineSearchResult(
             }
         }
     }
+    val loadFailed by remember(searchFilter) {
+        derivedStateOf {
+            val filterValue = searchFilter?.value
+            if (filterValue == null) {
+                viewModel.summaryLoadFailed && viewModel.summaryPage == null
+            } else {
+                viewModel.filterLoadFailures[filterValue] == true && viewModel.viewStateMap[filterValue] == null
+            }
+        }
+    }
 
     LaunchedEffect(lazyListState) {
         snapshotFlow {
@@ -304,6 +315,8 @@ fun OnlineSearchResult(
                 Modifier
                     .combinedClickable(
                         onClick = {
+                            keyboardController?.hide()
+                            focusManager.clearFocus()
                             when (item) {
                                 is SongItem -> {
                                     if (item.id == mediaMetadata?.id) {
@@ -539,7 +552,15 @@ fun OnlineSearchResult(
                         }
                     }
 
-                    if (searchFilter == null && searchSummary == null || searchFilter != null && itemsPage == null) {
+                    if (loadFailed) {
+                        item(key = "load_failed") {
+                            EmptyPlaceholder(
+                                icon = R.drawable.replay,
+                                text = stringResource(R.string.search_failed),
+                                modifier = Modifier.clickable { viewModel.retry() },
+                            )
+                        }
+                    } else if (searchFilter == null && searchSummary == null || searchFilter != null && itemsPage == null) {
                         item {
                             ShimmerHost {
                                 repeat(8) {

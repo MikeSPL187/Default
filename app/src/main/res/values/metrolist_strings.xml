@@ -1020,4 +1020,7 @@
     <!-- Lyrics -->
     <string name="prefer_synced_lyrics">Prefer synced lyrics</string>
     <string name="prefer_synced_lyrics_desc">Try other providers before falling back to plain lyrics</string>
+
+    <!-- Search -->
+    <string name="search_failed">Could not load search results. Tap to retry.</string>
 </resources>
