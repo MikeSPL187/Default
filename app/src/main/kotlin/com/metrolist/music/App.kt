@@ -5,6 +5,7 @@
 
 package com.metrolist.music
 
+import android.util.Log
 import android.app.ActivityManager
 import android.app.Application
 import android.app.NotificationChannel
@@ -92,7 +93,7 @@ class App :
         }
 
         // Plant logging before extraction services initialize.
-        Timber.plant(Timber.DebugTree())
+        Timber.plant(if (BuildConfig.DEBUG) Timber.DebugTree() else ReleaseLogTree())
         InnerTubeXPlayer.initialize(this)
 
         // Pre-read Coil cache size on background to avoid runBlocking in newImageLoader
@@ -405,5 +406,17 @@ class App :
                     }
             }
         return processName == packageName
+    }
+}
+
+/**
+ * Keeps warnings and errors in release logcat without DebugTree's per-call stack walk for the tag,
+ * and drops verbose, debug and info messages before they are formatted.
+ */
+private class ReleaseLogTree : Timber.Tree() {
+    override fun isLoggable(tag: String?, priority: Int): Boolean = priority >= Log.WARN
+
+    override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+        Log.println(priority, tag ?: "Metrolist", message)
     }
 }
