@@ -1026,4 +1026,10 @@
 
     <!-- Offline -->
     <string name="no_downloaded_favorites">No downloaded favorites available offline</string>
+
+    <!-- Playlists -->
+    <string name="remove_playlist_duplicates">Remove duplicate songs</string>
+    <string name="remove_playlist_duplicates_desc">Found %1$d duplicate songs</string>
+    <string name="remove_playlist_duplicates_confirm">Remove %1$d duplicate songs while keeping their first occurrence?</string>
+    <string name="playlist_duplicates_removed">Removed %1$d duplicate songs</string>
 </resources>

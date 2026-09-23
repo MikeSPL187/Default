@@ -51,6 +51,7 @@ import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
 import com.metrolist.music.db.entities.Playlist
 import com.metrolist.music.db.entities.PlaylistSong
+import com.metrolist.music.db.entities.PlaylistSongMap
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.db.entities.SpeedDialItem
 import com.metrolist.music.extensions.toMediaItem
@@ -93,11 +94,15 @@ fun PlaylistMenu(
     var songs by remember {
         mutableStateOf(emptyList<Song>())
     }
+    var playlistEntries by remember {
+        mutableStateOf(emptyList<PlaylistSongMap>())
+    }
 
     LaunchedEffect(Unit) {
         if (autoPlaylist == false) {
             database.playlistSongs(playlist.id).collect {
                 songs = it.map(PlaylistSong::song)
+                playlistEntries = it.map(PlaylistSong::map)
             }
         } else {
             if (songList != null) {
@@ -111,6 +116,51 @@ fun PlaylistMenu(
     }
 
     val editable: Boolean = playlist.playlist.isEditable == true
+
+    // Synced playlists are left alone: YouTube may keep distinct entries for the same video.
+    val duplicateEntries = remember(playlistEntries) { duplicatePlaylistEntries(playlistEntries) }
+    val canRemoveDuplicates =
+        autoPlaylist != true && !isGuest && playlist.playlist.browseId == null && duplicateEntries.isNotEmpty()
+    var showRemoveDuplicatesDialog by remember { mutableStateOf(false) }
+
+    if (showRemoveDuplicatesDialog) {
+        DefaultDialog(
+            onDismiss = { showRemoveDuplicatesDialog = false },
+            content = {
+                Text(
+                    text = stringResource(R.string.remove_playlist_duplicates_confirm, duplicateEntries.size),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp),
+                )
+            },
+            buttons = {
+                TextButton(onClick = { showRemoveDuplicatesDialog = false }) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+                TextButton(
+                    onClick = {
+                        showRemoveDuplicatesDialog = false
+                        val toRemove = duplicateEntries
+                        val removedMessage = context.getString(R.string.playlist_duplicates_removed, toRemove.size)
+                        onDismiss()
+                        database.transaction {
+                            toRemove.forEach { delete(it) }
+                            val removedIds = toRemove.mapTo(HashSet()) { it.id }
+                            playlistEntries
+                                .filter { it.id !in removedIds }
+                                .sortedBy { it.position }
+                                .forEachIndexed { index, map ->
+                                    if (map.position != index) update(map.copy(position = index))
+                                }
+                        }
+                        Toast.makeText(context, removedMessage, Toast.LENGTH_SHORT).show()
+                    },
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            },
+        )
+    }
 
     val isPinned by database.speedDialDao.isPinned(playlist.id).collectAsStateWithLifecycle(initialValue = false)
 
@@ -581,6 +631,23 @@ fun PlaylistMenu(
                                 },
                             )
                         }
+                        if (canRemoveDuplicates) {
+                            add(
+                                Material3MenuItemData(
+                                    title = { Text(text = stringResource(R.string.remove_playlist_duplicates)) },
+                                    description = {
+                                        Text(text = stringResource(R.string.remove_playlist_duplicates_desc, duplicateEntries.size))
+                                    },
+                                    icon = {
+                                        Icon(
+                                            painter = painterResource(R.drawable.clear_all),
+                                            contentDescription = null,
+                                        )
+                                    },
+                                    onClick = { showRemoveDuplicatesDialog = true },
+                                ),
+                            )
+                        }
                         // Export playlist
                         add(
                             Material3MenuItemData(
@@ -713,4 +780,10 @@ fun PlaylistMenu(
             },
         )
     }
+}
+
+/** Every entry whose song already appeared earlier in the playlist; the first occurrence stays. */
+internal fun duplicatePlaylistEntries(entries: List<PlaylistSongMap>): List<PlaylistSongMap> {
+    val seen = HashSet<String>()
+    return entries.sortedWith(compareBy({ it.position }, { it.id })).filterNot { seen.add(it.songId) }
 }
