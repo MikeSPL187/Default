@@ -892,6 +892,7 @@ class MusicService :
                     .first() == null
             ) {
                 val lyricsWithProvider = lyricsHelper.getLyrics(mediaMetadata)
+                if (lyricsWithProvider.isTransientMiss) return@collectLatest
                 database.query {
                     upsert(
                         LyricsEntity(

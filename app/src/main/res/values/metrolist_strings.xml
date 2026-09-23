@@ -1016,4 +1016,8 @@
     <!-- Playback -->
     <string name="preload_next_song">Preload next song</string>
     <string name="preload_next_song_desc">Prepare the beginning of the next track for a faster transition</string>
+
+    <!-- Lyrics -->
+    <string name="prefer_synced_lyrics">Prefer synced lyrics</string>
+    <string name="prefer_synced_lyrics_desc">Try other providers before falling back to plain lyrics</string>
 </resources>

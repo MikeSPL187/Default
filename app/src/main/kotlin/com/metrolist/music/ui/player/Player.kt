@@ -190,8 +190,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import kotlin.math.max
 import kotlin.math.roundToInt
 import com.metrolist.music.ui.component.Icon as MIcon
@@ -2009,7 +2011,6 @@ fun InlineLyricsView(
     val lyrics = remember(currentLyrics) { currentLyrics?.lyrics?.trim() }
     val context = LocalContext.current
     val database = LocalDatabase.current
-    val coroutineScope = rememberCoroutineScope()
 
     var appInForeground by remember {
         mutableStateOf(
@@ -2038,7 +2039,8 @@ fun InlineLyricsView(
     LaunchedEffect(mediaMetadata?.id, currentLyrics) {
         if (mediaMetadata != null && currentLyrics == null) {
             delay(500)
-            coroutineScope.launch(Dispatchers.IO) {
+            // Runs inside the effect so a song change cancels the fetch for the previous one.
+            withContext(Dispatchers.IO) {
                 try {
                     val entryPoint =
                         EntryPointAccessors.fromApplication(
@@ -2047,11 +2049,15 @@ fun InlineLyricsView(
                         )
                     val lyricsHelper = entryPoint.lyricsHelper()
                     val fetchedLyricsWithProvider = lyricsHelper.getLyrics(mediaMetadata)
-                    database.query {
-                        upsert(LyricsEntity(mediaMetadata.id, fetchedLyricsWithProvider.lyrics, fetchedLyricsWithProvider.provider))
+                    if (!fetchedLyricsWithProvider.isTransientMiss) {
+                        database.query {
+                            upsert(LyricsEntity(mediaMetadata.id, fetchedLyricsWithProvider.lyrics, fetchedLyricsWithProvider.provider))
+                        }
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
-                    // Handle error
+                    Timber.tag("Lyrics").w(e, "Lyrics fetch failed for ${mediaMetadata.id}")
                 }
             }
         }
@@ -2087,9 +2093,13 @@ fun InlineLyricsView(
                     )
                 val lyricsHelper = entryPoint.lyricsHelper()
                 val fetched = lyricsHelper.getLyrics(nextMetadata)
-                database.query {
-                    upsert(LyricsEntity(nextId, fetched.lyrics, fetched.provider))
+                if (!fetched.isTransientMiss) {
+                    database.query {
+                        upsert(LyricsEntity(nextId, fetched.lyrics, fetched.provider))
+                    }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (_: Exception) {
             }
         }

@@ -907,4 +907,8 @@
     <!-- Playback -->
     <string name="preload_next_song">Предзагружать следующий трек</string>
     <string name="preload_next_song_desc">Заранее подготовить начало следующего трека для быстрого перехода</string>
+
+    <!-- Lyrics -->
+    <string name="prefer_synced_lyrics">Предпочитать синхронизированный текст</string>
+    <string name="prefer_synced_lyrics_desc">Проверять другие источники перед переходом к обычному тексту</string>
 </resources>
