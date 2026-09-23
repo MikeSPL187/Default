@@ -1273,6 +1273,7 @@ class MusicService :
                         // player.shuffleModeEnabled = playerState.shuffleModeEnabled
                         playerVolume.value = playerState.volume
 
+                        restoreShuffleOrder()
                         if (playerState.currentMediaItemIndex < player.mediaItemCount) {
                             player.seekTo(playerState.currentMediaItemIndex, playerState.currentPosition)
                         }
@@ -1497,6 +1498,53 @@ class MusicService :
         runCatching { filesDir.resolve(PERSISTENT_QUEUE_FILE).delete() }
         runCatching { filesDir.resolve(PERSISTENT_AUTOMIX_FILE).delete() }
         runCatching { filesDir.resolve(PERSISTENT_PLAYER_STATE_FILE).delete() }
+        runCatching { filesDir.resolve(PERSISTENT_SHUFFLE_ORDER_FILE).delete() }
+    }
+
+    /** Current shuffled playback order as queue indices, or null when shuffle is off. */
+    private fun currentShuffleOrder(): IntArray? {
+        if (!player.shuffleModeEnabled) return null
+        val timeline = player.currentTimeline
+        if (timeline.isEmpty) return null
+        val order = ArrayList<Int>(timeline.windowCount)
+        var index = timeline.getFirstWindowIndex(true)
+        while (index != C.INDEX_UNSET && order.size < timeline.windowCount) {
+            order += index
+            index = timeline.getNextWindowIndex(index, REPEAT_MODE_OFF, true)
+        }
+        return order.toIntArray().takeIf { it.size == timeline.windowCount }
+    }
+
+    private fun saveShuffleOrderToDisk() {
+        val file = filesDir.resolve(PERSISTENT_SHUFFLE_ORDER_FILE)
+        val order = currentShuffleOrder()
+        runCatching {
+            if (order == null) {
+                file.delete()
+            } else {
+                file.writeText(order.joinToString(","))
+            }
+        }.onFailure { Timber.tag(TAG).w(it, "Failed to save shuffle order") }
+    }
+
+    /**
+     * Re-applies the shuffle order saved with the queue. Restoring the queue otherwise reshuffles
+     * it, so reopening the app changed which songs came next.
+     */
+    private fun restoreShuffleOrder() {
+        if (!player.shuffleModeEnabled) return
+        val order =
+            runCatching {
+                filesDir.resolve(PERSISTENT_SHUFFLE_ORDER_FILE)
+                    .takeIf { it.exists() }
+                    ?.readText()
+                    ?.split(',')
+                    ?.map(String::toInt)
+                    ?.toIntArray()
+            }.getOrNull() ?: return
+        val count = player.mediaItemCount
+        if (order.size != count || order.sorted() != (0 until count).toList()) return
+        player.setShuffleOrder(DefaultShuffleOrder(order, System.currentTimeMillis()))
     }
 
     private fun waitOnNetworkError() {
@@ -4160,6 +4208,7 @@ class MusicService :
 
     private fun savePlayerStateToDisk() {
         if (player.mediaItemCount == 0) return
+        saveShuffleOrderToDisk()
 
         val playerState = PersistPlayerState(
             playWhenReady = player.playWhenReady,
@@ -5052,6 +5101,7 @@ class MusicService :
         const val PERSISTENT_QUEUE_FILE = "persistent_queue.data"
         const val PERSISTENT_AUTOMIX_FILE = "persistent_automix.data"
         const val PERSISTENT_PLAYER_STATE_FILE = "persistent_player_state.data"
+        const val PERSISTENT_SHUFFLE_ORDER_FILE = "persistent_shuffle_order.txt"
         const val MAX_CONSECUTIVE_ERR = 5
         const val MAX_RETRY_COUNT = 10
 
