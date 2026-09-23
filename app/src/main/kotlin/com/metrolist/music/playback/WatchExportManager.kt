@@ -203,6 +203,50 @@ constructor(
         }
     }
 
+    /** Exports [song] without notifying the user and waits for the result. */
+    suspend fun exportAndAwait(song: Song): Result<WatchExportedFile> =
+        taskFor(song, notifyUser = false)?.deferred?.await()
+            ?: Result.failure(WatchExportException(context.getString(R.string.exporting_for_watch)))
+
+    fun exportedSongIds(): Set<String> = exportedIds()
+
+    /** Whether [song] can be exported from its offline download, without using the network. */
+    fun canExportOffline(song: Song): Boolean {
+        val format = song.format ?: return false
+        return isWatchCompatible(format.mimeType, format.codecs) &&
+            format.contentLength > 0 &&
+            downloadCache.isCached(song.id, 0, format.contentLength)
+    }
+
+    /** Deletes the exported file of [songId] from the watch folder and forgets the export. */
+    fun removeExport(songId: String) {
+        val displayName = preferences.getString(DISPLAY_NAME_KEY_PREFIX + songId, null)
+        if (displayName != null) {
+            runCatching {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    context.contentResolver.delete(
+                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                        "${MediaStore.MediaColumns.DISPLAY_NAME} = ? AND ${MediaStore.MediaColumns.RELATIVE_PATH} = ?",
+                        arrayOf(displayName, "${Environment.DIRECTORY_MUSIC}/$EXPORT_DIRECTORY/"),
+                    )
+                } else {
+                    @Suppress("DEPRECATION")
+                    val file = File(File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), EXPORT_DIRECTORY), displayName)
+                    if (file.delete()) {
+                        MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), arrayOf(MIME_TYPE), null)
+                    }
+                }
+            }.onFailure {
+                // Files exported before a reinstall belong to the old install and cannot be deleted by us.
+                Timber.tag(TAG).w(it, "Could not delete watch export $displayName")
+            }
+        }
+        synchronized(preferences) {
+            preferences.edit { remove(DISPLAY_NAME_KEY_PREFIX + songId) }
+        }
+        forgetExport(songId)
+    }
+
     fun forgetExport(songId: String) {
         synchronized(preferences) {
             preferences.edit { putStringSet(EXPORTED_IDS_KEY, exportedIds() - songId) }
@@ -252,6 +296,9 @@ constructor(
             updateState(songId, WatchExportState.Exporting(0L, null))
             val file = exportFromDownload(song) ?: exportFreshAac(song)
             markExported(songId)
+            synchronized(preferences) {
+                preferences.edit { putString(DISPLAY_NAME_KEY_PREFIX + songId, file.displayName) }
+            }
             updateState(songId, WatchExportState.Exported(file.displayName))
             Result.success(file)
         } catch (error: CancellationException) {
@@ -584,6 +631,7 @@ constructor(
         const val TAG = "WatchExport"
         const val PREFERENCES_NAME = "watch_export_status"
         const val EXPORTED_IDS_KEY = "exported_song_ids"
+        const val DISPLAY_NAME_KEY_PREFIX = "display_name_"
         const val EXPORT_DIRECTORY = "Metrolist Watch"
         const val TEMP_DIRECTORY = "watch_exports"
         const val MIME_TYPE = "audio/mp4"

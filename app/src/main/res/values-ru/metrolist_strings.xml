@@ -961,4 +961,12 @@
     <string name="not_recommended_summary">Треков: %1$d, исполнителей: %2$d. Нажмите, чтобы сбросить</string>
     <string name="not_recommended_empty">Ничего не скрыто из рекомендаций</string>
     <string name="not_recommended_cleared">Рекомендации сброшены</string>
+
+    <!-- Watch playlist sync -->
+    <string name="watch_sync_playlist">Синхронизировать с часами</string>
+    <string name="watch_sync_playlist_desc">Новые треки экспортируются для часов, удалённые из плейлиста — стираются</string>
+    <string name="watch_synced_playlists">Плейлисты, синхронизируемые с часами</string>
+
+    <!-- Watch playlist sync summary -->
+    <string name="watch_synced_playlists_desc">Синхронизируется: %1$d. Включается в меню плейлиста</string>
 </resources>

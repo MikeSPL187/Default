@@ -110,6 +110,8 @@ fun StorageSettings(
     var clearDownloads by remember { mutableStateOf(false) }
     var exportAllForWatchDialog by remember { mutableStateOf(false) }
     val downloadUtil = LocalDownloadUtil.current
+    val watchSyncedPlaylistIds by downloadUtil.watchPlaylistSync.syncedPlaylistIds
+        .collectAsStateWithLifecycle(initialValue = emptySet())
     val watchExportBatch by downloadUtil.watchExportManager.batchState.collectAsStateWithLifecycle()
     val requestExportAllForWatch = rememberSharedStorageAction { exportAllForWatchDialog = true }
     val (autoExportForWatch, onAutoExportForWatchChange) = rememberPreference(
@@ -424,6 +426,13 @@ fun StorageSettings(
                         },
                         onClick = {
                             if (autoExportForWatch) onAutoExportForWatchChange(false) else enableAutoExportForWatch()
+                        },
+                    ),
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.sync),
+                        title = { Text(stringResource(R.string.watch_synced_playlists)) },
+                        description = {
+                            Text(stringResource(R.string.watch_synced_playlists_desc, watchSyncedPlaylistIds.size))
                         },
                     ),
                     Material3SettingsItem(

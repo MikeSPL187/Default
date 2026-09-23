@@ -81,6 +81,7 @@ constructor(
     @DownloadCache val downloadCache: Cache,
     @PlayerCache val playerCache: Cache,
     val watchExportManager: WatchExportManager,
+    val watchPlaylistSync: WatchPlaylistSync,
 ) {
     private val TAG = "DownloadUtil"
     private val connectivityManager = context.getSystemService<ConnectivityManager>()!!
@@ -308,6 +309,7 @@ constructor(
         }
 
     init {
+        watchPlaylistSync.start()
         val result = mutableMapOf<String, Download>()
         downloadManager.downloadIndex.getDownloads().use { cursor ->
             while (cursor.moveToNext()) {

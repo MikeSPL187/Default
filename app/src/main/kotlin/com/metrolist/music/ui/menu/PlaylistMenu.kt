@@ -5,6 +5,8 @@
 
 package com.metrolist.music.ui.menu
 
+import androidx.compose.material3.Switch
+import com.metrolist.music.ui.utils.rememberSharedStorageAction
 import android.content.Intent
 import android.content.res.Configuration
 import android.widget.Toast
@@ -90,6 +92,14 @@ fun PlaylistMenu(
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val listenTogetherManager = LocalListenTogetherManager.current
+    val watchSyncedPlaylistIds by downloadUtil.watchPlaylistSync.syncedPlaylistIds
+        .collectAsStateWithLifecycle(initialValue = emptySet())
+    val isWatchSynced = playlist.id in watchSyncedPlaylistIds
+    val toggleWatchSync = rememberSharedStorageAction {
+        coroutineScope.launch {
+            downloadUtil.watchPlaylistSync.setPlaylistSynced(playlist.id, !isWatchSynced)
+        }
+    }
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
     val dbPlaylist by database.playlist(playlist.id).collectAsStateWithLifecycle(initialValue = playlist)
     var songs by remember {
@@ -651,6 +661,24 @@ fun PlaylistMenu(
                                         downloadUtil.watchExportManager.exportAll(downloadedSongs)
                                         onDismiss()
                                     },
+                                ),
+                            )
+                        }
+                        if (autoPlaylist != true && downloadPlaylist != true) {
+                            add(
+                                Material3MenuItemData(
+                                    title = { Text(text = stringResource(R.string.watch_sync_playlist)) },
+                                    description = { Text(text = stringResource(R.string.watch_sync_playlist_desc)) },
+                                    icon = {
+                                        Icon(
+                                            painter = painterResource(R.drawable.sync),
+                                            contentDescription = null,
+                                        )
+                                    },
+                                    trailingContent = {
+                                        Switch(checked = isWatchSynced, onCheckedChange = { toggleWatchSync() })
+                                    },
+                                    onClick = toggleWatchSync,
                                 ),
                             )
                         }

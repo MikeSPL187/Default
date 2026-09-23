@@ -1068,4 +1068,12 @@
     <string name="not_recommended_summary">%1$d songs, %2$d artists. Tap to reset</string>
     <string name="not_recommended_empty">Nothing hidden from recommendations</string>
     <string name="not_recommended_cleared">Recommendations reset</string>
+
+    <!-- Watch playlist sync -->
+    <string name="watch_sync_playlist">Sync with watch</string>
+    <string name="watch_sync_playlist_desc">New songs are exported for the watch, removed ones are deleted</string>
+    <string name="watch_synced_playlists">Playlists synced with watch</string>
+
+    <!-- Watch playlist sync summary -->
+    <string name="watch_synced_playlists_desc">%1$d synced. Turn on in a playlist\'s menu</string>
 </resources>
