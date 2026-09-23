@@ -968,22 +968,22 @@ interface DatabaseDao {
 
     @Transaction
     @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
-    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY title")
+    @Query("SELECT * FROM album WHERE isUploaded = 1 ORDER BY title")
     fun albumsUploadedByNameAsc(): Flow<List<Album>>
 
     @Transaction
     @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
-    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY year")
+    @Query("SELECT * FROM album WHERE isUploaded = 1 ORDER BY year")
     fun albumsUploadedByYearAsc(): Flow<List<Album>>
 
     @Transaction
     @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
-    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY songCount")
+    @Query("SELECT * FROM album WHERE isUploaded = 1 ORDER BY songCount")
     fun albumsUploadedBySongCountAsc(): Flow<List<Album>>
 
     @Transaction
     @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
-    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY duration")
+    @Query("SELECT * FROM album WHERE isUploaded = 1 ORDER BY duration")
     fun albumsUploadedByLengthAsc(): Flow<List<Album>>
 
     @Transaction
@@ -994,7 +994,7 @@ interface DatabaseDao {
         FROM album
                  JOIN song
                       ON song.albumId = album.id
-        WHERE bookmarkedAt IS NOT NULL
+        WHERE album.isUploaded = 1
         GROUP BY album.id
         ORDER BY SUM(song.totalPlayTime)
     """
@@ -1025,6 +1025,33 @@ interface DatabaseDao {
         AlbumSortType.LENGTH -> albumsByLengthAsc()
         AlbumSortType.PLAY_TIME -> albumsByPlayTimeAsc()
     }.map { it.reversed(descending) }
+
+    @Transaction
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
+    @Query(
+        """
+        SELECT * FROM album
+        WHERE EXISTS(SELECT 1 FROM song WHERE song.albumId = album.id AND song.isDownloaded = 1)
+        ORDER BY rowId
+    """
+    )
+    fun albumsDownloadedByCreateDateAsc(): Flow<List<Album>>
+
+    /** Albums with at least one downloaded song, i.e. albums that can be played offline. */
+    fun albumsDownloaded(
+        sortType: AlbumSortType,
+        descending: Boolean,
+    ) = albumsDownloadedByCreateDateAsc().map { albums ->
+        val collator = Collator.getInstance(Locale.getDefault()).apply { strength = Collator.PRIMARY }
+        when (sortType) {
+            AlbumSortType.CREATE_DATE, AlbumSortType.PLAY_TIME -> albums
+            AlbumSortType.NAME -> albums.sortedWith(compareBy(collator) { it.album.title })
+            AlbumSortType.ARTIST -> albums.sortedWith(compareBy(collator) { album -> album.artists.joinToString("") { it.name } })
+            AlbumSortType.YEAR -> albums.sortedBy { it.album.year }
+            AlbumSortType.SONG_COUNT -> albums.sortedBy { it.album.songCount }
+            AlbumSortType.LENGTH -> albums.sortedBy { it.album.duration }
+        }.reversed(descending)
+    }
 
     fun albumsLiked(
         sortType: AlbumSortType,

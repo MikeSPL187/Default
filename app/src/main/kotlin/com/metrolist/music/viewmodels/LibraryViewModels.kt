@@ -233,6 +233,7 @@ constructor(
                     AlbumFilter.LIKED -> database.albumsLiked(sortType, descending).map { it.filterExplicitAlbums(hideExplicit) }
                     AlbumFilter.LIBRARY -> database.albums(sortType, descending).map { it.filterExplicitAlbums(hideExplicit) }
                     AlbumFilter.UPLOADED -> database.albumsUploaded(sortType, descending).map { it.filterExplicitAlbums(hideExplicit) }
+                    AlbumFilter.DOWNLOADED -> database.albumsDownloaded(sortType, descending).map { it.filterExplicitAlbums(hideExplicit) }
                 }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 

@@ -298,6 +298,7 @@ enum class AlbumFilter {
     LIBRARY,
     LIKED,
     UPLOADED,
+    DOWNLOADED,
 }
 
 enum class PodcastFilter {
