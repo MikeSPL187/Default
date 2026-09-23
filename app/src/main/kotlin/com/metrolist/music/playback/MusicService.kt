@@ -239,6 +239,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -419,6 +420,19 @@ class MusicService :
     // runBlocking reads that were each blocking the main thread.
     @Volatile
     private var startupPrefs: Preferences? = null
+
+    // Latest preferences kept in memory. Reading them never blocks, unlike dataStore.get(),
+    // which runs a blocking DataStore read and was used from player callbacks on the main thread.
+    private lateinit var preferencesState: StateFlow<Preferences>
+
+    private fun preferences(): Preferences =
+        if (::preferencesState.isInitialized) {
+            preferencesState.value
+        } else {
+            runBlocking(Dispatchers.IO) { dataStore.data.first() }
+        }
+
+    private fun <T> pref(key: Preferences.Key<T>, defaultValue: T): T = preferences()[key] ?: defaultValue
 
     private val _playerFlow = MutableStateFlow<ExoPlayer?>(null)
     val playerFlow = _playerFlow.asStateFlow()
@@ -602,7 +616,7 @@ class MusicService :
                     } == true
 
                 if (hasBluetooth) {
-                    if (dataStore.get(ResumeOnBluetoothConnectKey, false)) {
+                    if (pref(ResumeOnBluetoothConnectKey, false)) {
                         if (player.playbackState == Player.STATE_READY && !player.isPlaying) {
                             player.play()
                         }
@@ -639,6 +653,7 @@ class MusicService :
         // never calls dataStore.get() (which does runBlocking internally).
         // This consolidates ~15 main-thread-blocking DataStore reads into 1.
         startupPrefs = runBlocking(Dispatchers.IO) { dataStore.data.first() }
+        preferencesState = dataStore.data.stateIn(scope, SharingStarted.Eagerly, startupPrefs!!)
         // Seed the cached preferences so playback callbacks never block on DataStore reads,
         // even before the observers below deliver their first value.
         startupPrefs?.let { prefs ->
@@ -1125,10 +1140,10 @@ class MusicService :
             .distinctUntilChanged()
             .collect(scope) { enabled ->
                 if (enabled && scrobbleManager == null) {
-                    val delayPercent = dataStore.get(ScrobbleDelayPercentKey, LastFM.DEFAULT_SCROBBLE_DELAY_PERCENT)
+                    val delayPercent = pref(ScrobbleDelayPercentKey, LastFM.DEFAULT_SCROBBLE_DELAY_PERCENT)
                     val minSongDuration =
-                        dataStore.get(ScrobbleMinSongDurationKey, LastFM.DEFAULT_SCROBBLE_MIN_SONG_DURATION)
-                    val delaySeconds = dataStore.get(ScrobbleDelaySecondsKey, LastFM.DEFAULT_SCROBBLE_DELAY_SECONDS)
+                        pref(ScrobbleMinSongDurationKey, LastFM.DEFAULT_SCROBBLE_MIN_SONG_DURATION)
+                    val delaySeconds = pref(ScrobbleDelaySecondsKey, LastFM.DEFAULT_SCROBBLE_DELAY_SECONDS)
                     scrobbleManager =
                         ScrobbleManager(
                             scope,
@@ -1136,7 +1151,7 @@ class MusicService :
                             scrobbleDelayPercent = delayPercent,
                             scrobbleDelaySeconds = delaySeconds,
                         )
-                    scrobbleManager?.useNowPlaying = dataStore.get(LastFMUseNowPlaying, false)
+                    scrobbleManager?.useNowPlaying = pref(LastFMUseNowPlaying, false)
                 } else if (!enabled && scrobbleManager != null) {
                     scrobbleManager?.destroy()
                     scrobbleManager = null
@@ -1360,10 +1375,10 @@ class MusicService :
             prefs[AudioTrackPlaybackParamsKey] ?: true
         } else {
             runBlocking {
-                val skipSilence = dataStore.get(SkipSilenceKey, false)
-                val instantSkip = dataStore.get(SkipSilenceInstantKey, false)
+                val skipSilence = pref(SkipSilenceKey, false)
+                val instantSkip = pref(SkipSilenceInstantKey, false)
                 silenceProcessor.instantModeEnabled = skipSilence && instantSkip
-                dataStore.get(AudioTrackPlaybackParamsKey, true)
+                pref(AudioTrackPlaybackParamsKey, true)
             }
         }
 
@@ -1412,10 +1427,10 @@ class MusicService :
         } else {
             player.apply {
                 runBlocking {
-                    val offload = dataStore.get(AudioOffload, false)
-                    val crossfade = dataStore.get(CrossfadeEnabledKey, false)
+                    val offload = pref(AudioOffload, false)
+                    val crossfade = pref(CrossfadeEnabledKey, false)
                     setOffloadEnabled(if (crossfade) false else offload)
-                    skipSilenceEnabled = dataStore.get(SkipSilenceKey, false)
+                    skipSilenceEnabled = pref(SkipSilenceKey, false)
                 }
             }
         }
@@ -1891,7 +1906,7 @@ class MusicService :
 
         currentQueue = queue
         queueTitle = null
-        val persistShuffleAcrossQueues = dataStore.get(PersistentShuffleAcrossQueuesKey, false)
+        val persistShuffleAcrossQueues = pref(PersistentShuffleAcrossQueuesKey, false)
         if (!persistShuffleAcrossQueues && !restoringQueue) {
             player.shuffleModeEnabled = false
         }
@@ -2154,7 +2169,7 @@ class MusicService :
             return
         }
 
-        if (dataStore.get(PreventDuplicateTracksInQueueKey, false)) {
+        if (pref(PreventDuplicateTracksInQueueKey, false)) {
             val itemIds = items.map { it.mediaId }.toSet()
             val indicesToRemove = mutableListOf<Int>()
             val currentIndex = player.currentMediaItemIndex
@@ -2237,7 +2252,7 @@ class MusicService :
     }
 
     fun addToQueue(items: List<MediaItem>) {
-        if (dataStore.get(PreventDuplicateTracksInQueueKey, false)) {
+        if (pref(PreventDuplicateTracksInQueueKey, false)) {
             val itemIds = items.map { it.mediaId }.toSet()
             val indicesToRemove = mutableListOf<Int>()
             val currentIndex = player.currentMediaItemIndex
@@ -2302,7 +2317,7 @@ class MusicService :
                     update(song)
                     syncUtils.likeSong(song)
 
-                    if (dataStore.get(AutoDownloadOnLikeKey, false) && song.liked) {
+                    if (pref(AutoDownloadOnLikeKey, false) && song.liked) {
                         downloadUtil.download(song.id)
                     }
                 }
@@ -2314,7 +2329,7 @@ class MusicService :
     fun addToTargetPlaylist() {
         scope.launch {
             val currentSong = currentSong.first() ?: return@launch
-            val targetPlaylistId = dataStore.get(AndroidAutoTargetPlaylistKey, MediaSessionConstants.TARGET_PLAYLIST_AUTO)
+            val targetPlaylistId = pref(AndroidAutoTargetPlaylistKey, MediaSessionConstants.TARGET_PLAYLIST_AUTO)
 
             if (targetPlaylistId == MediaSessionConstants.TARGET_PLAYLIST_AUTO) {
                 Handler(Looper.getMainLooper()).post {
@@ -2959,7 +2974,7 @@ class MusicService :
             applyShuffleOrder(currentIndex, totalCount, shufflePlaylistFirst)
         }
 
-        if (dataStore.get(RememberShuffleAndRepeatKey, true)) {
+        if (pref(RememberShuffleAndRepeatKey, true)) {
             scope.launch {
                 safeDataStoreEdit { settings ->
                     settings[ShuffleModeKey] = shuffleModeEnabled
@@ -3250,7 +3265,7 @@ class MusicService :
             }
         }
 
-        if (dataStore.get(AutoSkipNextOnErrorKey, false)) {
+        if (pref(AutoSkipNextOnErrorKey, false)) {
             Timber.tag(TAG).d("Auto-skipping to next track due to unrecoverable error")
             skipOnError()
         } else {
@@ -3612,7 +3627,7 @@ class MusicService :
      * Handles final failure when all recovery attempts have been exhausted.
      */
     private fun handleFinalFailure() {
-        val autoSkipOnError = dataStore.get(AutoSkipNextOnErrorKey, false)
+        val autoSkipOnError = pref(AutoSkipNextOnErrorKey, false)
         val autoplay = cachedAutoplay
         val canAdvance = player.hasNextMediaItem()
 
@@ -3630,7 +3645,7 @@ class MusicService :
         muted: Boolean,
     ) {
         super.onDeviceVolumeChanged(volume, muted)
-        val pauseOnMute = dataStore.get(PauseOnMute, false)
+        val pauseOnMute = pref(PauseOnMute, false)
 
         if ((volume == 0 || muted) && pauseOnMute) {
             if (player.isPlaying) {
@@ -3800,17 +3815,17 @@ class MusicService :
         }
         val artistThumbnail = song.artists.firstOrNull()?.thumbnailUrl
 
-        val advancedMode = dataStore.get(DiscordAdvancedModeKey, false)
-        val activityType = dataStore.get(DiscordActivityTypeKey, DiscordDefaults.ACTIVITY_TYPE).toIntOrNull() ?: DiscordActivity.TYPE_LISTENING
-        val activityName = dataStore.get(DiscordActivityNameKey, DiscordDefaults.ACTIVITY_NAME)
-        val stateTemplate = dataStore.get(DiscordStateTemplateKey, DiscordDefaults.STATE_TEMPLATE)
-        val detailsTemplate = dataStore.get(DiscordDetailsTemplateKey, DiscordDefaults.DETAILS_TEMPLATE)
-        val btn1Enabled = dataStore.get(DiscordButton1EnabledKey, true)
-        val btn1Label = dataStore.get(DiscordButton1LabelKey, DiscordDefaults.BUTTON1_LABEL)
-        val btn1Url = dataStore.get(DiscordButton1UrlKey, DiscordDefaults.BUTTON1_URL_TEMPLATE)
-        val btn2Enabled = dataStore.get(DiscordButton2EnabledKey, true)
-        val btn2Label = dataStore.get(DiscordButton2LabelKey, DiscordDefaults.BUTTON2_LABEL)
-        val btn2Url = dataStore.get(DiscordButton2UrlKey, DiscordDefaults.BUTTON2_URL)
+        val advancedMode = pref(DiscordAdvancedModeKey, false)
+        val activityType = pref(DiscordActivityTypeKey, DiscordDefaults.ACTIVITY_TYPE).toIntOrNull() ?: DiscordActivity.TYPE_LISTENING
+        val activityName = pref(DiscordActivityNameKey, DiscordDefaults.ACTIVITY_NAME)
+        val stateTemplate = pref(DiscordStateTemplateKey, DiscordDefaults.STATE_TEMPLATE)
+        val detailsTemplate = pref(DiscordDetailsTemplateKey, DiscordDefaults.DETAILS_TEMPLATE)
+        val btn1Enabled = pref(DiscordButton1EnabledKey, true)
+        val btn1Label = pref(DiscordButton1LabelKey, DiscordDefaults.BUTTON1_LABEL)
+        val btn1Url = pref(DiscordButton1UrlKey, DiscordDefaults.BUTTON1_URL_TEMPLATE)
+        val btn2Enabled = pref(DiscordButton2EnabledKey, true)
+        val btn2Label = pref(DiscordButton2LabelKey, DiscordDefaults.BUTTON2_LABEL)
+        val btn2Url = pref(DiscordButton2UrlKey, DiscordDefaults.BUTTON2_URL)
 
         Timber.tag("DiscordSvc").d(
             "updateDiscordRPC: prefs — advancedMode=%s, activityType=%d, activityName=%s, stateTemplate=%s, detailsTemplate=%s",
@@ -3841,7 +3856,7 @@ class MusicService :
         Timber.tag("DiscordSvc").i("updateDiscordRPC: type=%d name=%s state=%s details=%s start=%d end=%d isPlaying=%s",
             activity.activityType, activity.name, activity.state, activity.details, startTime, endTime ?: 0L, isPlaying)
 
-        val statusStr = dataStore.get(DiscordUserStatusKey, DiscordDefaults.USER_STATUS)
+        val statusStr = pref(DiscordUserStatusKey, DiscordDefaults.USER_STATUS)
         val presenceStatus = when (statusStr) {
             DiscordDefaults.STATUS_IDLE -> if (advancedMode) PresenceStatus.Idle else PresenceStatus.Online
             DiscordDefaults.STATUS_DND -> if (advancedMode) PresenceStatus.Dnd else PresenceStatus.Online
@@ -3973,7 +3988,7 @@ class MusicService :
             val shouldBypassCache = bypassCacheForQualityChange.contains(mediaId)
 
             if (!shouldBypassCache) {
-                val usePlayerCache = dataStore.get(EnableSongCacheKey, true)
+                val usePlayerCache = pref(EnableSongCacheKey, true)
 
                 val contentLength = storedFormat?.contentLength
                 val requiredLength =
@@ -4220,10 +4235,10 @@ class MusicService :
         playbackStats: PlaybackStats,
     ) {
         val mediaItem = eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window()).mediaItem
-        val historyDurationMs = dataStore[HistoryDuration]?.times(1000f) ?: 30000f
+        val historyDurationMs = preferences()[HistoryDuration]?.times(1000f) ?: 30000f
 
         if (playbackStats.totalPlayTimeMs >= historyDurationMs &&
-            !dataStore.get(PauseListenHistoryKey, false)
+            !pref(PauseListenHistoryKey, false)
         ) {
             database.query {
                 incrementTotalPlayTime(mediaItem.mediaId, playbackStats.totalPlayTimeMs)
@@ -4450,7 +4465,7 @@ class MusicService :
         }
         audioManager.unregisterAudioDeviceCallback(audioDeviceCallback)
         castConnectionHandler?.release()
-        if (dataStore.get(PersistentQueueKey, true)) {
+        if (pref(PersistentQueueKey, true)) {
             saveQueueToDisk()
             savePlayerStateToDisk()
         }
@@ -4492,7 +4507,7 @@ class MusicService :
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        if (dataStore.get(StopMusicOnTaskClearKey, false)) {
+        if (pref(StopMusicOnTaskClearKey, false)) {
             if (!::player.isInitialized) {
                 stopSelf()
                 return
@@ -4925,7 +4940,7 @@ class MusicService :
      * Initialize Google Cast support
      */
     private fun initializeCast() {
-        if (dataStore.get(com.metrolist.music.constants.EnableGoogleCastKey, true)) {
+        if (pref(com.metrolist.music.constants.EnableGoogleCastKey, true)) {
             try {
                 castConnectionHandler = CastConnectionHandler(this, scope, this)
                 castConnectionHandler?.initialize()
