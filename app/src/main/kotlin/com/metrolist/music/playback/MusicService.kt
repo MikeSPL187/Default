@@ -1312,7 +1312,7 @@ class MusicService :
                     savePlayerStateToDisk()
                 }
                 val currentMetadata = player.currentMediaItem?.metadata
-                if (currentMetadata?.isEpisode == true && player.isPlaying && player.currentPosition > 0) {
+                if (currentMetadata?.remembersPosition == true && player.isPlaying && player.currentPosition > 0) {
                     previousEpisodePosition = player.currentPosition
                     saveEpisodePosition(currentMetadata.id, player.currentPosition)
                 }
@@ -2558,8 +2558,11 @@ class MusicService :
         positionMs: Long,
     ) {
         if (positionMs < 3000) return // Don't save if less than 3 seconds played
+        val durationMs = player.duration.takeIf { it != C.TIME_UNSET && player.currentMediaItem?.mediaId == episodeId }
+        // Listening to (nearly) the end starts the next play from the beginning again.
+        val finished = durationMs != null && durationMs - positionMs < FINISHED_THRESHOLD_MS
         scope.launch(Dispatchers.IO + SilentHandler) {
-            database.updatePlaybackPosition(episodeId, positionMs)
+            database.updatePlaybackPosition(episodeId, positionMs.takeUnless { finished })
             Timber.tag(TAG).d("Saved episode position: $episodeId at ${positionMs}ms")
         }
     }
@@ -2604,7 +2607,10 @@ class MusicService :
         updateInitialBufferRecovery(player.playbackState)
 
         previousEpisodeId?.let { episodeId ->
-            if (previousEpisodePosition > 0) {
+            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+                // Played to the end: the next play starts from the beginning.
+                scope.launch(Dispatchers.IO + SilentHandler) { database.updatePlaybackPosition(episodeId, null) }
+            } else if (previousEpisodePosition > 0) {
                 saveEpisodePosition(episodeId, previousEpisodePosition)
             }
         }
@@ -2612,7 +2618,7 @@ class MusicService :
         previousEpisodePosition = 0L
 
         val newMetadata = mediaItem?.metadata
-        if (newMetadata?.isEpisode == true) {
+        if (newMetadata?.remembersPosition == true) {
             previousEpisodeId = newMetadata.id
             scope.launch {
                 delay(100)
@@ -2770,7 +2776,7 @@ class MusicService :
 
         if (!playWhenReady) {
             val currentMetadata = player.currentMediaItem?.metadata
-            if (currentMetadata?.isEpisode == true && player.currentPosition > 0) {
+            if (currentMetadata?.remembersPosition == true && player.currentPosition > 0) {
                 saveEpisodePosition(currentMetadata.id, player.currentPosition)
                 previousEpisodePosition = player.currentPosition
             }
@@ -4376,7 +4382,7 @@ class MusicService :
         }
 
         val currentMetadata = player.currentMediaItem?.metadata
-        if (currentMetadata?.isEpisode == true && player.currentPosition > 0) {
+        if (currentMetadata?.remembersPosition == true && player.currentPosition > 0) {
             runBlocking(Dispatchers.IO) {
                 database.updatePlaybackPosition(currentMetadata.id, player.currentPosition)
             }
@@ -5120,6 +5126,7 @@ class MusicService :
 
     companion object {
         private const val PRELOAD_NEXT_SONG_DURATION_US = 5_000_000L
+        private const val FINISHED_THRESHOLD_MS = 30_000L
 
         const val ACTION_ALARM_TRIGGER = "com.metrolist.music.action.ALARM_TRIGGER"
         const val EXTRA_ALARM_ID = "extra_alarm_id"
@@ -5169,3 +5176,12 @@ internal fun normalizationGainMb(
         ?.let { (-(it - targetLufs) * 100.0).toInt() }
         ?.coerceIn(-1500, 300)
 }
+
+/**
+ * Podcast episodes and very long tracks (mixes, DJ sets, audiobooks) resume where they were
+ * left, as in podcast and audiobook players.
+ */
+private const val LONG_TRACK_SECONDS = 20 * 60
+
+private val com.metrolist.music.models.MediaMetadata.remembersPosition: Boolean
+    get() = isEpisode || duration >= LONG_TRACK_SECONDS
