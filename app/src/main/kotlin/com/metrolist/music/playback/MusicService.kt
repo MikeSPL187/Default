@@ -3160,6 +3160,16 @@ class MusicService :
             }
 
             !isNetworkConnected.value -> {
+                // Like offline mode in other players: move on to the next song that is
+                // available without network instead of stalling the whole queue.
+                val offlineIndex = nextOfflinePlayableIndex()
+                if (offlineIndex != null) {
+                    Timber.tag(TAG).d("Offline: skipping to available song at $offlineIndex")
+                    player.seekTo(offlineIndex, 0)
+                    player.prepare()
+                    player.play()
+                    return
+                }
                 Timber.tag(TAG).d("No internet connection, waiting for connection")
                 waitOnNetworkError()
                 return
@@ -3188,8 +3198,8 @@ class MusicService :
     }
 
     /**
-     * Performs aggressive cache clearing for a media item.
-     * Clears both player cache and download cache, plus URL cache.
+     * Clears the transient player cache and the cached stream URL of a media item.
+     * Downloads are never touched here.
      */
     private fun performAggressiveCacheClear(mediaId: String) {
         Timber.tag(TAG).d("Performing aggressive cache clear")
@@ -3203,6 +3213,27 @@ class MusicService :
             Timber.tag(TAG).e("Failed to clear player cache type=${e::class.simpleName ?: "unknown"}")
         }
     }
+
+    /** Next queue index (in play order) whose song is downloaded or fully cached, if any. */
+    private fun nextOfflinePlayableIndex(): Int? {
+        val timeline = player.currentTimeline
+        if (timeline.isEmpty) return null
+        val downloads = downloadUtil.downloads.value
+        var index = player.currentMediaItemIndex
+        repeat(timeline.windowCount) {
+            index = timeline.getNextWindowIndex(index, REPEAT_MODE_OFF, player.shuffleModeEnabled)
+            if (index == C.INDEX_UNSET) return null
+            val mediaId = player.getMediaItemAt(index).mediaId
+            if (downloads[mediaId]?.state == Download.STATE_COMPLETED || isFullyCached(mediaId)) return index
+        }
+        return null
+    }
+
+    private fun isFullyCached(mediaId: String): Boolean =
+        runCatching {
+            val length = ContentMetadata.getContentLength(playerCache.getContentMetadata(mediaId))
+            length > 0 && playerCache.isCached(mediaId, 0, length)
+        }.getOrDefault(false)
 
     /**
      * Checks if a song has exceeded the retry limit.
