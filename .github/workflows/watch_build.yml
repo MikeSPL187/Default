@@ -11,6 +11,9 @@ on:
       - "fastlane/**"
       - "assets/**"
 
+permissions:
+  contents: write
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -64,6 +67,23 @@ jobs:
           name: metrolist-watch-foss-release
           path: app/build/outputs/apk/foss/release/*.apk
           if-no-files-found: error
+
+      # Only signed builds of the default branch become a release: unsigned APKs cannot be installed.
+      - name: Publish release
+        if: steps.sign.outcome == 'success' && github.ref_name == github.event.repository.default_branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SIGNED_APK: ${{ steps.sign.outputs.signedFile }}
+        run: |
+          version=$(sed -n 's/^ *versionName = "\(.*\)"/\1/p' app/build.gradle.kts)
+          tag="v$version"
+          apk="MetrolistWatch-$version.apk"
+          cp "$SIGNED_APK" "$apk"
+          # Recreate the release so its tag always points at the newest build of this version.
+          gh release delete "$tag" --cleanup-tag --yes || true
+          gh release create "$tag" "$apk" --target "$GITHUB_SHA" --latest \
+            --title "Metrolist Watch $version" \
+            --notes "Сборка из коммита $GITHUB_SHA. Установите $apk на телефон."
 
   lint:
     name: Lint report
