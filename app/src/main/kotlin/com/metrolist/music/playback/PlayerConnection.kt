@@ -34,8 +34,6 @@ import com.metrolist.music.extensions.withUpdatedMetadata
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.MusicService.MusicBinder
 import com.metrolist.music.playback.queues.Queue
-import com.metrolist.music.utils.dataStore
-import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -483,7 +481,8 @@ class PlayerConnection(
 
     private fun checkAndStartAutomaticSleepTimer(): Boolean {
         return try {
-            val sleepTimerEnabled = service.applicationContext.dataStore.get(SleepTimerEnabledKey) ?: false
+            val prefs = service.preferences()
+            val sleepTimerEnabled = prefs[SleepTimerEnabledKey] ?: false
             Timber.tag(TAG).d("✓ Sleep Timer Check: enabled=$sleepTimerEnabled")
 
             if (!sleepTimerEnabled) {
@@ -496,12 +495,12 @@ class PlayerConnection(
                 return false
             }
 
-            val sleepTimerRepeat = service.applicationContext.dataStore.get(SleepTimerRepeatKey) ?: "daily"
-            val sleepTimerStartTime = service.applicationContext.dataStore.get(SleepTimerStartTimeKey) ?: "09:00"
-            val sleepTimerEndTime = service.applicationContext.dataStore.get(SleepTimerEndTimeKey) ?: "23:00"
-            val sleepTimerDefaultMinutes = (service.applicationContext.dataStore.get(SleepTimerDefaultKey) ?: 30f).roundToInt()
-            val sleepTimerCustomDaysStr = service.applicationContext.dataStore.get(SleepTimerCustomDaysKey) ?: "0,1,2,3,4"
-            val sleepTimerDayTimesStr = service.applicationContext.dataStore.get(SleepTimerDayTimesKey) ?: ""
+            val sleepTimerRepeat = prefs[SleepTimerRepeatKey] ?: "daily"
+            val sleepTimerStartTime = prefs[SleepTimerStartTimeKey] ?: "09:00"
+            val sleepTimerEndTime = prefs[SleepTimerEndTimeKey] ?: "23:00"
+            val sleepTimerDefaultMinutes = (prefs[SleepTimerDefaultKey] ?: 30f).roundToInt()
+            val sleepTimerCustomDaysStr = prefs[SleepTimerCustomDaysKey] ?: "0,1,2,3,4"
+            val sleepTimerDayTimesStr = prefs[SleepTimerDayTimesKey] ?: ""
 
             Timber
                 .tag(

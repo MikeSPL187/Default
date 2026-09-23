@@ -425,7 +425,7 @@ class MusicService :
     // which runs a blocking DataStore read and was used from player callbacks on the main thread.
     private lateinit var preferencesState: StateFlow<Preferences>
 
-    private fun preferences(): Preferences =
+    internal fun preferences(): Preferences =
         if (::preferencesState.isInitialized) {
             preferencesState.value
         } else {
