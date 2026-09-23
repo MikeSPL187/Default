@@ -1,5 +1,6 @@
 package com.metrolist.music.recognition
 
+import coil3.imageLoader
 import androidx.core.graphics.createBitmap
 import androidx.core.content.edit
 import android.Manifest
@@ -22,7 +23,6 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import coil3.ImageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.toBitmap
@@ -67,7 +67,7 @@ class RecognitionForegroundService : Service() {
     private var keepNotificationOnStop = false
     private var terminalStateHandled = false
 
-    private val imageLoader by lazy { ImageLoader.Builder(this).build() }
+    private val imageLoader get() = applicationContext.imageLoader
 
     override fun onBind(intent: Intent?): IBinder? = null
 

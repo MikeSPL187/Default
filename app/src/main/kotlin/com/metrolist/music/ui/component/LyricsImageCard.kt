@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.component
 
+import coil3.imageLoader
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -60,7 +61,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.toArgb
 import androidx.palette.graphics.Palette
-import coil3.ImageLoader
 import coil3.request.allowHardware
 import coil3.toBitmap
 import kotlinx.coroutines.Dispatchers
@@ -187,9 +187,8 @@ fun LyricsImageCard(
         LaunchedEffect(mediaMetadata.thumbnailUrl) {
             withContext(Dispatchers.IO) {
                 try {
-                    val loader = ImageLoader(context)
-                    val req = ImageRequest.Builder(context).data(mediaMetadata.thumbnailUrl).allowHardware(false).build()
-                    val result = loader.execute(req)
+                    val req = ImageRequest.Builder(context).data(mediaMetadata.thumbnailUrl).size(128, 128).allowHardware(false).build()
+                    val result = context.imageLoader.execute(req)
                     val bmp = result.image?.toBitmap()
                     if (bmp != null) {
                         val palette = Palette.from(bmp).generate()

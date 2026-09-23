@@ -660,6 +660,8 @@ class MainActivity : FragmentActivity() {
                                         ImageRequest
                                             .Builder(this@MainActivity)
                                             .data(song.thumbnailUrl)
+                                            // Palette samples ~112x112 anyway; a small decode saves memory and CPU.
+                                            .size(128, 128)
                                             .allowHardware(false)
                                             .memoryCachePolicy(CachePolicy.ENABLED)
                                             .diskCachePolicy(CachePolicy.ENABLED)
