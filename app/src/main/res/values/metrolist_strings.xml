@@ -1087,4 +1087,8 @@
     <string name="daylist_day">Your afternoon</string>
     <string name="daylist_evening">Your evening</string>
     <string name="daylist_night">Your night</string>
+
+    <!-- Smart shuffle -->
+    <string name="smart_shuffle">Smart shuffle</string>
+    <string name="smart_shuffle_pick">Suggestion</string>
 </resources>

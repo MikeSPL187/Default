@@ -923,6 +923,29 @@ private fun AutoPlaylistHeader(
             horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            androidx.compose.material3.Surface(
+                onClick = {
+                    playerConnection.service.playSmartShuffle(
+                        title = name,
+                        items = songs.map { it.toMediaItem() },
+                    )
+                },
+                shape = androidx.compose.foundation.shape.CircleShape,
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                modifier = Modifier.size(48.dp),
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.smart_shuffle),
+                        contentDescription = stringResource(R.string.smart_shuffle),
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+            }
+
             // Shuffle Button - Smaller secondary button
             androidx.compose.material3.Surface(
                 onClick = {

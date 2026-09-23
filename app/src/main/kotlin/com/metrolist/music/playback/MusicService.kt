@@ -2153,6 +2153,58 @@ class MusicService :
 
     private fun filteredAutomix(items: List<MediaItem>) = items.filterNotRecommended(notRecommended())
 
+    private var smartShuffleJob: Job? = null
+
+    /**
+     * Plays [items] shuffled and, once fetched, slips a marked recommendation in after every few
+     * songs, similar to the playlist's own sound. Playback starts right away; recommendations
+     * follow when they arrive and are skipped if the user has moved on to another queue.
+     */
+    fun playSmartShuffle(title: String?, items: List<MediaItem>) {
+        if (items.isEmpty()) return
+        val shuffled = items.shuffled()
+        val queue = ListQueue(title = title, items = shuffled)
+        playQueue(queue)
+        player.shuffleModeEnabled = false
+        smartShuffleJob?.cancel()
+        smartShuffleJob =
+            scope.launch(SilentHandler) {
+                val picks = withContext(Dispatchers.IO) { smartShuffleRecommendations(shuffled) }
+                withTimeoutOrNull(SMART_SHUFFLE_QUEUE_WAIT_MS) {
+                    while (currentQueue === queue && player.mediaItemCount < shuffled.size) delay(200)
+                }
+                if (currentQueue !== queue || picks.isEmpty() || player.mediaItemCount < shuffled.size) return@launch
+                var insertAt = player.currentMediaItemIndex + 1 + SMART_SHUFFLE_EVERY
+                for (pick in picks) {
+                    if (insertAt > player.mediaItemCount) break
+                    player.addMediaItem(insertAt, pick)
+                    insertAt += SMART_SHUFFLE_EVERY + 1
+                }
+            }
+    }
+
+    private suspend fun smartShuffleRecommendations(playlist: List<MediaItem>): List<MediaItem> {
+        val playlistIds = playlist.mapTo(HashSet()) { it.mediaId }
+        val wanted = (playlist.size / SMART_SHUFFLE_EVERY).coerceIn(1, SMART_SHUFFLE_MAX)
+        val notRecommended = notRecommended()
+        val label = "✨ " + getString(R.string.smart_shuffle_pick)
+        val picks = LinkedHashMap<String, MediaItem>()
+        // The playlist is already shuffled, so its first songs are random seeds.
+        for (seed in playlist.take(SMART_SHUFFLE_SEEDS)) {
+            if (picks.size >= wanted) break
+            val related = YouTube.next(WatchEndpoint(videoId = seed.mediaId)).getOrNull()?.items ?: continue
+            related
+                .map { it.toMediaMetadata().copy(suggestedBy = label).toMediaItem() }
+                .filterExplicit(cachedHideExplicit)
+                .filterVideoSongs(cachedHideVideoSongs)
+                .filterNotRecommended(notRecommended)
+                .filter { it.mediaId !in playlistIds && it.mediaId !in picks }
+                .take(SMART_SHUFFLE_PER_SEED)
+                .forEach { picks[it.mediaId] = it }
+        }
+        return picks.values.shuffled().take(wanted)
+    }
+
     /**
      * Applies a just-changed "don't recommend" list to what is already queued: upcoming radio songs
      * and automix suggestions go away, and a hidden radio song that is playing is skipped.
@@ -5275,6 +5327,11 @@ class MusicService :
         private const val AUDIO_FOCUS_RESUME_WINDOW_MS = 10 * 60 * 1000L
         private const val FOCUS_PAUSE_ECHO_MS = 1_000L
         private const val QUEUE_RESTORE_TIMEOUT_MS = 15_000L
+        private const val SMART_SHUFFLE_EVERY = 3
+        private const val SMART_SHUFFLE_MAX = 30
+        private const val SMART_SHUFFLE_SEEDS = 8
+        private const val SMART_SHUFFLE_PER_SEED = 4
+        private const val SMART_SHUFFLE_QUEUE_WAIT_MS = 10_000L
 
         const val ACTION_ALARM_TRIGGER = "com.metrolist.music.action.ALARM_TRIGGER"
         const val EXTRA_ALARM_ID = "extra_alarm_id"

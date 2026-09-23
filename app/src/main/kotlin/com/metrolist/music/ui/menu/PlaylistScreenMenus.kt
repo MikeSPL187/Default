@@ -5,6 +5,11 @@
 
 package com.metrolist.music.ui.menu
 
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material3.Switch
+import com.metrolist.music.ui.utils.rememberSharedStorageAction
+import com.metrolist.music.LocalDownloadUtil
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -123,6 +128,12 @@ fun LocalPlaylistMenu(
         }
 
     val isYouTubePlaylist = playlist.playlist.browseId != null
+    val watchPlaylistSync = LocalDownloadUtil.current.watchPlaylistSync
+    val watchSyncedPlaylistIds by watchPlaylistSync.syncedPlaylistIds.collectAsStateWithLifecycle(initialValue = emptySet())
+    val isWatchSynced = playlist.id in watchSyncedPlaylistIds
+    val toggleWatchSync = rememberSharedStorageAction {
+        coroutineScope.launch { watchPlaylistSync.setPlaylistSynced(playlist.id, !isWatchSynced) }
+    }
 
     val menuItems =
         buildList {
@@ -140,6 +151,23 @@ fun LocalPlaylistMenu(
                         onEdit()
                         onDismiss()
                     },
+                ),
+            )
+
+            add(
+                Material3MenuItemData(
+                    title = { Text(stringResource(R.string.watch_sync_playlist)) },
+                    description = { Text(stringResource(R.string.watch_sync_playlist_desc)) },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.watch_check),
+                            contentDescription = null,
+                        )
+                    },
+                    trailingContent = {
+                        Switch(checked = isWatchSynced, onCheckedChange = { toggleWatchSync() })
+                    },
+                    onClick = toggleWatchSync,
                 ),
             )
 

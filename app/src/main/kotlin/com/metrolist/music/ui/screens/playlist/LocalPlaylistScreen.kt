@@ -1320,6 +1320,29 @@ fun LocalPlaylistHeader(
             horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            Surface(
+                onClick = {
+                    playerConnection.service.playSmartShuffle(
+                        title = playlist.playlist.name,
+                        items = songs.map { it.song.toMediaItem() },
+                    )
+                },
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                modifier = Modifier.size(48.dp),
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.smart_shuffle),
+                        contentDescription = stringResource(R.string.smart_shuffle),
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+            }
+
             // Shuffle Button - Smaller secondary button
             Surface(
                 onClick = {

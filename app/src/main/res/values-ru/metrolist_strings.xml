@@ -980,4 +980,8 @@
     <string name="daylist_day">Ваш день</string>
     <string name="daylist_evening">Ваш вечер</string>
     <string name="daylist_night">Ваша ночь</string>
+
+    <!-- Smart shuffle -->
+    <string name="smart_shuffle">Умное перемешивание</string>
+    <string name="smart_shuffle_pick">Рекомендация</string>
 </resources>

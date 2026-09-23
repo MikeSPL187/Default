@@ -671,7 +671,7 @@ fun PlaylistMenu(
                                     description = { Text(text = stringResource(R.string.watch_sync_playlist_desc)) },
                                     icon = {
                                         Icon(
-                                            painter = painterResource(R.drawable.sync),
+                                            painter = painterResource(R.drawable.watch_check),
                                             contentDescription = null,
                                         )
                                     },
