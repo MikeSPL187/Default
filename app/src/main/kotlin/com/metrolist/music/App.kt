@@ -76,6 +76,7 @@ class App :
         // Install crash handler first
         CrashHandler.install(this)
         ArtistNameAliases.initialize(this)
+        migrateImageCache()
 
         // preferencesDataStore uses filesDir/datastore; proactive mkdir reduces failures on odd ROM states
         try {
@@ -295,6 +296,20 @@ class App :
     @Volatile
     private var cachedCoilCacheSize: Int? = null
 
+    // Artwork lives outside cacheDir so the system does not wipe it under storage pressure
+    // (offline covers disappeared) and outside backups, which it would bloat.
+    private val imageCacheDir get() = noBackupFilesDir.resolve("coil")
+
+    private fun migrateImageCache() {
+        val legacy = cacheDir.resolve("coil")
+        if (!legacy.exists() || imageCacheDir.exists()) return
+        runCatching {
+            if (!legacy.renameTo(imageCacheDir)) {
+                Timber.w("Could not migrate the image cache; artwork will be cached again")
+            }
+        }.onFailure { Timber.w(it, "Failed to migrate the image cache") }
+    }
+
     override fun newImageLoader(context: PlatformContext): ImageLoader {
         val cacheSize = cachedCoilCacheSize ?: runBlocking {
             dataStore.data.map { it[MaxImageCacheSizeKey] ?: 512 }.first()
@@ -317,7 +332,7 @@ class App :
                     diskCache(
                         DiskCache
                             .Builder()
-                            .directory(cacheDir.resolve("coil"))
+                            .directory(imageCacheDir)
                             .maxSizeBytes(cacheSize * 1024 * 1024L)
                             .build(),
                     )
