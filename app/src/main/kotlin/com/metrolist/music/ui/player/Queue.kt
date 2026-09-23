@@ -5,6 +5,8 @@
 
 package com.metrolist.music.ui.player
 
+import com.metrolist.music.ui.menu.AddToPlaylistDialog
+import com.metrolist.music.LocalDatabase
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -658,6 +660,22 @@ fun Queue(
         val queueWindows by playerConnection.queueWindows.collectAsStateWithLifecycle()
         val automix by playerConnection.service.automixItems.collectAsStateWithLifecycle()
         val mutableQueueWindows = remember { mutableStateListOf<Timeline.Window>() }
+
+        var showSaveQueueDialog by rememberSaveable { mutableStateOf(false) }
+        val queueDatabase = LocalDatabase.current
+        AddToPlaylistDialog(
+            isVisible = showSaveQueueDialog,
+            initialTextFieldValue = queueTitle,
+            onGetSong = {
+                // AddToPlaylistDialog runs this on IO; songs must exist in the database before being added.
+                queueWindows.mapNotNull { it.mediaItem.metadata }.map { song ->
+                    queueDatabase.insert(song)
+                    song.id
+                }
+            },
+            onGetSongIds = { queueWindows.mapNotNull { it.mediaItem.metadata?.id } },
+            onDismiss = { showSaveQueueDialog = false },
+        )
         val queueLength =
             remember(queueWindows) {
                 queueWindows.sumOf { it.mediaItem.metadata!!.duration }
@@ -1068,6 +1086,15 @@ fun Queue(
                     exit = fadeOut() + slideOutVertically { it },
                 ) {
                     Row {
+                        IconButton(
+                            onClick = { showSaveQueueDialog = true },
+                            enabled = queueWindows.isNotEmpty(),
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.playlist_add),
+                                contentDescription = stringResource(R.string.save_queue_as_playlist),
+                            )
+                        }
                         IconButton(
                             onClick = { locked = !locked },
                             modifier = Modifier.padding(horizontal = 6.dp),

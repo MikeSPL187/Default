@@ -944,4 +944,7 @@
     <!-- Sharing -->
     <string name="share_youtube_links">Делиться ссылками YouTube</string>
     <string name="share_youtube_links_desc">Отправленные треки откроются у всех, даже без YouTube Music</string>
+
+    <!-- Queue -->
+    <string name="save_queue_as_playlist">Сохранить очередь как плейлист</string>
 </resources>
