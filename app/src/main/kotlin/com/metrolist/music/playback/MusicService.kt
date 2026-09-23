@@ -7,6 +7,7 @@
 
 package com.metrolist.music.playback
 
+import java.util.Locale
 import android.app.ForegroundServiceStartNotAllowedException
 import android.app.Notification
 import android.app.NotificationChannel
@@ -3809,7 +3810,7 @@ class MusicService :
         val artistName = song.artists.joinToString { it.name }.ifEmpty { DiscordDefaults.UNKNOWN_ARTIST }
         val albumName = song.album?.title
         val songTitle = if (speed != 1.0f) {
-            "${song.song.title} [${String.format("%.2fx", speed)}]"
+            "${song.song.title} [${String.format(Locale.US, "%.2fx", speed)}]"
         } else {
             song.song.title
         }
@@ -4424,15 +4425,13 @@ class MusicService :
                 startForeground(NOTIFICATION_ID, notification)
             }
             true
-        } catch (e: ForegroundServiceStartNotAllowedException) {
-            Timber.tag(TAG).w(e, deniedMessage)
-            if (stopOnFailure) {
-                stopSelf()
-            }
-            false
         } catch (e: Exception) {
-            Timber.tag(TAG).e(e, failureMessage)
-            reportException(e)
+            if (e is IllegalStateException && isForegroundServiceStartNotAllowedException(e)) {
+                Timber.tag(TAG).w(e, deniedMessage)
+            } else {
+                Timber.tag(TAG).e(e, failureMessage)
+                reportException(e)
+            }
             if (stopOnFailure) {
                 stopSelf()
             }
@@ -4544,8 +4543,6 @@ class MusicService :
     ) {
         try {
             super.onUpdateNotification(session, startInForegroundRequired)
-        } catch (e: ForegroundServiceStartNotAllowedException) {
-            handleForegroundServiceStartNotAllowed(e)
         } catch (e: IllegalStateException) {
             if (isForegroundServiceStartNotAllowedException(e)) {
                 handleForegroundServiceStartNotAllowed(e)
@@ -4568,7 +4565,7 @@ class MusicService :
         // media control.
         val isNotificationDismissal =
             intent?.getBooleanExtra(MediaNotification.NOTIFICATION_DISMISSED_EVENT_KEY, false) == true
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isNotificationDismissal) {
+        if (!isNotificationDismissal) {
             if (!ensureForegroundWithLatestNotificationOrStop()) {
                 return START_NOT_STICKY
             }
@@ -4838,7 +4835,7 @@ class MusicService :
 
     private fun isForegroundServiceStartNotAllowedException(error: IllegalStateException): Boolean =
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-            error.javaClass.name == ForegroundServiceStartNotAllowedException::class.java.name
+            error is ForegroundServiceStartNotAllowedException
 
     /**
      * Updates all app widgets with current playback state

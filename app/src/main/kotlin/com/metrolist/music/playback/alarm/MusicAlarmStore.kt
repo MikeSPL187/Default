@@ -1,7 +1,7 @@
 package com.metrolist.music.playback.alarm
 
+import androidx.core.content.edit
 import android.content.Context
-import android.os.Build
 import com.metrolist.music.constants.AlarmEnabledKey
 import com.metrolist.music.constants.AlarmEntriesKey
 import com.metrolist.music.constants.AlarmHourKey
@@ -159,16 +159,10 @@ object MusicAlarmStore {
     private fun saveProtected(context: Context, entries: List<MusicAlarmEntry>) {
         alarmPrefsContext(context)
             .getSharedPreferences(ALARM_PREFS, Context.MODE_PRIVATE)
-            .edit()
-            .putString(ALARM_PREFS_ENTRIES, serialize(entries))
-            .apply()
+            .edit {
+                putString(ALARM_PREFS_ENTRIES, serialize(entries))
+            }
     }
 
-    private fun alarmPrefsContext(context: Context): Context {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            context.createDeviceProtectedStorageContext()
-        } else {
-            context
-        }
-    }
+    private fun alarmPrefsContext(context: Context): Context = context.createDeviceProtectedStorageContext()
 }

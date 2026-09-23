@@ -5,6 +5,7 @@
 
 package com.metrolist.music.playback
 
+import androidx.core.content.edit
 import android.Manifest
 import android.content.ContentValues
 import android.content.Context
@@ -204,7 +205,7 @@ constructor(
 
     fun forgetExport(songId: String) {
         synchronized(preferences) {
-            preferences.edit().putStringSet(EXPORTED_IDS_KEY, exportedIds() - songId).apply()
+            preferences.edit { putStringSet(EXPORTED_IDS_KEY, exportedIds() - songId) }
         }
         updateState(songId, WatchExportState.NotExported)
     }

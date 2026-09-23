@@ -7,7 +7,6 @@ package com.metrolist.music
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.ForegroundServiceStartNotAllowedException
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Intent
@@ -333,9 +332,8 @@ class MainActivity : FragmentActivity() {
                 } else {
                     startService(serviceIntent)
                 }
-            } catch (e: ForegroundServiceStartNotAllowedException) {
-                Timber.w(e, "Cannot start foreground service from background")
             } catch (e: IllegalStateException) {
+                // Includes ForegroundServiceStartNotAllowedException when started from the background.
                 Timber.w(e, "Failed to start foreground service")
             }
         }

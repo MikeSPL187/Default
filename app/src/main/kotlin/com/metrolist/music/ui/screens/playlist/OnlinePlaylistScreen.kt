@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.screens.playlist
 
+import androidx.compose.runtime.derivedStateOf
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -137,6 +138,7 @@ fun OnlinePlaylistScreen(
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
 
     val lazyListState = rememberLazyListState()
+    val isScrolledPastHeader by remember { derivedStateOf { lazyListState.firstVisibleItemIndex > 0 } }
     val snackbarHostState = remember { SnackbarHostState() }
 
     var isSearching by rememberSaveable { mutableStateOf(false) }
@@ -397,7 +399,7 @@ fun OnlinePlaylistScreen(
                                 .fillMaxWidth()
                                 .focusRequester(focusRequester),
                     )
-                } else if (lazyListState.firstVisibleItemIndex > 0) {
+                } else if (isScrolledPastHeader) {
                     Text(playlist?.title ?: "")
                 }
             },

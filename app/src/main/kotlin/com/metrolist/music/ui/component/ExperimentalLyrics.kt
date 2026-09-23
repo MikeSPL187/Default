@@ -71,7 +71,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -155,7 +155,7 @@ fun ExperimentalLyrics(
     val database = LocalDatabase.current
     val density = LocalDensity.current
     val context = LocalContext.current
-    val configuration = LocalConfiguration.current
+    val windowInfo = LocalWindowInfo.current
     val listenTogetherManager = LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
 
@@ -859,8 +859,8 @@ fun ExperimentalLyrics(
                     try {
                         val image = ComposeToImage.createLyricsImage(
                             context, mediaMetadata?.thumbnailUrl, title, arts, txt,
-                            (configuration.screenWidthDp * density.density).toInt(),
-                            (configuration.screenHeightDp * density.density).toInt(),
+                            windowInfo.containerSize.width,
+                            windowInfo.containerSize.height,
                             bgColor.toArgb(),
                             when(style) {
                                 LyricsBackgroundStyle.SOLID -> LyricsBackgroundStyle.SOLID

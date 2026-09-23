@@ -304,7 +304,6 @@ class OnlinePlaylistViewModel @Inject constructor(
     }
 
     override fun onCleared() {
-        super.onCleared()
         proactiveLoadJob?.cancel()
     }
 }

@@ -1,11 +1,15 @@
 package com.metrolist.music.recognition
 
+import androidx.core.graphics.createBitmap
+import androidx.core.content.edit
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapShader
@@ -17,6 +21,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import coil3.ImageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
@@ -150,7 +155,7 @@ class RecognitionForegroundService : Service() {
             )
 
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 startForeground(
                     NOTIFICATION_ID,
                     notification,
@@ -292,7 +297,7 @@ class RecognitionForegroundService : Service() {
             serviceScope.launch {
                 var frame = 0
                 while (isActive) {
-                    widgetPreferences().edit().putInt(PREF_PULSE_FRAME, frame).apply()
+                    widgetPreferences().edit { putInt(PREF_PULSE_FRAME, frame) }
                     updateAllWidgets()
                     frame = (frame + 1) % PULSE_FRAME_COUNT
                     delay(PULSE_INTERVAL_MS)
@@ -332,13 +337,13 @@ class RecognitionForegroundService : Service() {
                 ?.absolutePath
                 .orEmpty()
         widgetPreferences()
-            .edit()
-            .putInt(PREF_STATE, STATE_SUCCESS)
-            .putString(PREF_SONG_TITLE, result.title)
-            .putString(PREF_ARTIST_NAME, result.artist)
-            .putString(PREF_COVER_ART_PATH, artPath)
-            .putInt(PREF_PULSE_FRAME, 0)
-            .apply()
+            .edit {
+                putInt(PREF_STATE, STATE_SUCCESS)
+                putString(PREF_SONG_TITLE, result.title)
+                putString(PREF_ARTIST_NAME, result.artist)
+                putString(PREF_COVER_ART_PATH, artPath)
+                putInt(PREF_PULSE_FRAME, 0)
+            }
 
         runCatching {
             EntryPointAccessors
@@ -374,19 +379,19 @@ class RecognitionForegroundService : Service() {
         message: String,
     ) {
         widgetPreferences()
-            .edit()
-            .putInt(PREF_STATE, state)
-            .putString(PREF_ERROR_MESSAGE, message)
-            .putString(PREF_COVER_ART_PATH, "")
-            .putInt(PREF_PULSE_FRAME, 0)
-            .apply()
+            .edit {
+                putInt(PREF_STATE, state)
+                putString(PREF_ERROR_MESSAGE, message)
+                putString(PREF_COVER_ART_PATH, "")
+                putInt(PREF_PULSE_FRAME, 0)
+            }
     }
 
     private fun stopWidgetRecognition() {
         recognitionJob?.cancel()
         pulseJob?.cancel()
         saveWidgetState(STATE_IDLE)
-        widgetPreferences().edit().putInt(PREF_PULSE_FRAME, 0).apply()
+        widgetPreferences().edit { putInt(PREF_PULSE_FRAME, 0) }
         updateAllWidgets()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
@@ -421,7 +426,7 @@ class RecognitionForegroundService : Service() {
                         size,
                         size,
                     )
-                val rounded = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+                val rounded = createBitmap(size, size)
                 val paint =
                     Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
                         shader = BitmapShader(square, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
@@ -448,6 +453,11 @@ class RecognitionForegroundService : Service() {
         actionIntent: PendingIntent? = null,
         actionTitle: String? = null,
     ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
         NotificationManagerCompat.from(this).notify(
             NOTIFICATION_ID,
             buildNotification(
@@ -508,7 +518,7 @@ class RecognitionForegroundService : Service() {
     private fun widgetPreferences() = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     private fun saveWidgetState(state: Int) {
-        widgetPreferences().edit().putInt(PREF_STATE, state).apply()
+        widgetPreferences().edit { putInt(PREF_STATE, state) }
     }
 
     private fun updateAllWidgets() {
@@ -520,7 +530,6 @@ class RecognitionForegroundService : Service() {
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         getSystemService(NotificationManager::class.java).createNotificationChannel(
             NotificationChannel(
                 CHANNEL_ID,

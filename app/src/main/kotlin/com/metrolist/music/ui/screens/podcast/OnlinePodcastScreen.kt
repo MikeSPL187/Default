@@ -1,5 +1,6 @@
 package com.metrolist.music.ui.screens.podcast
 
+import androidx.compose.runtime.derivedStateOf
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -108,6 +109,7 @@ fun OnlinePodcastScreen(
     val libraryPodcast by viewModel.libraryPodcast.collectAsStateWithLifecycle()
 
     val lazyListState = rememberLazyListState()
+    val isScrolledPastHeader by remember { derivedStateOf { lazyListState.firstVisibleItemIndex > 0 } }
 
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue()) }
@@ -260,7 +262,7 @@ fun OnlinePodcastScreen(
                             .fillMaxWidth()
                             .focusRequester(focusRequester)
                     )
-                } else if (lazyListState.firstVisibleItemIndex > 0) {
+                } else if (isScrolledPastHeader) {
                     Text(podcast?.title ?: "")
                 }
             },

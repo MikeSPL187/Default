@@ -5,6 +5,8 @@
 
 package com.metrolist.music.widget
 
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.createBitmap
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
@@ -562,7 +564,7 @@ class PlaylistWidgetManager @Inject constructor(
         val xOffset = (bitmap.width - size) / 2
         val yOffset = (bitmap.height - size) / 2
         val squareBitmap = Bitmap.createBitmap(bitmap, xOffset, yOffset, size, size)
-        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val output = createBitmap(size, size)
         val canvas = Canvas(output)
         val paint = Paint().apply {
             isAntiAlias = true
@@ -585,7 +587,7 @@ class PlaylistWidgetManager @Inject constructor(
         fallbackArtworkCache[cacheKey]?.let { return it }
 
         val size = 300
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(size, size)
         val canvas = Canvas(bitmap)
         val background = Paint().apply {
             isAntiAlias = true
@@ -599,7 +601,7 @@ class PlaylistWidgetManager @Inject constructor(
         val rect = RectF(0f, 0f, size.toFloat(), size.toFloat())
         canvas.drawRoundRect(rect, cornerRadius, cornerRadius, background)
 
-        val icon = context.getDrawable(item.fallbackIconRes)?.mutate()
+        val icon = ContextCompat.getDrawable(context, item.fallbackIconRes)?.mutate()
         icon?.setTint(Color.WHITE)
         val iconSize = 128
         val iconOffset = (size - iconSize) / 2
@@ -616,7 +618,7 @@ class PlaylistWidgetManager @Inject constructor(
 
         val drawable = context.packageManager.getApplicationIcon(context.packageName)
         val size = 300
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(size, size)
         val canvas = Canvas(bitmap)
         drawable.setBounds(0, 0, size, size)
         drawable.draw(canvas)

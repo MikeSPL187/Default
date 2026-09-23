@@ -5,6 +5,7 @@
 
 package com.metrolist.music.utils
 
+import androidx.core.graphics.scale
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
@@ -125,7 +126,7 @@ object ComposeToImage {
                     if (coverArtBitmap != null) {
                         try {
                             // Create a scaled down version for blurring (performance)
-                            val scaledBitmap = Bitmap.createScaledBitmap(coverArtBitmap, imageWidth / 10, imageHeight / 10, true)
+                            val scaledBitmap = coverArtBitmap.scale(imageWidth / 10, imageHeight / 10, true)
                             val blurredBitmap = fastBlur(scaledBitmap, 1f, 20) // Radius 20 on small image is large blur
 
                             if (blurredBitmap != null) {
@@ -256,12 +257,11 @@ object ComposeToImage {
             val headerCenterY = padding + coverArtSize / 2f
             val titleY = headerCenterY - headerTextHeight / 2f
 
-            canvas.save()
-            canvas.translate(textStartX, titleY)
-            titleLayout.draw(canvas)
-            canvas.translate(0f, titleLayout.height.toFloat() + (2f * scale))
-            artistLayout.draw(canvas)
-            canvas.restore()
+            canvas.withTranslation(textStartX, titleY) {
+                titleLayout.draw(this)
+                translate(0f, titleLayout.height.toFloat() + (2f * scale))
+                artistLayout.draw(this)
+            }
 
             // --- Footer Section ---
             val logoBoxSize = 22f * scale
@@ -396,7 +396,7 @@ object ComposeToImage {
 
         if (width <= 0 || height <= 0) return null
 
-        val bitmap = Bitmap.createScaledBitmap(sentBitmap, width, height, false)
+        val bitmap = sentBitmap.scale(width, height, false)
         val w = bitmap.width
         val h = bitmap.height
         val pix = IntArray(w * h)

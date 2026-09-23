@@ -5,6 +5,7 @@
 
 package com.metrolist.music.widget
 
+import androidx.core.content.edit
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
@@ -12,7 +13,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
-import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
@@ -76,14 +76,14 @@ class MusicRecognizerWidgetReceiver : AppWidgetProvider() {
             ACTION_UPDATE_WIDGET -> updateAllWidgets(context, AppWidgetManager.getInstance(context))
             ACTION_RESET_STATE -> {
                 context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                    .edit()
-                    .putInt(PREF_STATE, STATE_IDLE)
-                    .putString(PREF_SONG_TITLE, "")
-                    .putString(PREF_ARTIST_NAME, "")
-                    .putString(PREF_ERROR_MESSAGE, "")
-                    .putString(PREF_COVER_ART_PATH, "")
-                    .putInt(PREF_PULSE_FRAME, 0)
-                    .apply()
+                    .edit {
+                        putInt(PREF_STATE, STATE_IDLE)
+                        putString(PREF_SONG_TITLE, "")
+                        putString(PREF_ARTIST_NAME, "")
+                        putString(PREF_ERROR_MESSAGE, "")
+                        putString(PREF_COVER_ART_PATH, "")
+                        putInt(PREF_PULSE_FRAME, 0)
+                    }
                 File(context.cacheDir, ALBUM_ART_CACHE_FILE).delete()
                 updateAllWidgets(context, AppWidgetManager.getInstance(context))
             }
@@ -108,7 +108,7 @@ class MusicRecognizerWidgetReceiver : AppWidgetProvider() {
 
         // Showing a result/error → clear it before starting a new search
         if (currentState == STATE_SUCCESS || currentState == STATE_NO_MATCH || currentState == STATE_ERROR) {
-            prefs.edit().putInt(PREF_STATE, STATE_IDLE).apply()
+            prefs.edit { putInt(PREF_STATE, STATE_IDLE) }
         }
 
         // No mic permission → open the app so the user can grant it
@@ -126,11 +126,7 @@ class MusicRecognizerWidgetReceiver : AppWidgetProvider() {
         val serviceIntent = Intent(context, RecognitionForegroundService::class.java).apply {
             action = RecognitionForegroundService.ACTION_START_WIDGET_RECOGNITION
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(serviceIntent)
-        } else {
-            context.startService(serviceIntent)
-        }
+        context.startForegroundService(serviceIntent)
     }
 
     // ─── Widget update ────────────────────────────────────────────────────────

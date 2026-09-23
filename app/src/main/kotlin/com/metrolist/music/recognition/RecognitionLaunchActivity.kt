@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import androidx.core.content.ContextCompat
 import com.metrolist.music.MainActivity
@@ -49,10 +48,6 @@ class RecognitionLaunchActivity : Activity() {
 
         val serviceIntent = Intent(this, RecognitionForegroundService::class.java)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(serviceIntent)
-        } else {
-            startService(serviceIntent)
-        }
+        startForegroundService(serviceIntent)
     }
 }

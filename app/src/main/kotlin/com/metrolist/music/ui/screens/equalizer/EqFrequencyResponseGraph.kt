@@ -1,5 +1,6 @@
 package com.metrolist.music.ui.screens.equalizer
 
+import java.util.Locale
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -129,7 +130,7 @@ fun EqFrequencyResponseGraph(
                     // Label
                     val labelText = if (db == 0.0) "0" else {
                         if (db == db.toLong().toDouble()) db.toLong().toString()
-                        else String.format("%.1f", db)
+                        else String.format(Locale.US, "%.1f", db)
                     }
                     drawDbLabel(textMeasurer, labelText, labelStyle, y, plotLeft)
                     db += dbStep

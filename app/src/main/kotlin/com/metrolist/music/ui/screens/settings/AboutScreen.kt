@@ -82,7 +82,7 @@ import com.metrolist.music.ui.component.Material3SettingsItem
 import com.metrolist.music.ui.utils.backToMain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.util.Locale
+import androidx.compose.ui.platform.LocalConfiguration
 
 private data class Contributor(
     val name: String,
@@ -265,9 +265,10 @@ fun AboutScreen(
                 Spacer(Modifier.width(20.dp))
         
                 Column {
+                    val locale = LocalConfiguration.current.locales[0]
                     val metrolistName = stringResource(R.string.metrolist)
-                        .lowercase(Locale.getDefault())
-                        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+                        .lowercase(locale)
+                        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
 
                     Text(
                         text = metrolistName,

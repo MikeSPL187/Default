@@ -9,7 +9,6 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import com.metrolist.music.playback.MusicService
 
@@ -67,11 +66,7 @@ class MusicWidgetReceiver : AppWidgetProvider() {
                     putExtras(intent)
                 }
                 try {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        context.startService(serviceIntent)
-                    } else {
-                        context.startService(serviceIntent)
-                    }
+                    context.startService(serviceIntent)
                 } catch (e: Exception) {
                     // Service might be restricted in background
                 }

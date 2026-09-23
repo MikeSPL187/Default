@@ -1,5 +1,6 @@
 package com.metrolist.music.utils
 
+import androidx.core.content.edit
 import android.content.Context
 import android.net.ConnectivityManager
 import com.metrolist.innertube.YouTube
@@ -249,16 +250,16 @@ object InnerTubeXPlayer {
         override val defaultSourceUrl: String = PLAYER_CONFIG_URL
         override var cachedJson: String
             get() = preferences.getString("json", "").orEmpty()
-            set(value) = preferences.edit().putString("json", value).apply()
+            set(value) = preferences.edit { putString("json", value) }
         override var cachedAtMs: Long
             get() = preferences.getLong("cached_at_ms", 0L)
-            set(value) = preferences.edit().putLong("cached_at_ms", value).apply()
+            set(value) = preferences.edit { putLong("cached_at_ms", value) }
         override var cachedSourceUrl: String
             get() = preferences.getString("source_url", "").orEmpty()
-            set(value) = preferences.edit().putString("source_url", value).apply()
+            set(value) = preferences.edit { putString("source_url", value) }
         override var cachedEtag: String
             get() = preferences.getString("etag", "").orEmpty()
-            set(value) = preferences.edit().putString("etag", value).apply()
+            set(value) = preferences.edit { putString("etag", value) }
 
         private companion object {
             const val PLAYER_CONFIG_URL =
