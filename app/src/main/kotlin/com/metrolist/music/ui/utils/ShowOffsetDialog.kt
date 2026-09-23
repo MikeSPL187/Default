@@ -236,12 +236,12 @@ fun ShowOffsetDialog(songProvider: () -> SongEntity?) {
                 .padding(horizontal = 48.dp)
         ) {
             Text(
-                text = "-3000ms",
+                text = "-${MAX_LYRICS_OFFSET_MS}ms",
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "+3000ms",
+                text = "+${MAX_LYRICS_OFFSET_MS}ms",
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
