@@ -1,0 +1,79 @@
+name: Upstream Metrolist sync
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Mondays 06:00 UTC
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: write
+
+jobs:
+  sync:
+    name: Merge upstream Metrolist
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Merge upstream into a branch
+        id: merge
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/MetrolistGroup/Metrolist.git
+          git fetch --no-tags upstream main
+
+          behind=$(git rev-list --count HEAD..upstream/main)
+          echo "behind=$behind" >> "$GITHUB_OUTPUT"
+          if [ "$behind" = "0" ]; then
+            echo "Already up to date with upstream."
+            exit 0
+          fi
+
+          branch="upstream-sync/$(date -u +%Y-%m-%d)"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          git checkout -b "$branch"
+          if git merge --no-edit upstream/main -m "chore: merge upstream Metrolist main"; then
+            echo "conflicts=false" >> "$GITHUB_OUTPUT"
+            git push --force origin "$branch"
+          else
+            echo "conflicts=true" >> "$GITHUB_OUTPUT"
+            git diff --name-only --diff-filter=U > conflicts.txt
+            git merge --abort
+          fi
+
+      - name: Open pull request and build it
+        if: steps.merge.outputs.behind != '0' && steps.merge.outputs.conflicts == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.merge.outputs.branch }}
+          BEHIND: ${{ steps.merge.outputs.behind }}
+        run: |
+          body="Новых коммитов в официальном Metrolist: $BEHIND. Слияние прошло без конфликтов. Сборка и проверка на эмуляторе запущены для этой ветки."
+          gh pr create --base "${{ github.event.repository.default_branch }}" --head "$BRANCH" \
+            --title "Обновление из официального Metrolist ($BEHIND коммитов)" --body "$body" \
+            || echo "::warning::Could not open a pull request. Allow GitHub Actions to create pull requests in Settings → Actions → General, or merge $BRANCH by hand."
+          # Pull requests opened with the workflow token do not trigger workflows, so start the build directly.
+          gh workflow run watch_build.yml --ref "$BRANCH"
+
+      - name: Report conflicts
+        if: steps.merge.outputs.conflicts == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BEHIND: ${{ steps.merge.outputs.behind }}
+        run: |
+          {
+            echo "В официальном Metrolist $BEHIND новых коммитов, но автоматическое слияние упёрлось в конфликты в файлах:"
+            echo
+            sed 's/^/- `/; s/$/`/' conflicts.txt
+            echo
+            echo "Нужно слить \`upstream/main\` вручную и разрешить конфликты."
+          } > body.md
+          gh issue create --title "Конфликты при обновлении из официального Metrolist" --body-file body.md
