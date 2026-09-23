@@ -16,6 +16,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
@@ -438,6 +439,7 @@ constructor(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun publishToMediaStore(
         song: Song,
         artists: String,

@@ -808,5 +808,5 @@ fun PlaylistMenu(
 /** Every entry whose song already appeared earlier in the playlist; the first occurrence stays. */
 internal fun duplicatePlaylistEntries(entries: List<PlaylistSongMap>): List<PlaylistSongMap> {
     val seen = HashSet<String>()
-    return entries.sortedWith(compareBy({ it.position }, { it.id })).filterNot { seen.add(it.songId) }
+    return entries.sortedWith(compareBy<PlaylistSongMap>({ it.position }, { it.id })).filterNot { seen.add(it.songId) }
 }
