@@ -1,0 +1,66 @@
+name: Build Metrolist Watch
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "main"
+      - "claude/**"
+    paths-ignore:
+      - "**/*.md"
+      - "fastlane/**"
+      - "assets/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Compile, test and package
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      HAS_KEYSTORE: ${{ secrets.KEYSTORE != '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Unit tests
+        run: ./gradlew --console=plain :app:testFossDebugUnitTest --warning-mode summary
+
+      - name: Build release APK
+        run: ./gradlew --console=plain :app:assembleFossRelease --warning-mode summary -x lint -x lintFossRelease
+        env:
+          PULL_REQUEST: "false"
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+
+      # Signing is optional: add KEYSTORE (base64), KEY_ALIAS, KEYSTORE_PASSWORD and KEY_PASSWORD
+      # repository secrets with the key of the installed build to get an APK that updates in place.
+      - name: Sign APK
+        id: sign
+        if: env.HAS_KEYSTORE == 'true'
+        uses: ilharp/sign-android-release@v2.0.0
+        with:
+          releaseDir: app/build/outputs/apk/foss/release/
+          signingKey: ${{ secrets.KEYSTORE }}
+          keyAlias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+          buildToolsVersion: 36.0.0
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: metrolist-watch-foss-release
+          path: app/build/outputs/apk/foss/release/*.apk
+          if-no-files-found: error
