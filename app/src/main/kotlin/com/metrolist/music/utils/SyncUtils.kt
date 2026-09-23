@@ -934,7 +934,8 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remoteArtists.map { it.id }.toSet()
                     val localArtists = database.bookmarkedArtistEntitiesByNameAsc()
 
-                    localArtists.filterNot { it.id in remoteIds }.forEach { artist ->
+                    // An empty answer is more likely a parsing failure than an empty library.
+                    localArtists.filter { remoteIds.isNotEmpty() && it.id !in remoteIds }.forEach { artist ->
                         try {
                             database.update(artist.localToggleLike())
                             delay(DB_OPERATION_DELAY_MS)
@@ -1300,11 +1301,16 @@ class SyncUtils @Inject constructor(
                     executeCleanupDuplicatePlaylists()
 
                     val localPlaylists = database.playlistEntitiesByNameAsc().toMutableList()
-                    localPlaylists.filterNot { it.browseId in remoteIds }
-                        .filterNot { it.browseId == null }
+                    // Only un-save playlists that are saved locally. Toggling here saved every
+                    // unsaved YouTube playlist on one sync and dropped saved ones on the next
+                    // (#4363). An empty answer is more likely a parsing failure than an empty
+                    // library, so it never removes anything.
+                    localPlaylists
+                        .filter { remoteIds.isNotEmpty() && it.browseId != null && it.browseId !in remoteIds }
+                        .filter { it.bookmarkedAt != null }
                         .forEach { playlist ->
                             try {
-                                database.update(playlist.localToggleLike())
+                                database.update(playlist.copy(bookmarkedAt = null))
                                 delay(DB_OPERATION_DELAY_MS)
                             } catch (e: Exception) {
                                 Timber.e(e, "Failed to update playlist: ${playlist.id}")
