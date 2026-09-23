@@ -176,19 +176,19 @@ fun StorageSettings(
 
     LaunchedEffect(imageDiskCache) {
         while (isActive) {
-            delay(500)
+            delay(CACHE_SIZE_REFRESH_MS)
             imageCacheSize = imageDiskCache.size
         }
     }
     LaunchedEffect(playerCache) {
         while (isActive) {
-            delay(500)
+            delay(CACHE_SIZE_REFRESH_MS)
             playerCacheSize = tryOrNull { playerCache.cacheSpace } ?: 0
         }
     }
     LaunchedEffect(downloadCache) {
         while (isActive) {
-            delay(500)
+            delay(CACHE_SIZE_REFRESH_MS)
             downloadCacheSize = tryOrNull { downloadCache.cacheSpace } ?: 0
         }
     }
@@ -609,3 +609,6 @@ fun StorageSettings(
         },
     )
 }
+
+// Cache sizes are read under the cache locks shared with playback; once a second is plenty.
+private const val CACHE_SIZE_REFRESH_MS = 1_000L

@@ -45,7 +45,7 @@ import com.metrolist.music.utils.reportException
 import com.metrolist.music.utils.ArtistNameAliases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
@@ -78,7 +78,8 @@ data class ConvertedSongLog(
 class BackupRestoreViewModel @Inject constructor(
     val database: MusicDatabase,
 ) : ViewModel() {
-    fun backup(context: Context, uri: Uri) {
+    // Zipping the whole database is too slow for the main thread on large libraries.
+    fun backup(context: Context, uri: Uri) = viewModelScope.launch(Dispatchers.IO) {
         runCatching {
             context.applicationContext.contentResolver.openOutputStream(uri)?.use {
                 it.buffered().zipOutputStream().use { outputStream ->
@@ -89,9 +90,7 @@ class BackupRestoreViewModel @Inject constructor(
                         }
                     outputStream.putNextEntry(ZipEntry(ArtistNameAliases.BACKUP_FILENAME))
                     outputStream.write(ArtistNameAliases.serialize().encodeToByteArray())
-                    runBlocking(Dispatchers.IO) {
-                        database.checkpoint()
-                    }
+                    database.checkpoint()
                     val dbPath = database.openHelper.writableDatabase.path
                     if (dbPath != null) {
                         FileInputStream(dbPath).use { inputStream ->
@@ -116,10 +115,14 @@ class BackupRestoreViewModel @Inject constructor(
                 }
             }
         }.onSuccess {
-            Toast.makeText(context, R.string.backup_create_success, Toast.LENGTH_SHORT).show()
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, R.string.backup_create_success, Toast.LENGTH_SHORT).show()
+            }
         }.onFailure {
             reportException(it)
-            Toast.makeText(context, R.string.backup_create_failed, Toast.LENGTH_SHORT).show()
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, R.string.backup_create_failed, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

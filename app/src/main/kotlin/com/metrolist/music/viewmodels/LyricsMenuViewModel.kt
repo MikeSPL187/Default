@@ -21,7 +21,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import com.metrolist.music.di.ApplicationScope
+import kotlinx.coroutines.CoroutineScope
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,6 +32,7 @@ constructor(
     private val lyricsHelper: LyricsHelper,
     val database: MusicDatabase,
     private val networkConnectivity: NetworkConnectivityObserver,
+    @ApplicationScope private val applicationScope: CoroutineScope,
 ) : ViewModel() {
     private var job: Job? = null
     val results = MutableStateFlow(emptyList<LyricsResult>())
@@ -83,13 +85,15 @@ constructor(
         mediaMetadata: MediaMetadata,
         lyricsEntity: LyricsEntity?,
     ) {
-        database.query {
-            lyricsEntity?.let(::delete)
-            val lyricsWithProvider =
-                runBlocking {
-                    lyricsHelper.getLyrics(mediaMetadata)
-                }
-            upsert(LyricsEntity(mediaMetadata.id, lyricsWithProvider.lyrics, lyricsWithProvider.provider))
+        // Outlives the lyrics menu, which is usually closed right after asking for a refetch.
+        // The network lookup must not run on the database executor: it would stall every query.
+        applicationScope.launch(Dispatchers.IO) {
+            lyricsEntity?.let { database.query { delete(it) } }
+            val lyricsWithProvider = lyricsHelper.getLyrics(mediaMetadata)
+            if (lyricsWithProvider.isTransientMiss) return@launch
+            database.query {
+                upsert(LyricsEntity(mediaMetadata.id, lyricsWithProvider.lyrics, lyricsWithProvider.provider))
+            }
         }
     }
 }
