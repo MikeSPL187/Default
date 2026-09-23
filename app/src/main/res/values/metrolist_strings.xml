@@ -1047,4 +1047,8 @@
         <item quantity="one">%1$d time · %2$s</item>
         <item quantity="other">%1$d times · %2$s</item>
     </plurals>
+
+    <!-- Sharing -->
+    <string name="share_youtube_links">Share YouTube links</string>
+    <string name="share_youtube_links_desc">Shared songs open for everyone, even without YouTube Music</string>
 </resources>

@@ -940,4 +940,8 @@
         <item quantity="many">%1$d раз · %2$s</item>
         <item quantity="other">%1$d раза · %2$s</item>
     </plurals>
+
+    <!-- Sharing -->
+    <string name="share_youtube_links">Делиться ссылками YouTube</string>
+    <string name="share_youtube_links_desc">Отправленные треки откроются у всех, даже без YouTube Music</string>
 </resources>

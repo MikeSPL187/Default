@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadService
 import coil3.compose.AsyncImage
+import com.metrolist.music.utils.songShareUrl
 import com.metrolist.music.LocalNavController
 import com.metrolist.innertube.YouTube
 import com.metrolist.music.LocalDatabase
@@ -321,7 +322,7 @@ fun QueueMenu(
                                 type = "text/plain"
                                 putExtra(
                                     Intent.EXTRA_TEXT,
-                                    "https://music.youtube.com/watch?v=${mediaMetadata.id}"
+                                    context.songShareUrl(mediaMetadata.id)
                                 )
                             }
                             context.startActivity(Intent.createChooser(intent, null))

@@ -128,6 +128,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.Player.STATE_ENDED
 import androidx.navigation.NavController
 import androidx.palette.graphics.Palette
+import com.metrolist.music.utils.songShareUrl
 import com.metrolist.music.LocalNavController
 import coil3.compose.AsyncImage
 import coil3.imageLoader
@@ -1176,7 +1177,7 @@ fun BottomSheetPlayer(
                                                 type = "text/plain"
                                                 putExtra(
                                                     Intent.EXTRA_TEXT,
-                                                    "https://music.youtube.com/watch?v=${mediaMetadata.id}",
+                                                    context.songShareUrl(mediaMetadata.id),
                                                 )
                                             }
                                         context.startActivity(Intent.createChooser(intent, null))
@@ -1298,7 +1299,7 @@ fun BottomSheetPlayer(
                                                     type = "text/plain"
                                                     putExtra(
                                                         Intent.EXTRA_TEXT,
-                                                        "https://music.youtube.com/watch?v=${mediaMetadata.id}",
+                                                        context.songShareUrl(mediaMetadata.id),
                                                     )
                                                 }
                                             context.startActivity(Intent.createChooser(intent, null))

@@ -75,6 +75,7 @@ import coil3.ImageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.toBitmap
+import com.metrolist.music.utils.songShareUrl
 import com.metrolist.music.R
 import com.metrolist.music.lyrics.LyricsTranslationHelper
 import com.metrolist.music.models.MediaMetadata
@@ -249,7 +250,7 @@ internal fun LyricsShareDialog(
                         val intent = Intent().apply {
                             action = Intent.ACTION_SEND
                             type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, "\"$txt\"\n\n$title - $arts\nhttps://music.youtube.com/watch?v=$songId")
+                            putExtra(Intent.EXTRA_TEXT, "\"$txt\"\n\n$title - $arts\n${context.songShareUrl(songId)}")
                         }
                         context.startActivity(Intent.createChooser(intent, context.getString(R.string.share_lyrics)))
                         onDismiss()

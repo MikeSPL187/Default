@@ -74,6 +74,7 @@ import com.metrolist.music.constants.HideYoutubeShortsKey
 import com.metrolist.music.constants.LanguageCodeToName
 import com.metrolist.music.constants.LyricsProviderOrderKey
 import com.metrolist.music.constants.PreferSyncedLyricsKey
+import com.metrolist.music.constants.ShareYouTubeLinksKey
 import com.metrolist.music.constants.ProxyEnabledKey
 import com.metrolist.music.constants.ProxyPasswordKey
 import com.metrolist.music.constants.ProxyTypeKey
@@ -135,6 +136,7 @@ fun ContentSettings(
         defaultValue = LyricsProviderRegistry.serializeProviderOrder(LyricsProviderRegistry.getDefaultProviderOrder())
     )
     val (preferSyncedLyrics, onPreferSyncedLyricsChange) = rememberPreference(key = PreferSyncedLyricsKey, defaultValue = true)
+    val (shareYouTubeLinks, onShareYouTubeLinksChange) = rememberPreference(key = ShareYouTubeLinksKey, defaultValue = false)
     val (lengthTop, onLengthTopChange) = rememberPreference(key = TopSize, defaultValue = "50")
     val (quickPicks, onQuickPicksChange) = rememberEnumPreference(key = QuickPicksKey, defaultValue = QuickPicks.QUICK_PICKS)
     val (showWrappedCard, onShowWrappedCardChange) = rememberPreference(key = ShowWrappedCardKey, defaultValue = false)
@@ -1092,6 +1094,27 @@ fun ContentSettings(
         Material3SettingsGroup(
             title = stringResource(R.string.misc),
             items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.share),
+                    title = { Text(stringResource(R.string.share_youtube_links)) },
+                    description = { Text(stringResource(R.string.share_youtube_links_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = shareYouTubeLinks,
+                            onCheckedChange = onShareYouTubeLinksChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (shareYouTubeLinks) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onShareYouTubeLinksChange(!shareYouTubeLinks) }
+                ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.shuffle),
                     title = { Text(stringResource(R.string.randomize_home_order)) },

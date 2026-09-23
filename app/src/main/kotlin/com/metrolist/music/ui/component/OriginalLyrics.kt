@@ -114,6 +114,7 @@ import coil3.ImageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.toBitmap
+import com.metrolist.music.utils.songShareUrl
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalListenTogetherManager
 import com.metrolist.music.LocalPlayerConnection
@@ -1844,7 +1845,7 @@ fun OriginalLyrics(
                                                 action = Intent.ACTION_SEND
                                                 type = "text/plain"
                                                 val songLink =
-                                                    "https://music.youtube.com/watch?v=${mediaMetadata?.id}"
+                                                    context.songShareUrl(mediaMetadata?.id)
                                                 // Use the potentially multi-line lyricsText here
                                                 putExtra(
                                                     Intent.EXTRA_TEXT,

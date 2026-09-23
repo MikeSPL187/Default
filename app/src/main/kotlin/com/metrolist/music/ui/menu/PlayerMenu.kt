@@ -76,6 +76,7 @@ import androidx.media3.common.C
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadService
+import com.metrolist.music.utils.songShareUrl
 import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalDownloadUtil
@@ -367,7 +368,7 @@ fun PlayerMenu(
                                 val clip =
                                     android.content.ClipData.newPlainText(
                                         "Song Link",
-                                        "https://music.youtube.com/watch?v=${mediaMetadata.id}",
+                                        context.songShareUrl(mediaMetadata.id),
                                     )
                                 clipboard.setPrimaryClip(clip)
                                 android.widget.Toast
