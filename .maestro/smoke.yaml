@@ -9,7 +9,7 @@ appId: com.metrolist.music
       - tapOn: "Allow"
 - extendedWaitUntil:
     visible: "Home"
-    timeout: 60000
+    timeout: 90000
 - waitForAnimationToEnd:
     timeout: 10000
 - takeScreenshot: 01-home
