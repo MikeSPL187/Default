@@ -87,16 +87,21 @@ constructor(
 
     private suspend fun sync(songs: List<Song>, mayUseNetwork: Boolean) {
         val wanted = songs.filterNot { it.song.isEpisode }.distinctBy { it.id }
-        val wantedIds = wanted.mapTo(HashSet()) { it.id }
+        val plan =
+            planWatchSync(
+                wantedIds = wanted.map { it.id },
+                exportedIds = watchExportManager.exportedSongIds(),
+                syncOwnedIds = syncOwnedIds(),
+            )
 
-        syncOwnedIds().filterNot { it in wantedIds }.forEach { songId ->
+        plan.toRemove.forEach { songId ->
             watchExportManager.removeExport(songId)
             setSyncOwned(songId, owned = false)
         }
 
-        val exported = watchExportManager.exportedSongIds()
+        val toExport = plan.toExport.toHashSet()
         wanted
-            .filter { it.id !in exported }
+            .filter { it.id in toExport }
             .filter { mayUseNetwork || watchExportManager.canExportOffline(it) }
             .forEach { song ->
                 // Claimed before exporting: a newer sync may cancel this one while the export
@@ -150,4 +155,25 @@ constructor(
         const val OWNED_IDS_KEY = "sync_owned_song_ids"
         const val SETTLE_DELAY_MS = 3_000L
     }
+}
+
+internal data class WatchSyncPlan(
+    val toRemove: Set<String>,
+    val toExport: List<String>,
+)
+
+/**
+ * Decides what the watch sync changes. Only files the sync exported itself are removed, so songs
+ * the user exported by hand stay even when no synced playlist holds them.
+ */
+internal fun planWatchSync(
+    wantedIds: List<String>,
+    exportedIds: Set<String>,
+    syncOwnedIds: Set<String>,
+): WatchSyncPlan {
+    val wanted = wantedIds.toSet()
+    return WatchSyncPlan(
+        toRemove = syncOwnedIds - wanted,
+        toExport = wantedIds.distinct().filter { it !in exportedIds },
+    )
 }

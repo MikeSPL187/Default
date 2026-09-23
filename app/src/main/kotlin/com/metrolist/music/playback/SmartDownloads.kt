@@ -78,12 +78,17 @@ constructor(
         val enabled = context.dataStore.read(SmartDownloadsKey, false)
         val owned = ownedIds()
         val wanted = if (enabled) wantedSongs(context.dataStore.read(SmartDownloadsCountKey, DEFAULT_COUNT)) else emptyList()
-        val wantedIds = wanted.mapTo(HashSet()) { it.id }
+        val downloads = downloadUtil.downloads.value
+        val plan =
+            planSmartDownloads(
+                wantedIds = wanted.map { it.id },
+                ownedIds = owned,
+                downloadStates = downloads.mapValues { it.value.state },
+                isLiked = { database.getSongByIdBlocking(it)?.song?.liked == true },
+            )
 
-        owned.filterNot { it in wantedIds }.forEach { songId ->
-            val song = database.getSongByIdBlocking(songId)
-            // A liked song counts as the user's own choice now, so its download stays.
-            if (song?.song?.liked != true) {
+        plan.release.forEach { songId ->
+            if (songId in plan.toRemove) {
                 if (viaService) {
                     DownloadService.sendRemoveDownload(context, ExoDownloadService::class.java, songId, false)
                 } else {
@@ -94,12 +99,11 @@ constructor(
         }
         if (!enabled) return@withContext
 
-        val downloads = downloadUtil.downloads.value
+        val toDownload = plan.toDownload.toHashSet()
         wanted
-            .filter { downloads[it.id]?.state != Download.STATE_COMPLETED }
+            .filter { it.id in toDownload }
             .forEach { song ->
-                // Songs the user already downloads themselves are not taken over.
-                if (downloads[song.id] == null) setOwned(song.id, owned = true)
+                if (song.id in plan.toClaim) setOwned(song.id, owned = true)
                 downloadUtil.download(song.toMediaMetadata(), viaService)
             }
     }
@@ -140,6 +144,37 @@ constructor(
         private const val MOST_PLAYED_DAYS = 90L
         private const val QUICK_PICKS_COUNT = 15
     }
+}
+
+internal data class SmartDownloadPlan(
+    /** Owned songs that left the smart set; they stop being owned. */
+    val release: Set<String>,
+    /** Of [release], the downloads to delete: liked songs keep theirs. */
+    val toRemove: Set<String>,
+    val toDownload: List<String>,
+    /** Of [toDownload], the songs this feature starts owning. */
+    val toClaim: Set<String>,
+)
+
+/**
+ * Decides what smart downloads changes. Downloads the user made themselves are never claimed, so
+ * they are never removed, and a liked song keeps its download when it leaves the set.
+ */
+internal fun planSmartDownloads(
+    wantedIds: List<String>,
+    ownedIds: Set<String>,
+    downloadStates: Map<String, Int>,
+    isLiked: (String) -> Boolean,
+): SmartDownloadPlan {
+    val wanted = wantedIds.distinct()
+    val release = ownedIds - wanted.toSet()
+    val toDownload = wanted.filter { downloadStates[it] != Download.STATE_COMPLETED }
+    return SmartDownloadPlan(
+        release = release,
+        toRemove = release.filterNot(isLiked).toSet(),
+        toDownload = toDownload,
+        toClaim = toDownload.filter { it in ownedIds || downloadStates[it] == null }.toSet(),
+    )
 }
 
 @EntryPoint
