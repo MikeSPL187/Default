@@ -27,10 +27,14 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.metrolist.music.utils.NetworkConnectivityObserver
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -48,6 +52,9 @@ constructor(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
 
+    private val connectivityObserver = NetworkConnectivityObserver(context)
+    val isOnline: StateFlow<Boolean> = connectivityObserver.networkStatus
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val likedSongs =
         context.dataStore.data
@@ -63,8 +70,12 @@ constructor(
             .flatMapLatest { (sortDesc, hideExplicit, hideVideoSongs) ->
                 val (sortType, descending) = sortDesc
                 when (playlist) {
-                    "liked" -> database.likedSongs(sortType, descending)
-                        .map { it.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs) }
+                    // Offline, only liked songs that can actually play are listed.
+                    "liked" -> combine(database.likedSongs(sortType, descending), isOnline) { songs, online ->
+                        (if (online) songs else songs.filter { it.song.isDownloaded })
+                            .filterExplicit(hideExplicit)
+                            .filterVideoSongs(hideVideoSongs)
+                    }
 
                     "downloaded" -> database.downloadedSongs(sortType, descending)
                         .map { it.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs) }
@@ -78,11 +89,19 @@ constructor(
             .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Lazily, emptyList())
 
     fun syncLikedSongs() {
-        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedSongs() }
+        viewModelScope.launch(Dispatchers.IO) {
+            // Syncing offline would fail; start as soon as the connection comes back instead.
+            isOnline.first { it }
+            syncUtils.syncLikedSongs()
+        }
     }
 
     fun syncUploadedSongs() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncUploadedSongs() }
+    }
+
+    override fun onCleared() {
+        runCatching { connectivityObserver.unregister() }
     }
 
     fun refresh() {

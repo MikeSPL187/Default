@@ -15,6 +15,8 @@ import com.metrolist.innertube.models.SongItem
 import com.metrolist.innertube.models.filterVideoSongs
 import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.db.MusicDatabase
+import com.metrolist.music.db.entities.Song
+import com.metrolist.music.extensions.isInternetConnected
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
@@ -25,6 +27,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
@@ -144,6 +147,8 @@ class OnlinePlaylistViewModel @Inject constructor(
     }
 
     private suspend fun fetchRegularPlaylist() {
+        // Without network a saved playlist can still offer the songs that were downloaded.
+        if (!context.isInternetConnected() && loadDownloadedSongs()) return
         YouTube.playlist(playlistId)
             .onSuccess { playlistPage ->
                 playlist.value = playlistPage.playlist
@@ -154,11 +159,48 @@ class OnlinePlaylistViewModel @Inject constructor(
                     startProactiveBackgroundLoading()
                 }
             }.onFailure { throwable ->
+                if (loadDownloadedSongs()) return@onFailure
                 _error.value = throwable.message ?: "Failed to load playlist"
                 _isLoading.value = false
                 reportException(throwable)
             }
     }
+
+    /** Shows the downloaded songs of this playlist from the library; false if there are none. */
+    private suspend fun loadDownloadedSongs(): Boolean {
+        val saved = database.playlistByBrowseId(playlistId).first() ?: return false
+        val downloaded =
+            database.playlistSongs(saved.playlist.id).first()
+                .map { it.song }
+                .filter { it.song.isDownloaded }
+        if (downloaded.isEmpty()) return false
+        playlist.value = PlaylistItem(
+            id = playlistId,
+            title = saved.playlist.name,
+            author = null,
+            songCountText = downloaded.size.toString(),
+            thumbnail = saved.playlist.thumbnailUrl ?: downloaded.first().song.thumbnailUrl.orEmpty(),
+            playEndpoint = null,
+            shuffleEndpoint = null,
+            radioEndpoint = null,
+        )
+        playlistSongs.value = applySongFilters(downloaded.map { it.toSongItem() })
+        continuation = null
+        _isLoading.value = false
+        return true
+    }
+
+    private fun Song.toSongItem() =
+        SongItem(
+            id = song.id,
+            title = song.title,
+            artists = artists.map { Artist(it.id, it.name) },
+            album = album?.let { com.metrolist.innertube.models.Album(it.id, it.title) },
+            duration = song.duration,
+            thumbnail = song.thumbnailUrl ?: "",
+            explicit = song.explicit,
+            endpoint = null,
+        )
 
     private suspend fun loadLocalSavedEpisodes() {
         timber.log.Timber.d("[SE_LOCAL] loadLocalSavedEpisodes called")
@@ -169,18 +211,7 @@ class OnlinePlaylistViewModel @Inject constructor(
         }
         if (savedEpisodes.isNotEmpty()) {
             // Convert local Song entities to SongItem format
-            val songItems = savedEpisodes.map { song ->
-                SongItem(
-                    id = song.song.id,
-                    title = song.song.title,
-                    artists = song.artists.map { Artist(it.id, it.name) },
-                    album = song.album?.let { com.metrolist.innertube.models.Album(it.id, it.title) },
-                    duration = song.song.duration,
-                    thumbnail = song.song.thumbnailUrl ?: "",
-                    explicit = song.song.explicit,
-                    endpoint = null,
-                )
-            }
+            val songItems = savedEpisodes.map { it.toSongItem() }
             timber.log.Timber.d("[SE_LOCAL] Converted to ${songItems.size} SongItems")
             playlist.value = PlaylistItem(
                 id = playlistId,

@@ -914,4 +914,7 @@
 
     <!-- Search -->
     <string name="search_failed">Не удалось загрузить результаты. Нажмите, чтобы повторить.</string>
+
+    <!-- Offline -->
+    <string name="no_downloaded_favorites">Нет скачанных избранных треков для прослушивания без сети</string>
 </resources>

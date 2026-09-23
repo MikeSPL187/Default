@@ -484,6 +484,7 @@ fun AutoPlaylistScreen(
     val state = rememberLazyListState()
 
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val isOnline by viewModel.isOnline.collectAsStateWithLifecycle()
     val pullRefreshState = rememberPullToRefreshState()
     val canRefresh = playlistType == PlaylistType.LIKE || playlistType == PlaylistType.UPLOADED
 
@@ -512,7 +513,13 @@ fun AutoPlaylistScreen(
                     item(key = "empty_placeholder") {
                         EmptyPlaceholder(
                             icon = R.drawable.music_note,
-                            text = stringResource(R.string.playlist_is_empty),
+                            text = stringResource(
+                                if (playlistType == PlaylistType.LIKE && !isOnline) {
+                                    R.string.no_downloaded_favorites
+                                } else {
+                                    R.string.playlist_is_empty
+                                },
+                            ),
                         )
                     }
                 } else {

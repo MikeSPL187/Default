@@ -1023,4 +1023,7 @@
 
     <!-- Search -->
     <string name="search_failed">Could not load search results. Tap to retry.</string>
+
+    <!-- Offline -->
+    <string name="no_downloaded_favorites">No downloaded favorites available offline</string>
 </resources>
