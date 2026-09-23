@@ -1,0 +1,75 @@
+# Smoke test: opens the main screens of a fresh install and fails if the app crashes.
+appId: com.metrolist.music
+---
+- launchApp
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"
+- extendedWaitUntil:
+    visible: "Home"
+    timeout: 60000
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: 01-home
+- scroll
+- takeScreenshot: 02-home-scrolled
+
+- tapOn: "Search"
+- waitForAnimationToEnd
+- takeScreenshot: 03-search
+- back
+
+- tapOn: "Library"
+- waitForAnimationToEnd
+- takeScreenshot: 04-library
+
+- tapOn: "Account"
+- waitForAnimationToEnd
+- takeScreenshot: 05-account
+- tapOn: "Settings"
+- waitForAnimationToEnd
+- takeScreenshot: 06-settings
+
+- tapOn: "Storage"
+- waitForAnimationToEnd
+- takeScreenshot: 07-storage
+- scrollUntilVisible:
+    element: "Smart downloads"
+    timeout: 10000
+- takeScreenshot: 08-storage-smart-downloads
+- back
+
+- tapOn: "Content"
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element: "Not recommended"
+    timeout: 10000
+- takeScreenshot: 09-content
+- back
+
+- tapOn: "Player and audio"
+- waitForAnimationToEnd
+- takeScreenshot: 10-player-audio
+- back
+
+- tapOn: "Appearance"
+- waitForAnimationToEnd
+- takeScreenshot: 11-appearance
+- back
+- back
+
+- tapOn: "Stats"
+- waitForAnimationToEnd
+- takeScreenshot: 12-stats
+- back
+
+- tapOn: "History"
+- waitForAnimationToEnd
+- takeScreenshot: 13-history
+- back
+
+- tapOn: "Home"
+- waitForAnimationToEnd
+- takeScreenshot: 14-home-again
