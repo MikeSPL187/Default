@@ -38,6 +38,7 @@ import com.metrolist.music.db.entities.Album
 import com.metrolist.music.db.entities.LocalItem
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.db.entities.SpeedDialItem
+import com.metrolist.music.extensions.filterExplicit
 import com.metrolist.music.extensions.filterVideoSongs
 import com.metrolist.music.extensions.toEnum
 import com.metrolist.music.models.SimilarRecommendation
@@ -321,10 +322,12 @@ class HomeViewModel @Inject constructor(
 
     private suspend fun getQuickPicks() {
         val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
+        val hideExplicit = context.dataStore.get(HideExplicitKey, false)
         when (quickPicksEnum.first()) {
             QuickPicks.QUICK_PICKS -> {
-                val relatedSongs = database.quickPicks().first().filterVideoSongs(hideVideoSongs)
-                val forgotten = database.forgottenFavorites().first().filterVideoSongs(hideVideoSongs).take(8)
+                val relatedSongs = database.quickPicks().first().filterVideoSongs(hideVideoSongs).filterExplicit(hideExplicit)
+                val forgotten =
+                    database.forgottenFavorites().first().filterVideoSongs(hideVideoSongs).filterExplicit(hideExplicit).take(8)
 
                 // Get similar songs from YouTube based on recent listening
                 val recentSong = database.latestEvent().first()?.song
@@ -337,7 +340,7 @@ class HomeViewModel @Inject constructor(
                             // Convert YouTube songs to local Song format if they exist in database
                             page.songs.take(10).forEach { ytSong ->
                                 database.song(ytSong.id).first()?.let { localSong ->
-                                    if (!hideVideoSongs || !localSong.song.isVideo) {
+                                    if ((!hideVideoSongs || !localSong.song.isVideo) && (!hideExplicit || !localSong.song.explicit)) {
                                         ytSimilarSongs.add(localSong)
                                     }
                                 }
@@ -357,7 +360,12 @@ class HomeViewModel @Inject constructor(
             QuickPicks.LAST_LISTEN -> {
                 val song = database.latestEvent().first()?.song
                 if (song != null && database.hasRelatedSongs(song.id)) {
-                    quickPicks.value = database.getRelatedSongs(song.id).first().filterVideoSongs(hideVideoSongs).shuffled().take(20)
+                    quickPicks.value =
+                        database.getRelatedSongs(song.id).first()
+                            .filterVideoSongs(hideVideoSongs)
+                            .filterExplicit(hideExplicit)
+                            .shuffled()
+                            .take(20)
                 }
             }
         }
@@ -452,12 +460,12 @@ class HomeViewModel @Inject constructor(
 
             launch(Dispatchers.IO) {
                 forgottenFavorites.value = database.forgottenFavorites().first()
-                    .filterVideoSongs(hideVideoSongs).shuffled().take(20)
+                    .filterVideoSongs(hideVideoSongs).filterExplicit(hideExplicit).shuffled().take(20)
             }
 
             launch(Dispatchers.IO) {
                 val songs = database.mostPlayedSongs(fromTimeStamp = fromTimeStamp, limit = 15, offset = 5, toTimeStamp = LocalDateTime.now()).first()
-                    .filterVideoSongs(hideVideoSongs).shuffled().take(10)
+                    .filterVideoSongs(hideVideoSongs).filterExplicit(hideExplicit).shuffled().take(10)
                 val albums = database.mostPlayedAlbums(fromTimeStamp, limit = 8, offset = 2).first()
                     .filter { it.album.thumbnailUrl != null }.shuffled().take(5)
                 val artists = database.mostPlayedArtists(fromTimeStamp).first()
