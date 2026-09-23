@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -165,6 +166,7 @@ fun PlaylistMenu(
     val isPinned by database.speedDialDao.isPinned(playlist.id).collectAsStateWithLifecycle(initialValue = false)
 
     var showExportDialog by remember { mutableStateOf(false) }
+    val downloads by downloadUtil.downloads.collectAsStateWithLifecycle()
 
     LaunchedEffect(songs) {
         if (songs.isEmpty()) return@LaunchedEffect
@@ -629,6 +631,27 @@ fun PlaylistMenu(
                                         )
                                     }
                                 },
+                            )
+                        }
+                        val downloadedSongs = songs.filter { downloads[it.id]?.state == Download.STATE_COMPLETED }
+                        if (downloadedSongs.isNotEmpty()) {
+                            add(
+                                Material3MenuItemData(
+                                    title = { Text(text = stringResource(R.string.export_for_watch)) },
+                                    description = {
+                                        Text(text = pluralStringResource(R.plurals.n_song, downloadedSongs.size, downloadedSongs.size))
+                                    },
+                                    icon = {
+                                        Icon(
+                                            painter = painterResource(R.drawable.watch_check),
+                                            contentDescription = null,
+                                        )
+                                    },
+                                    onClick = {
+                                        downloadUtil.watchExportManager.exportAll(downloadedSongs)
+                                        onDismiss()
+                                    },
+                                ),
                             )
                         }
                         if (canRemoveDuplicates) {

@@ -27,6 +27,7 @@ import com.metrolist.innertube.models.SongItem
 import com.metrolist.innertubex.extraction.ContentHints
 import com.metrolist.music.constants.AudioQuality
 import com.metrolist.music.constants.AudioQualityKey
+import com.metrolist.music.constants.AutoExportForWatchKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.AlbumEntity
 import com.metrolist.music.db.entities.FormatEntity
@@ -40,7 +41,9 @@ import com.metrolist.music.extensions.isInternetConnected
 import com.metrolist.music.ui.utils.resize
 import com.metrolist.music.utils.InnerTubeXPlayer
 import com.metrolist.music.utils.OfflineArtworkStore
+import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.enumPreference
+import com.metrolist.music.utils.get
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -265,6 +268,7 @@ constructor(
                                 Download.STATE_COMPLETED -> {
                                     removeFromPlayerCache(download.request.id)
                                     database.updateDownloadedInfo(download.request.id, true, LocalDateTime.now())
+                                    autoExportForWatch(download.request.id)
                                 }
                                 Download.STATE_FAILED,
                                 Download.STATE_STOPPED,
@@ -370,6 +374,12 @@ constructor(
                 }
             }
         }.onFailure { Timber.tag(TAG).w(it, "Could not store artwork for offline use") }
+    }
+
+    private suspend fun autoExportForWatch(songId: String) {
+        if (!context.dataStore.get(AutoExportForWatchKey, false)) return
+        if (watchExportManager.states.value[songId] is WatchExportState.Exported) return
+        database.song(songId).first()?.let(watchExportManager::exportInBackground)
     }
 
     fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }

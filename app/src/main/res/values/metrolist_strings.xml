@@ -1032,4 +1032,8 @@
     <string name="remove_playlist_duplicates_desc">Found %1$d duplicate songs</string>
     <string name="remove_playlist_duplicates_confirm">Remove %1$d duplicate songs while keeping their first occurrence?</string>
     <string name="playlist_duplicates_removed">Removed %1$d duplicate songs</string>
+
+    <!-- Huawei Watch export (automation) -->
+    <string name="auto_export_for_watch">Export new downloads automatically</string>
+    <string name="auto_export_for_watch_desc">Every finished download is copied to Music/Metrolist Watch</string>
 </resources>

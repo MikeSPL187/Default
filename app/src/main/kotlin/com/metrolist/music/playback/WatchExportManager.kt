@@ -174,6 +174,11 @@ constructor(
         taskFor(song, notifyUser = true)
     }
 
+    /** Exports without a snackbar, e.g. automatically after a download finishes. */
+    fun exportInBackground(song: Song) {
+        taskFor(song, notifyUser = false)
+    }
+
     fun exportAll(songs: List<Song>) {
         if (songs.isEmpty()) return
         synchronized(batchLock) {

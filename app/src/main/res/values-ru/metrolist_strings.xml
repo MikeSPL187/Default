@@ -923,4 +923,8 @@
     <string name="remove_playlist_duplicates_desc">Найдено повторов: %1$d</string>
     <string name="remove_playlist_duplicates_confirm">Удалить %1$d повторяющихся треков, оставив первое вхождение каждого?</string>
     <string name="playlist_duplicates_removed">Удалено повторяющихся треков: %1$d</string>
+
+    <!-- Huawei Watch export (automation) -->
+    <string name="auto_export_for_watch">Автоматически экспортировать новые загрузки</string>
+    <string name="auto_export_for_watch_desc">Каждая завершённая загрузка копируется в Music/Metrolist Watch</string>
 </resources>

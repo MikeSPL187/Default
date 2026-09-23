@@ -55,6 +55,7 @@ import com.metrolist.music.playback.ExoDownloadService
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import com.metrolist.music.constants.AutoExportForWatchKey
 import com.metrolist.music.constants.EnableSongCacheKey
 import com.metrolist.music.constants.MaxImageCacheSizeKey
 import com.metrolist.music.constants.MaxSongCacheSizeKey
@@ -110,6 +111,11 @@ fun StorageSettings(
     val downloadUtil = LocalDownloadUtil.current
     val watchExportBatch by downloadUtil.watchExportManager.batchState.collectAsStateWithLifecycle()
     val requestExportAllForWatch = rememberSharedStorageAction { exportAllForWatchDialog = true }
+    val (autoExportForWatch, onAutoExportForWatchChange) = rememberPreference(
+        key = AutoExportForWatchKey,
+        defaultValue = false
+    )
+    val enableAutoExportForWatch = rememberSharedStorageAction { onAutoExportForWatchChange(true) }
     var clearCacheDialog by remember { mutableStateOf(false) }
     var clearImageCacheDialog by remember { mutableStateOf(false) }
 
@@ -369,6 +375,29 @@ fun StorageSettings(
                         },
                         onClick = {
                             if (!watchExportBatch.running) requestExportAllForWatch()
+                        },
+                    ),
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.watch_check),
+                        title = { Text(stringResource(R.string.auto_export_for_watch)) },
+                        description = { Text(stringResource(R.string.auto_export_for_watch_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = autoExportForWatch,
+                                onCheckedChange = { if (it) enableAutoExportForWatch() else onAutoExportForWatchChange(false) },
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (autoExportForWatch) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = {
+                            if (autoExportForWatch) onAutoExportForWatchChange(false) else enableAutoExportForWatch()
                         },
                     ),
                     Material3SettingsItem(
