@@ -66,6 +66,7 @@ import com.metrolist.music.ui.component.Material3SettingsItem
 import android.text.format.Formatter
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.ui.utils.rememberSharedStorageAction
+import com.metrolist.music.utils.OfflineArtworkStore
 import com.metrolist.music.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -193,6 +194,7 @@ fun StorageSettings(
                     downloadCache.keys.forEach { key ->
                         downloadCache.removeResource(key)
                     }
+                    OfflineArtworkStore.clear()
                 }
                 clearDownloads = false
             },

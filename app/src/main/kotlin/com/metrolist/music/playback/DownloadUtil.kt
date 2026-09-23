@@ -22,9 +22,6 @@ import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
-import coil3.imageLoader
-import coil3.request.CachePolicy
-import coil3.request.ImageRequest
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.SongItem
 import com.metrolist.innertubex.extraction.ContentHints
@@ -39,7 +36,10 @@ import com.metrolist.music.di.DownloadCache
 import com.metrolist.music.di.PlayerCache
 import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.models.toMediaMetadata
+import com.metrolist.music.extensions.isInternetConnected
+import com.metrolist.music.ui.utils.resize
 import com.metrolist.music.utils.InnerTubeXPlayer
+import com.metrolist.music.utils.OfflineArtworkStore
 import com.metrolist.music.utils.enumPreference
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -50,6 +50,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -341,6 +342,34 @@ constructor(
             intactIds.forEach { markDownloadCompleted(it, LocalDateTime.now()) }
         }
         intactIds.forEach(::removeFromPlayerCache)
+        scope.launch { syncOfflineArtwork() }
+    }
+
+    /**
+     * Drops covers of songs that are no longer downloaded and fetches missing ones, which also
+     * covers downloads made before covers were stored.
+     */
+    private suspend fun syncOfflineArtwork() {
+        val artworkUrls =
+            database.downloadedSongsByNameAsc().first()
+                .flatMap { downloadArtworkUrls(it.song.thumbnailUrl, it.album?.thumbnailUrl) }
+                .distinct()
+        OfflineArtworkStore.retainOnly(artworkUrls.map(::offlineArtworkRequestUrl))
+        if (!context.isInternetConnected()) return
+        artworkUrls.forEach(::storeOfflineArtwork)
+    }
+
+    private fun storeOfflineArtwork(url: String) {
+        val requestUrl = offlineArtworkRequestUrl(url)
+        if (OfflineArtworkStore.contains(requestUrl)) return
+        runCatching {
+            streamHttpClient.newCall(okhttp3.Request.Builder().url(requestUrl).build()).execute().use { response ->
+                val contentType = response.header("Content-Type").orEmpty()
+                if (response.isSuccessful && contentType.startsWith("image/")) {
+                    OfflineArtworkStore.save(requestUrl, response.body.bytes())
+                }
+            }
+        }.onFailure { Timber.tag(TAG).w(it, "Could not store artwork for offline use") }
     }
 
     fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }
@@ -400,19 +429,7 @@ constructor(
                 )
 
                 val albumArtwork = database.getSongByIdBlocking(mediaMetadata.id)?.album?.thumbnailUrl
-                downloadArtworkUrls(mediaMetadata.thumbnailUrl, albumArtwork).forEach { artworkUrl ->
-                    runCatching {
-                        context.imageLoader.execute(
-                            ImageRequest
-                                .Builder(context)
-                                .data(artworkUrl)
-                                .memoryCachePolicy(CachePolicy.DISABLED)
-                                .diskCachePolicy(CachePolicy.ENABLED)
-                                .networkCachePolicy(CachePolicy.ENABLED)
-                                .build(),
-                        )
-                    }
-                }
+                downloadArtworkUrls(mediaMetadata.thumbnailUrl, albumArtwork).forEach(::storeOfflineArtwork)
             }
         }
     }
@@ -454,6 +471,11 @@ internal fun shouldPrepareDownload(downloadState: Int?): Boolean = downloadState
 internal fun isAudioContentType(contentType: String): Boolean =
     !contentType.startsWith("text/html", ignoreCase = true) &&
         !contentType.startsWith("application/json", ignoreCase = true)
+
+/** Covers are kept at a size that still looks sharp on the full-screen player. */
+internal fun offlineArtworkRequestUrl(url: String): String = url.resize(OFFLINE_ARTWORK_SIZE, OFFLINE_ARTWORK_SIZE)
+
+private const val OFFLINE_ARTWORK_SIZE = 1000
 
 internal fun downloadArtworkUrls(
     songArtwork: String?,

@@ -22,6 +22,8 @@ import coil3.memory.MemoryCache
 import coil3.request.CachePolicy
 import coil3.request.allowHardware
 import coil3.request.crossfade
+import com.metrolist.music.utils.OfflineArtworkInterceptor
+import com.metrolist.music.utils.OfflineArtworkStore
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.ArtistConjunctions
 import com.metrolist.innertube.models.YouTubeLocale
@@ -77,6 +79,7 @@ class App :
         CrashHandler.install(this)
         ArtistNameAliases.initialize(this)
         migrateImageCache()
+        OfflineArtworkStore.initialize(this)
 
         // preferencesDataStore uses filesDir/datastore; proactive mkdir reduces failures on odd ROM states
         try {
@@ -319,6 +322,7 @@ class App :
             .apply {
                 crossfade(true)
                 allowHardware(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+                components { add(OfflineArtworkInterceptor) }
                 // Memory cache for fast image loading (prevents network requests on recomposition)
                 memoryCache {
                     MemoryCache
