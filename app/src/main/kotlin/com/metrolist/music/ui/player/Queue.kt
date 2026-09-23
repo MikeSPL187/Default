@@ -807,10 +807,10 @@ fun Queue(
                                                 duration = SnackbarDuration.Short,
                                             )
                                         if (snackbarResult == SnackbarResult.ActionPerformed) {
-                                            playerConnection.player.addMediaItem(currentItem.mediaItem)
-                                            playerConnection.player.moveMediaItem(
-                                                mutableQueueWindows.size,
-                                                currentItem.firstPeriodIndex,
+                                            val player = playerConnection.player
+                                            player.addMediaItem(
+                                                currentItem.firstPeriodIndex.coerceIn(0, player.mediaItemCount),
+                                                currentItem.mediaItem,
                                             )
                                         }
                                     }
