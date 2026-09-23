@@ -89,6 +89,21 @@ jobs:
         env:
           PULL_REQUEST: "false"
 
+      - name: Summarize lint errors and warnings
+        if: always()
+        run: |
+          python3 - <<'EOF'
+          import collections, glob, xml.etree.ElementTree as ET
+          for path in glob.glob("app/build/reports/lint-results-*.xml"):
+              issues = ET.parse(path).getroot().findall("issue")
+              print(collections.Counter((i.get("severity"), i.get("id")) for i in issues).most_common())
+              for i in issues:
+                  if i.get("severity") in ("Fatal", "Error", "Warning"):
+                      loc = i.find("location")
+                      where = f'{loc.get("file")}:{loc.get("line")}' if loc is not None else "?"
+                      print(f'{i.get("severity")} {i.get("id")} {where.split("/app/src/")[-1]} :: {i.get("message")[:160]}')
+          EOF
+
       - name: Upload lint report
         if: always()
         uses: actions/upload-artifact@v4
