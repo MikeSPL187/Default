@@ -17,7 +17,7 @@ import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.models.ItemsPage
 import com.metrolist.music.utils.dataStore
-import com.metrolist.music.utils.get
+import com.metrolist.music.utils.read
 import com.metrolist.music.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -49,8 +49,8 @@ constructor(
                     ),
                 )                .onSuccess { artistItemsPage ->
                     val resolvedItems = YouTube.resolveArtistIds(artistItemsPage.items)
-                    val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-                    val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
+                    val hideExplicit = context.dataStore.read(HideExplicitKey, false)
+                    val hideVideoSongs = context.dataStore.read(HideVideoSongsKey, false)
                     title.value = artistItemsPage.title
                     itemsPage.value =
                         ItemsPage(
@@ -74,8 +74,8 @@ constructor(
                 .artistItemsContinuation(continuation)
                 .onSuccess { artistItemsContinuationPage ->
                     val resolvedItems = YouTube.resolveArtistIds(artistItemsContinuationPage.items)
-                    val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-                    val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
+                    val hideExplicit = context.dataStore.read(HideExplicitKey, false)
+                    val hideVideoSongs = context.dataStore.read(HideVideoSongsKey, false)
                     itemsPage.update {
                         ItemsPage(
                             items =

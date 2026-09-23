@@ -14,7 +14,7 @@ import com.metrolist.innertube.models.filterExplicit
 import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.utils.dataStore
-import com.metrolist.music.utils.get
+import com.metrolist.music.utils.read
 import com.metrolist.music.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -64,7 +64,7 @@ constructor(
                                         }
                                     } ?: Int.MAX_VALUE
                                 firstArtistKey
-                            }.filterExplicit(context.dataStore.get(HideExplicitKey, false))
+                            }.filterExplicit(context.dataStore.read(HideExplicitKey, false))
                 }.onFailure {
                     reportException(it)
                 }

@@ -19,7 +19,7 @@ import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.PodcastEntity
 import com.metrolist.music.ui.utils.resize
 import com.metrolist.music.utils.dataStore
-import com.metrolist.music.utils.get
+import com.metrolist.music.utils.read
 import com.metrolist.music.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -58,7 +58,7 @@ class AccountViewModel @Inject constructor(
     val selectedContentType = MutableStateFlow(AccountContentType.PLAYLISTS)
 
     private suspend fun loadPlaylists() {
-        val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
+        val hideYoutubeShorts = context.dataStore.read(HideYoutubeShortsKey, false)
         YouTube.library("FEmusic_liked_playlists").completed().onSuccess {
             val all = it.items.filterIsInstance<PlaylistItem>()
             // Extract SE playlist separately for Podcasts tab

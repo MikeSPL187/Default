@@ -35,7 +35,7 @@ import com.metrolist.music.extensions.filterExplicitAlbums
 import com.metrolist.music.utils.SyncUtils
 import com.metrolist.music.utils.ArtistNameAliases
 import com.metrolist.music.utils.dataStore
-import com.metrolist.music.utils.get
+import com.metrolist.music.utils.read
 import com.metrolist.music.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -122,9 +122,9 @@ class ArtistViewModel @Inject constructor(
             if (cachedJson != null) {
                 val cachedDto = withContext(Dispatchers.IO) { deserializeArtistPage(cachedJson) }
                 val page = cachedDto.toArtistPage()
-                val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-                val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-                val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
+                val hideExplicit = context.dataStore.read(HideExplicitKey, false)
+                val hideVideoSongs = context.dataStore.read(HideVideoSongsKey, false)
+                val hideYoutubeShorts = context.dataStore.read(HideYoutubeShortsKey, false)
 
                 val filteredSections = page.sections
                     .map { section ->
@@ -142,9 +142,9 @@ class ArtistViewModel @Inject constructor(
 
     fun fetchArtistsFromYTM() {
         viewModelScope.launch {
-            val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-            val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-            val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
+            val hideExplicit = context.dataStore.read(HideExplicitKey, false)
+            val hideVideoSongs = context.dataStore.read(HideVideoSongsKey, false)
+            val hideYoutubeShorts = context.dataStore.read(HideYoutubeShortsKey, false)
             YouTube.artist(artistId)
                 .onSuccess { page ->
                     // Collect all items from all sections and resolve artist IDs once

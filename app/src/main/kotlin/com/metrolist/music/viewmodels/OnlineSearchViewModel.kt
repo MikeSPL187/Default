@@ -30,7 +30,7 @@ import com.metrolist.music.constants.HideYoutubeShortsKey
 import com.metrolist.music.models.ItemsPage
 import com.metrolist.music.utils.SearchRoutes
 import com.metrolist.music.utils.dataStore
-import com.metrolist.music.utils.get
+import com.metrolist.music.utils.read
 import com.metrolist.music.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -98,9 +98,9 @@ constructor(
     private var loadingMore = false
 
     private suspend fun hiddenContentFilter(items: List<YTItem>): List<YTItem> {
-        val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-        val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-        val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
+        val hideExplicit = context.dataStore.read(HideExplicitKey, false)
+        val hideVideoSongs = context.dataStore.read(HideVideoSongsKey, false)
+        val hideYoutubeShorts = context.dataStore.read(HideYoutubeShortsKey, false)
         return items
             .filterExplicit(hideExplicit)
             .filterVideoSongs(hideVideoSongs)
@@ -123,9 +123,9 @@ constructor(
                         resolvedSummary
                     }
                 val resolvedPage = page.copy(summaries = resolvedSummaries)
-                val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-                val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-                val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
+                val hideExplicit = context.dataStore.read(HideExplicitKey, false)
+                val hideVideoSongs = context.dataStore.read(HideVideoSongsKey, false)
+                val hideYoutubeShorts = context.dataStore.read(HideYoutubeShortsKey, false)
                 summaryPage =
                     resolvedPage
                         .filterExplicit(hideExplicit)
