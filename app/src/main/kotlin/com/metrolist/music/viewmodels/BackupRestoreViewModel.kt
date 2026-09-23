@@ -625,27 +625,9 @@ class BackupRestoreViewModel @Inject constructor(
 
         runCatching {
             context.applicationContext.contentResolver.openInputStream(uri)?.use { stream ->
-                val lines = stream.bufferedReader().readLines()
-                if (lines.isNotEmpty() && lines.first().startsWith("#EXTM3U")) {
-                    lines.forEachIndexed { _, rawLine ->
-                        if (rawLine.startsWith("#EXTINF:")) {
-                            val artists =
-                                rawLine.substringAfter("#EXTINF:").substringAfter(',').substringBefore(" - ").split(';')
-                            val title = rawLine.substringAfter("#EXTINF:").substringAfter(',').substringAfter(" - ")
-
-                            val mockSong = Song(
-                                song = SongEntity(
-                                    id = "",
-                                    title = title,
-                                ),
-                                artists = artists.map { ArtistEntity("", it) },
-                            )
-                            songs.add(mockSong)
-                        }
-                    }
-                }
+                songs.addAll(parseM3U(stream.bufferedReader().readLines()))
             }
-        }
+        }.onFailure { Timber.w(it, "Could not read M3U playlist") }
 
         if (songs.isEmpty()) {
             Toast.makeText(
@@ -659,5 +641,59 @@ class BackupRestoreViewModel @Inject constructor(
 
     companion object {
         const val SETTINGS_FILENAME = "settings.preferences_pb"
+
+        private val YOUTUBE_ID_IN_URL =
+            Regex("""(?:[?&]v=|youtu\.be/|/shorts/|/embed/)([A-Za-z0-9_-]{11})""")
+        private val YTM_TAG = Regex("""^#YTM:\s*([A-Za-z0-9_-]{11})""")
+
+        /**
+         * Parses an (extended) M3U playlist in file order. The video id comes from a YouTube URL
+         * entry or a `#YTM:` tag; entries without one keep an empty id and are resolved by search.
+         */
+        internal fun parseM3U(lines: List<String>): List<Song> {
+            val songs = mutableListOf<Song>()
+            var title: String? = null
+            var artists: List<String> = emptyList()
+            var taggedId: String? = null
+
+            fun flush(location: String?) {
+                val id = taggedId ?: location?.let { YOUTUBE_ID_IN_URL.find(it)?.groupValues?.get(1) }
+                val name = title ?: location?.substringAfterLast('/')?.substringBeforeLast('.')?.takeIf { id == null }
+                if (id != null || !name.isNullOrBlank()) {
+                    songs +=
+                        Song(
+                            song = SongEntity(id = id.orEmpty(), title = name.orEmpty()),
+                            artists = artists.filter { it.isNotBlank() }.map { ArtistEntity("", it.trim()) },
+                        )
+                }
+                title = null
+                artists = emptyList()
+                taggedId = null
+            }
+
+            for (rawLine in lines) {
+                val line = rawLine.trim().removePrefix("\uFEFF")
+                when {
+                    line.isEmpty() || line.startsWith("#EXTM3U") -> Unit
+                    line.startsWith("#EXTINF:") -> {
+                        val info = line.substringAfter(',', "")
+                        if (" - " in info) {
+                            artists = info.substringBefore(" - ").split(';')
+                            title = info.substringAfter(" - ").trim()
+                        } else {
+                            artists = emptyList()
+                            title = info.trim()
+                        }
+                    }
+                    YTM_TAG.containsMatchIn(line) ->
+                        taggedId = YTM_TAG.find(line)?.groupValues?.get(1)
+                    line.startsWith("#") -> Unit
+                    else -> flush(line)
+                }
+            }
+            // A trailing #EXTINF without a location line is still a usable entry.
+            if (title != null || taggedId != null) flush(null)
+            return songs
+        }
     }
 }

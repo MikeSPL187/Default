@@ -58,7 +58,11 @@ import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.utils.reportException
 import com.metrolist.music.viewmodels.PlaylistsViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Semaphore
@@ -299,57 +303,26 @@ fun AddToPlaylistDialogOnline(
                         selectedPlaylist = playlist
                         coroutineScope.launch(Dispatchers.IO) {
                             onDismiss()
-                            val songsTot = songs.count()
-                            if (songsTot == 0) return@launch
-                            
-                            val songsIdx = AtomicInteger(0)
-                            val semaphore = kotlinx.coroutines.sync.Semaphore(15)
-                            val resolvedSongIds = arrayOfNulls<String>(songsTot)
-                            onProgressStart(true)
+                            val importedSongs = songs.toList()
+                            if (importedSongs.isEmpty()) return@launch
+                            withContext(Dispatchers.Main) { onProgressStart(true) }
                             try {
-                                val jobs = songs.mapIndexed { index, song ->
-                                    coroutineScope.launch {
-                                        semaphore.withPermit {
-                                            try {
-                                                var allArtists = ""
-                                                song.artists.forEach { artist ->
-                                                    allArtists += " ${URLDecoder.decode(artist.name, StandardCharsets.UTF_8.toString())}"
-                                                }
-                                                val query = "${song.title} - $allArtists"
-
-                                                YouTube.search(query, YouTube.SearchFilter.FILTER_SONG)
-                                                    .onSuccess { result ->
-                                                        val items = result.items.distinctBy { it.id }
-                                                        if (items.isNotEmpty()) {
-                                                            val firstSong = items.firstOrNull() as? SongItem
-                                                            if (firstSong != null) {
-                                                                val firstSongMedia = firstSong.toMediaMetadata()
-                                                                withContext(Dispatchers.IO) {
-                                                                    try {
-                                                                        database.insert(firstSongMedia)
-                                                                    } catch (e: Exception) {
-                                                                        Timber.tag("Exception").e(e.toString())
-                                                                    }
-                                                                    resolvedSongIds[index] = firstSong.id
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                    .onFailure { reportException(it) }
-                                            } catch (e: Exception) {
-                                                Timber.tag("ERROR").v(e.toString())
-                                            } finally {
-                                                val completed = songsIdx.incrementAndGet()
-                                                onSongChange(song.title)
-                                                onPercentageChange(((completed.toDouble() / songsTot) * 100).toInt())
-                                            }
-                                        }
-                                    }
+                                val resolved = resolveImportedSongs(importedSongs, onSongChange, onPercentageChange)
+                                val alreadyInPlaylist =
+                                    database.playlistSongsBlocking(playlist.id).mapTo(HashSet()) { it.song.id }
+                                // Keep the file order and skip songs the playlist already has.
+                                val newSongIds =
+                                    resolved.filterNotNull()
+                                        .map { it.id }
+                                        .distinct()
+                                        .filter { it !in alreadyInPlaylist }
+                                resolved.filterNotNull().forEach { item ->
+                                    runCatching { database.insert(item.toMediaMetadata()) }
+                                        .onFailure { Timber.tag("Import").w(it, "Could not store ${item.id}") }
                                 }
-                                jobs.forEach { it.join() }
                                 database.addSongsToPlaylist(
                                     playlist,
-                                    resolvedSongIds.filterNotNull().map { it to null },
+                                    newSongIds.map { it to null },
                                     prepend = addToPlaylistPosition.prepend,
                                 )
                             } finally {
@@ -367,56 +340,26 @@ fun AddToPlaylistDialogOnline(
                     modifier = Modifier.clickable {
                         coroutineScope.launch(Dispatchers.IO) {
                             onDismiss()
-                            val songsTot = songs.count()
-                            if (songsTot == 0) return@launch
-
-                            val songsIdx = AtomicInteger(0)
-                            val semaphore = kotlinx.coroutines.sync.Semaphore(15)
-                            onProgressStart(true)
+                            val importedSongs = songs.toList()
+                            if (importedSongs.isEmpty()) return@launch
+                            withContext(Dispatchers.Main) { onProgressStart(true) }
                             try {
-                                val jobs = songs.reversed().map { song ->
-                                    coroutineScope.launch {
-                                        semaphore.withPermit {
-                                            try {
-                                                var allArtists = ""
-                                                song.artists.forEach { artist ->
-                                                    allArtists += " ${URLDecoder.decode(artist.name, StandardCharsets.UTF_8.toString())}"
-                                                }
-                                                val query = "${song.title} - $allArtists"
-
-                                                YouTube.search(query, YouTube.SearchFilter.FILTER_SONG)
-                                                    .onSuccess { result ->
-                                                        val items = result.items.distinctBy { it.id }
-                                                        if (items.isNotEmpty()) {
-                                                            val firstSong = items.firstOrNull() as? SongItem
-                                                            if (firstSong != null) {
-                                                                val firstSongMedia = firstSong.toMediaMetadata()
-                                                                val firstSongEnt = firstSong.toMediaMetadata().toSongEntity()
-                                                                withContext(Dispatchers.IO) {
-                                                                    try {
-                                                                        database.insert(firstSongMedia)
-                                                                        database.query {
-                                                                            update(firstSongEnt.toggleLike())
-                                                                        }
-                                                                    } catch (e: Exception) {
-                                                                        Timber.tag("Exception").e(e.toString())
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                    .onFailure { reportException(it) }
-                                            } catch (e: Exception) {
-                                                Timber.tag("ERROR").v(e.toString())
-                                            } finally {
-                                                val completed = songsIdx.incrementAndGet()
-                                                onSongChange(song.title)
-                                                onPercentageChange(((completed.toDouble() / songsTot) * 100).toInt())
+                                // Liked songs are ordered by like date, so like them last-to-first.
+                                resolveImportedSongs(importedSongs, onSongChange, onPercentageChange)
+                                    .filterNotNull()
+                                    .distinctBy { it.id }
+                                    .asReversed()
+                                    .forEach { item ->
+                                        runCatching {
+                                            database.insert(item.toMediaMetadata())
+                                            // Only like songs that are not liked yet; toggling an
+                                            // already liked song would unlike it.
+                                            val existing = database.getSongByIdBlocking(item.id)?.song
+                                            if (existing != null && !existing.liked) {
+                                                database.update(existing.toggleLike())
                                             }
-                                        }
+                                        }.onFailure { Timber.tag("Import").w(it, "Could not like ${item.id}") }
                                     }
-                                }
-                                jobs.forEach { it.join() }
                             } finally {
                                 withContext(Dispatchers.Main) {
                                     onProgressStart(false)
@@ -518,3 +461,56 @@ fun AddToPlaylistDialogOnline(
         }
     }
 }
+
+private const val IMPORT_PARALLELISM = 4
+private val YOUTUBE_VIDEO_ID = Regex("^[A-Za-z0-9_-]{11}$")
+
+/**
+ * Finds the YouTube Music song for an imported entry. Entries that carry a video id (from a
+ * YouTube URL or an #YTM: tag) are looked up exactly; the rest fall back to a title search.
+ */
+internal suspend fun resolveImportedSong(song: Song): SongItem? {
+    song.song.id.takeIf(YOUTUBE_VIDEO_ID::matches)?.let { videoId ->
+        YouTube.queue(videoIds = listOf(videoId)).getOrNull()?.firstOrNull()?.let { return it }
+    }
+    val artists =
+        song.artists.joinToString(" ") { artist ->
+            runCatching { URLDecoder.decode(artist.name, StandardCharsets.UTF_8.toString()) }.getOrDefault(artist.name)
+        }
+    return YouTube.search("${song.title} - $artists", YouTube.SearchFilter.FILTER_SONG)
+        .onFailure { reportException(it) }
+        .getOrNull()
+        ?.items
+        ?.firstOrNull { it is SongItem } as? SongItem
+}
+
+/** Resolves [songs] with limited parallelism, keeping their order and reporting progress on the main thread. */
+private suspend fun resolveImportedSongs(
+    songs: List<Song>,
+    onSongChange: (String) -> Unit,
+    onPercentageChange: (Int) -> Unit,
+): List<SongItem?> =
+    coroutineScope {
+        val semaphore = Semaphore(IMPORT_PARALLELISM)
+        val completed = AtomicInteger(0)
+        songs.map { song ->
+            async {
+                semaphore.withPermit {
+                    try {
+                        resolveImportedSong(song)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        Timber.tag("Import").w(e, "Could not resolve ${song.title}")
+                        null
+                    } finally {
+                        val done = completed.incrementAndGet()
+                        withContext(Dispatchers.Main) {
+                            onSongChange(song.title)
+                            onPercentageChange(done * 100 / songs.size)
+                        }
+                    }
+                }
+            }
+        }.awaitAll()
+    }
