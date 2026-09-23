@@ -903,4 +903,8 @@
     <string name="watch_export_error_permission">На Android 8 и 9 требуется разрешение на доступ к хранилищу.</string>
     <string name="watch_export_error_prepare">Не удалось подготовить совместимый AAC-поток. Проверьте подключение и повторите попытку.</string>
     <string name="watch_export_error_storage">Не удалось безопасно сохранить файл в медиатеку телефона.</string>
+
+    <!-- Playback -->
+    <string name="preload_next_song">Предзагружать следующий трек</string>
+    <string name="preload_next_song_desc">Заранее подготовить начало следующего трека для быстрого перехода</string>
 </resources>

@@ -67,6 +67,7 @@ import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.PlayerMessage
 import androidx.media3.exoplayer.Renderer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
@@ -112,6 +113,7 @@ import com.metrolist.music.constants.AutoDownloadOnLikeKey
 import com.metrolist.music.constants.AutoLoadMoreKey
 import com.metrolist.music.constants.AutoSkipNextOnErrorKey
 import com.metrolist.music.constants.AutoplayKey
+import com.metrolist.music.constants.PreloadNextSongKey
 import com.metrolist.music.constants.CrossfadeDurationKey
 import com.metrolist.music.constants.CrossfadeEnabledKey
 import com.metrolist.music.constants.CrossfadeGaplessKey
@@ -490,6 +492,7 @@ class MusicService :
     private var cachedPersistentQueue = true
     @Volatile
     private var cachedAutoplay = true
+    private var preloadConfiguration = ExoPlayer.PreloadConfiguration.DEFAULT
     @Volatile
     private var cachedDisableLoadMoreWhenRepeatAll = false
     @Volatile
@@ -681,7 +684,9 @@ class MusicService :
                     defaultMediaNotificationProvider.notificationChannelInfo
             },
         )
+        preloadConfiguration = preloadConfigurationFor(startupPrefs!![PreloadNextSongKey] ?: true)
         player = createExoPlayer(prefs = startupPrefs!!)
+        _playerFlow.value = player
         player.addListener(this@MusicService)
         sleepTimer =
             SleepTimer(scope, player) { multiplier ->
@@ -811,6 +816,11 @@ class MusicService :
                     Timber.tag(TAG).i("QUALITY CHANGED: $oldQuality -> $newQuality")
 
                     val mediaId = player.currentMediaItem?.mediaId ?: return@collect
+                    // Downloaded songs always play from the offline copy; quality only affects streams.
+                    if (downloadUtil.downloads.value[mediaId]?.state == Download.STATE_COMPLETED) {
+                        Timber.tag(TAG).d("Keeping downloaded copy of $mediaId after quality change")
+                        return@collect
+                    }
                     val currentPosition = player.currentPosition
                     val wasPlaying = player.isPlaying
                     val currentIndex = player.currentMediaItemIndex
@@ -819,12 +829,11 @@ class MusicService :
 
                     songUrlCache.invalidate(mediaId)
 
-                    // CRITICAL: Clear caches synchronously to prevent format parsing errors
-                    runBlocking(Dispatchers.IO) {
+                    // Clear the transient cache before reloading to prevent format parsing errors.
+                    withContext(Dispatchers.IO) {
                         try {
                             playerCache.removeResource(mediaId)
-                            downloadCache.removeResource(mediaId)
-                            Timber.tag(TAG).d("Cleared player and download cache for $mediaId")
+                            Timber.tag(TAG).d("Cleared transient playback cache for $mediaId")
                         } catch (e: Exception) {
                             Timber.tag(TAG).e(e, "Failed to clear cache for $mediaId")
                         }
@@ -994,6 +1003,7 @@ class MusicService :
 
                 player = newPlayer
                 _playerFlow.value = newPlayer
+                updatePauseAtEndOfMediaItems()
 
                 Timber.tag("MusicService").i("Player recreated with AudioTrackPlaybackParams: $useAudioTrackParams")
             }
@@ -1160,7 +1170,23 @@ class MusicService :
             dataStore.data.map { it[PersistentQueueKey] ?: true }.distinctUntilChanged().collect { cachedPersistentQueue = it }
         }
         scope.launch {
-            dataStore.data.map { it[AutoplayKey] ?: true }.distinctUntilChanged().collect { cachedAutoplay = it }
+            dataStore.data.map { it[AutoplayKey] ?: true }.distinctUntilChanged().collect { autoplay ->
+                cachedAutoplay = autoplay
+                updatePauseAtEndOfMediaItems()
+                if (autoplay) {
+                    scheduleCrossfade()
+                } else {
+                    crossfadeMessage?.cancel()
+                    crossfadeMessage = null
+                }
+            }
+        }
+        scope.launch {
+            dataStore.data.map { it[PreloadNextSongKey] ?: true }.distinctUntilChanged().collect { preload ->
+                preloadConfiguration = preloadConfigurationFor(preload)
+                player.preloadConfiguration = preloadConfiguration
+                secondaryPlayer?.preloadConfiguration = preloadConfiguration
+            }
         }
         scope.launch {
             dataStore.data.map { it[DisableLoadMoreWhenRepeatAllKey] ?: false }.distinctUntilChanged().collect { cachedDisableLoadMoreWhenRepeatAll = it }
@@ -1356,9 +1382,11 @@ class MusicService :
             }
         }
         player.addAnalyticsListener(PlaybackStatsListener(false, this@MusicService))
+        player.preloadConfiguration = preloadConfiguration
+        player.pauseAtEndOfMediaItems = !cachedAutoplay && player.repeatMode == REPEAT_MODE_OFF
 
-        // Cleanup handled manually in onDestroy/release
-        _playerFlow.value = player
+        // Callers publish the player once it becomes the active one; a crossfade's secondary
+        // player must not replace the active player in the UI before the swap.
         return player
     }
 
@@ -2825,6 +2853,8 @@ class MusicService :
 
     override fun onRepeatModeChanged(repeatMode: Int) {
         updateNotification()
+        updatePauseAtEndOfMediaItems()
+        scheduleCrossfade()
         scope.launch {
             safeDataStoreEdit { settings ->
                 settings[RepeatModeKey] = repeatMode
@@ -4763,10 +4793,25 @@ class MusicService :
         }
     }
 
+    /**
+     * ExoPlayer advances through the queue on its own, so with autoplay off it has to be told to
+     * stop at the end of each item. Repeat modes still loop as requested.
+     */
+    private fun updatePauseAtEndOfMediaItems() {
+        if (!::player.isInitialized) return
+        player.pauseAtEndOfMediaItems = !cachedAutoplay && player.repeatMode == REPEAT_MODE_OFF
+    }
+
+    private fun preloadConfigurationFor(enabled: Boolean) =
+        if (enabled) ExoPlayer.PreloadConfiguration(PRELOAD_NEXT_SONG_DURATION_US) else ExoPlayer.PreloadConfiguration.DEFAULT
+
     private fun scheduleCrossfade() {
         crossfadeMessage?.cancel()
         crossfadeMessage = null
-        
+
+        // Crossfading starts the next song, which autoplay-off must not do.
+        if (!cachedAutoplay && player.repeatMode == REPEAT_MODE_OFF) return
+
         val mediaCrossfadeDuration = crossfadeDuration.toLong()
 
         if (!crossfadeEnabled || crossfadeDuration <= 0f || player.duration == C.TIME_UNSET || player.duration <= mediaCrossfadeDuration) return
@@ -4862,6 +4907,7 @@ class MusicService :
         player = nextPlayer
         _playerFlow.value = player
         secondaryPlayer = null
+        updatePauseAtEndOfMediaItems()
 
         // Do not persist the retired player's temporary repeat-off state.
         fadingPlayer?.removeListener(this)
@@ -4982,6 +5028,8 @@ class MusicService :
     }
 
     companion object {
+        private const val PRELOAD_NEXT_SONG_DURATION_US = 5_000_000L
+
         const val ACTION_ALARM_TRIGGER = "com.metrolist.music.action.ALARM_TRIGGER"
         const val EXTRA_ALARM_ID = "extra_alarm_id"
         const val EXTRA_ALARM_PLAYLIST_ID = "extra_alarm_playlist_id"

@@ -1012,4 +1012,8 @@
     <string name="watch_export_error_permission">Storage permission is required on Android 8 and 9.</string>
     <string name="watch_export_error_prepare">Could not prepare a compatible AAC stream. Check the connection and try again.</string>
     <string name="watch_export_error_storage">Could not safely save the file to the phone music library.</string>
+
+    <!-- Playback -->
+    <string name="preload_next_song">Preload next song</string>
+    <string name="preload_next_song_desc">Prepare the beginning of the next track for a faster transition</string>
 </resources>

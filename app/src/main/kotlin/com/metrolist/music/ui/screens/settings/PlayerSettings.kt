@@ -49,6 +49,7 @@ import com.metrolist.music.constants.AutoLoadMoreKey
 import com.metrolist.music.constants.AutoRadioQueueKey
 import com.metrolist.music.constants.AutoSkipNextOnErrorKey
 import com.metrolist.music.constants.AutoplayKey
+import com.metrolist.music.constants.PreloadNextSongKey
 import com.metrolist.music.constants.DisableLoadMoreWhenRepeatAllKey
 import com.metrolist.music.constants.EnableGoogleCastKey
 import com.metrolist.music.constants.HistoryDuration
@@ -184,6 +185,10 @@ fun PlayerSettings(
     )
     val (autoplay, onAutoplayChange) = rememberPreference(
         AutoplayKey,
+        defaultValue = true
+    )
+    val (preloadNextSong, onPreloadNextSongChange) = rememberPreference(
+        PreloadNextSongKey,
         defaultValue = true
     )
     val (persistentShuffleAcrossQueues, onPersistentShuffleAcrossQueuesChange) = rememberPreference(
@@ -829,6 +834,27 @@ fun PlayerSettings(
                         )
                     },
                     onClick = { onAutoplayChange(!autoplay) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.fast_forward),
+                    title = { Text(stringResource(R.string.preload_next_song)) },
+                    description = { Text(stringResource(R.string.preload_next_song_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = preloadNextSong,
+                            onCheckedChange = onPreloadNextSongChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (preloadNextSong) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onPreloadNextSongChange(!preloadNextSong) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.repeat),
