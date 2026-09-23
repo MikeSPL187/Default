@@ -4927,7 +4927,7 @@ class MusicService :
 
     private fun startWidgetUpdates() {
         widgetUpdateJob?.cancel()
-        if (isScreenOff) {
+        if (isScreenOff || !widgetManager.hasProgressWidgets()) {
             widgetUpdateJob = null
             return
         }

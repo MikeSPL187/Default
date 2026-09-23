@@ -119,6 +119,13 @@ class MetrolistWidgetManager @Inject constructor(
         )
     }
 
+    /** Whether any placed widget shows playback progress, so the service can skip per-second updates. */
+    fun hasProgressWidgets(): Boolean {
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+        return appWidgetManager.getAppWidgetIds(ComponentName(context, MusicWidgetReceiver::class.java)).isNotEmpty() ||
+            appWidgetManager.getAppWidgetIds(ComponentName(context, PlaylistWidgetReceiver::class.java)).isNotEmpty()
+    }
+
     fun updateProgress(
         duration: Long,
         currentPosition: Long,
