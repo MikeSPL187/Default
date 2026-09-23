@@ -5,6 +5,8 @@
 
 package com.metrolist.music.viewmodels
 
+import com.metrolist.music.utils.Daylist
+import com.metrolist.music.utils.DayPart
 import com.metrolist.music.utils.filterNotRecommended
 import com.metrolist.music.utils.notRecommended
 import android.content.Context
@@ -111,6 +113,7 @@ class HomeViewModel @Inject constructor(
     val quickPicks = MutableStateFlow<List<Song>?>(null)
     val dailyDiscover = MutableStateFlow<List<DailyDiscoverItem>?>(null)
     val forgottenFavorites = MutableStateFlow<List<Song>?>(null)
+    val daylist = MutableStateFlow<Daylist?>(null)
     val keepListening = MutableStateFlow<List<LocalItem>?>(null)
     val similarRecommendations = MutableStateFlow<List<SimilarRecommendation>?>(null)
     val accountPlaylists = MutableStateFlow<List<PlaylistItem>?>(null)
@@ -472,6 +475,19 @@ class HomeViewModel @Inject constructor(
             }
 
             launch(Dispatchers.IO) {
+                val part = DayPart.now()
+                // A wider pool than shown, so the list changes from day to day.
+                val songs = database.songsPlayedAtHours(part.hours, LocalDateTime.now().minusDays(DAYLIST_DAYS), DAYLIST_POOL)
+                    .filterNot { it.song.isEpisode }
+                    .filterVideoSongs(hideVideoSongs)
+                    .filterExplicit(hideExplicit)
+                    .filterNotRecommended(context.notRecommended())
+                    .shuffled()
+                    .take(DAYLIST_SIZE)
+                daylist.value = if (songs.size >= DAYLIST_MIN_SIZE) Daylist(part, songs) else null
+            }
+
+            launch(Dispatchers.IO) {
                 val songs = database.mostPlayedSongs(fromTimeStamp = fromTimeStamp, limit = 15, offset = 5, toTimeStamp = LocalDateTime.now()).first()
                     .filterVideoSongs(hideVideoSongs).filterExplicit(hideExplicit).shuffled().take(10)
                 val albums = database.mostPlayedAlbums(fromTimeStamp, limit = 8, offset = 2).first()
@@ -824,3 +840,8 @@ class HomeViewModel @Inject constructor(
         }
     }
 }
+
+private const val DAYLIST_DAYS = 60L
+private const val DAYLIST_POOL = 40
+private const val DAYLIST_SIZE = 25
+private const val DAYLIST_MIN_SIZE = 8

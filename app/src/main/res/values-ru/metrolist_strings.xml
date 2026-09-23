@@ -974,4 +974,10 @@
     <string name="smart_downloads">Умные загрузки</string>
     <string name="smart_downloads_desc">Держит скачанными самые слушаемые треки и быстрые подборки. Обновляется раз в день по Wi-Fi во время зарядки</string>
     <string name="smart_downloads_count">Самых слушаемых треков: %1$d</string>
+
+    <!-- Time-of-day playlist -->
+    <string name="daylist_morning">Ваше утро</string>
+    <string name="daylist_day">Ваш день</string>
+    <string name="daylist_evening">Ваш вечер</string>
+    <string name="daylist_night">Ваша ночь</string>
 </resources>

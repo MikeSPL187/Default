@@ -182,6 +182,8 @@ sealed class HomeSection(
 
     data object QuickPicks : HomeSection("quick_picks", 90)
 
+    data object Daylist : HomeSection("daylist", 85)
+
     data object DailyDiscover : HomeSection("daily_discover", 80)
 
     data object KeepListening : HomeSection("keep_listening", 50)
@@ -662,6 +664,7 @@ fun HomeScreen(
 
     val quickPicks by viewModel.quickPicks.collectAsStateWithLifecycle()
     val forgottenFavorites by viewModel.forgottenFavorites.collectAsStateWithLifecycle()
+    val daylist by viewModel.daylist.collectAsStateWithLifecycle()
     val keepListening by viewModel.keepListening.collectAsStateWithLifecycle()
     val similarRecommendations by viewModel.similarRecommendations.collectAsStateWithLifecycle()
     val accountPlaylists by viewModel.accountPlaylists.collectAsStateWithLifecycle()
@@ -688,6 +691,7 @@ fun HomeScreen(
 
     val quickPicksLazyGridState = rememberLazyGridState()
     val forgottenFavoritesLazyGridState = rememberLazyGridState()
+    val daylistLazyGridState = rememberLazyGridState()
 
     val accountName by viewModel.accountName.collectAsStateWithLifecycle()
     val accountImageUrl by viewModel.accountImageUrl.collectAsStateWithLifecycle()
@@ -1034,6 +1038,7 @@ fun HomeScreen(
             keepListening,
             accountPlaylists,
             forgottenFavorites,
+            daylist,
             communityPlaylists,
             similarRecommendations,
             homePage?.sections,
@@ -1044,6 +1049,7 @@ fun HomeScreen(
 
             if (!chipActive && speedDialItems.isNotEmpty()) list.add(HomeSection.SpeedDial)
             if (!chipActive && quickPicks?.isNotEmpty() == true) list.add(HomeSection.QuickPicks)
+            if (!chipActive && daylist?.songs?.isNotEmpty() == true) list.add(HomeSection.Daylist)
             if (!chipActive && communityPlaylists?.isNotEmpty() == true) list.add(HomeSection.FromTheCommunity)
             if (!chipActive && dailyDiscover?.isNotEmpty() == true) list.add(HomeSection.DailyDiscover)
             if (!chipActive && keepListening?.isNotEmpty() == true) list.add(HomeSection.KeepListening)
@@ -1179,6 +1185,15 @@ fun HomeScreen(
                 remember(forgottenFavoritesLazyGridState) {
                     SnapLayoutInfoProvider(
                         lazyGridState = forgottenFavoritesLazyGridState,
+                        positionInLayout = { layoutSize, itemSize ->
+                            (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)
+                        },
+                    )
+                }
+            val daylistSnapLayoutInfoProvider =
+                remember(daylistLazyGridState) {
+                    SnapLayoutInfoProvider(
+                        lazyGridState = daylistLazyGridState,
                         positionInLayout = { layoutSize, itemSize ->
                             (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)
                         },
@@ -2073,6 +2088,121 @@ fun HomeScreen(
                                             key = { "home_account_playlist_${it.id}" },
                                         ) { item ->
                                             ytGridItem(item)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        HomeSection.Daylist -> {
+                            val daylistPart = daylist?.part
+                            daylist?.songs?.takeIf { it.isNotEmpty() }?.let { daylistSongs ->
+                                item(key = "daylist_title") {
+                                    val daylistTitle = stringResource(daylistPart?.titleRes ?: R.string.daylist_day)
+                                    NavigationTitle(
+                                        title = daylistTitle,
+                                        onPlayAllClick =
+                                            if (!isListenTogetherGuest) {
+                                                {
+                                                    playerConnection.playQueue(
+                                                        ListQueue(
+                                                            title = daylistTitle,
+                                                            items = daylistSongs.distinctBy { it.id }.map { it.toMediaItem() },
+                                                        ),
+                                                    )
+                                                }
+                                            } else {
+                                                null
+                                            },
+                                    )
+                                }
+
+                                item(key = "daylist_list") {
+                                    // take min in case list size is less than 4
+                                    val rows = min(4, daylistSongs.size)
+                                    LazyHorizontalGrid(
+                                        state = daylistLazyGridState,
+                                        rows = GridCells.Fixed(rows),
+                                        contentPadding =
+                                            WindowInsets.systemBars
+                                                .only(WindowInsetsSides.Horizontal)
+                                                .asPaddingValues(),
+                                        flingBehavior =
+                                            rememberSnapFlingBehavior(
+                                                daylistSnapLayoutInfoProvider,
+                                            ),
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .height(ListItemHeight * rows),
+                                        ) {
+                                            items(
+                                                items = daylistSongs.distinctBy { it.id },
+                                                key = { "home_daylist_${it.id}" },
+                                            ) { originalSong ->
+                                            val song by database
+                                                .song(originalSong.id)
+                                                .collectAsStateWithLifecycle(initialValue = originalSong)
+
+                                            SongListItem(
+                                                song = song!!,
+                                                showInLibraryIcon = true,
+                                                isActive = song!!.id == mediaMetadata?.id,
+                                                isPlaying = isPlaying,
+                                                isSwipeable = false,
+                                                trailingContent = {
+                                                    IconButton(
+                                                        onClick = {
+                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                            menuState.show {
+                                                                SongMenu(
+                                                                    originalSong = song!!,
+                                                                    onDismiss = menuState::dismiss,
+                                                                )
+                                                            }
+                                                        },
+                                                    ) {
+                                                        Icon(
+                                                            painter = painterResource(R.drawable.more_vert),
+                                                            contentDescription = null,
+                                                        )
+                                                    }
+                                                },
+                                                modifier =
+                                                    Modifier
+                                                        .width(horizontalLazyGridItemWidth)
+                                                        .combinedClickable(
+                                                            onClick = {
+                                                                if (!isListenTogetherGuest) {
+                                                                    if (song!!.id == mediaMetadata?.id) {
+                                                                        playerConnection.togglePlayPause()
+                                                                    } else {
+                                                                        playerConnection.playQueue(
+                                                                            if (autoRadioQueue) {
+                                                                                YouTubeQueue.radio(
+                                                                                    song!!.toMediaMetadata(),
+                                                                                )
+                                                                            } else {
+                                                                                ListQueue(
+                                                                                    title = song!!.title,
+                                                                                    items = listOf(song!!.toMediaItem())
+                                                                                )
+                                                                            }
+                                                                        )
+                                                                    }
+                                                                }
+                                                            },
+                                                            onLongClick = {
+                                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                                menuState.show {
+                                                                    SongMenu(
+                                                                        originalSong = song!!,
+                                                                        onDismiss = menuState::dismiss,
+                                                                    )
+                                                                }
+                                                            },
+                                                        ),
+                                            )
                                         }
                                     }
                                 }

@@ -1081,4 +1081,10 @@
     <string name="smart_downloads">Smart downloads</string>
     <string name="smart_downloads_desc">Keeps your most played songs and quick picks downloaded. Refreshed daily on Wi-Fi while charging</string>
     <string name="smart_downloads_count">Most played songs: %1$d</string>
+
+    <!-- Time-of-day playlist -->
+    <string name="daylist_morning">Your morning</string>
+    <string name="daylist_day">Your afternoon</string>
+    <string name="daylist_evening">Your evening</string>
+    <string name="daylist_night">Your night</string>
 </resources>

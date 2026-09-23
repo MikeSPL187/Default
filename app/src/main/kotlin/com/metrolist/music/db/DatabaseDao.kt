@@ -520,6 +520,31 @@ interface DatabaseDao {
         toTimeStamp: LocalDateTime? = LocalDateTime.now(),
     ): Flow<List<Song>>
 
+    /**
+     * Songs played most at the given local hours since [fromTimeStamp]. Event timestamps hold the
+     * local wall-clock time, so strftime without 'localtime' yields the local hour.
+     */
+    @Transaction
+    @Query(
+        """
+        SELECT song.* FROM song
+        JOIN (SELECT songId, SUM(playTime) AS total
+              FROM event
+              WHERE timestamp > :fromTimeStamp
+                AND CAST(strftime('%H', timestamp / 1000, 'unixepoch') AS INTEGER) IN (:hours)
+              GROUP BY songId
+              ORDER BY total DESC
+              LIMIT :limit) AS top
+        ON song.id = top.songId
+        ORDER BY top.total DESC
+    """,
+    )
+    suspend fun songsPlayedAtHours(
+        hours: List<Int>,
+        fromTimeStamp: LocalDateTime,
+        limit: Int,
+    ): List<Song>
+
     @Transaction
     @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     @Query(
