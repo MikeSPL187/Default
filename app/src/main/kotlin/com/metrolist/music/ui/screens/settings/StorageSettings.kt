@@ -5,6 +5,12 @@
 
 package com.metrolist.music.ui.screens.settings
 
+import androidx.compose.runtime.mutableFloatStateOf
+import com.metrolist.music.utils.safeDataStoreEdit
+import com.metrolist.music.playback.smartDownloads
+import com.metrolist.music.playback.SmartDownloads
+import com.metrolist.music.constants.SmartDownloadsCountKey
+import com.metrolist.music.constants.SmartDownloadsKey
 import com.metrolist.music.ui.utils.frameAwareDelay
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Column
@@ -123,6 +129,30 @@ fun StorageSettings(
         key = DownloadOnWifiOnlyKey,
         defaultValue = false
     )
+    val smartDownloadsEnabled by rememberPreference(SmartDownloadsKey, defaultValue = false)
+    val smartDownloadsCount by rememberPreference(SmartDownloadsCountKey, defaultValue = SmartDownloads.DEFAULT_COUNT)
+    // Slider position as an index into SmartDownloads.COUNT_OPTIONS, committed when the drag ends.
+    var smartDownloadsCountIndex by remember(smartDownloadsCount) {
+        mutableFloatStateOf(
+            (
+                SmartDownloads.COUNT_OPTIONS.indexOf(smartDownloadsCount)
+                    .takeIf { it >= 0 }
+                    ?: SmartDownloads.COUNT_OPTIONS.indexOf(SmartDownloads.DEFAULT_COUNT)
+            ).toFloat(),
+        )
+    }
+    // The preference is written before refreshing, so the refresh sees the new value.
+    val updateSmartDownloads: (enabled: Boolean, count: Int) -> Unit = { enabled, count ->
+        coroutineScope.launch {
+            context.safeDataStoreEdit {
+                it[SmartDownloadsKey] = enabled
+                it[SmartDownloadsCountKey] = count
+            }
+            val smartDownloads = context.smartDownloads()
+            smartDownloads.schedule(enabled)
+            smartDownloads.refresh(viaService = true)
+        }
+    }
     var clearCacheDialog by remember { mutableStateOf(false) }
     var clearImageCacheDialog by remember { mutableStateOf(false) }
 
@@ -377,6 +407,52 @@ fun StorageSettings(
                             )
                         },
                         onClick = { onDownloadOnWifiOnlyChange(!downloadOnWifiOnly) },
+                    ),
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.trending_up),
+                        title = { Text(stringResource(R.string.smart_downloads)) },
+                        description = { Text(stringResource(R.string.smart_downloads_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = smartDownloadsEnabled,
+                                onCheckedChange = { updateSmartDownloads(it, smartDownloadsCount) },
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (smartDownloadsEnabled) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { updateSmartDownloads(!smartDownloadsEnabled, smartDownloadsCount) },
+                    ),
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.trending_up),
+                        title = {
+                            Text(
+                                stringResource(
+                                    R.string.smart_downloads_count,
+                                    SmartDownloads.COUNT_OPTIONS[smartDownloadsCountIndex.roundToInt()],
+                                ),
+                            )
+                        },
+                        enabled = smartDownloadsEnabled,
+                        description = {
+                            Slider(
+                                value = smartDownloadsCountIndex,
+                                enabled = smartDownloadsEnabled,
+                                valueRange = 0f..SmartDownloads.COUNT_OPTIONS.lastIndex.toFloat(),
+                                steps = SmartDownloads.COUNT_OPTIONS.size - 2,
+                                onValueChange = { smartDownloadsCountIndex = it },
+                                onValueChangeFinished = {
+                                    val count = SmartDownloads.COUNT_OPTIONS[smartDownloadsCountIndex.roundToInt()]
+                                    if (count != smartDownloadsCount) updateSmartDownloads(true, count)
+                                },
+                            )
+                        },
                     ),
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.watch_check),

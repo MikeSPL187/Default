@@ -969,4 +969,9 @@
 
     <!-- Watch playlist sync summary -->
     <string name="watch_synced_playlists_desc">Синхронизируется: %1$d. Включается в меню плейлиста</string>
+
+    <!-- Smart downloads -->
+    <string name="smart_downloads">Умные загрузки</string>
+    <string name="smart_downloads_desc">Держит скачанными самые слушаемые треки и быстрые подборки. Обновляется раз в день по Wi-Fi во время зарядки</string>
+    <string name="smart_downloads_count">Самых слушаемых треков: %1$d</string>
 </resources>

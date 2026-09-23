@@ -50,6 +50,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -405,7 +406,11 @@ constructor(
 
     fun download(song: SongItem) = download(song.toMediaMetadata())
 
-    fun download(mediaMetadata: MediaMetadata) {
+    /**
+     * @param viaService false adds the request straight to the in-process [downloadManager]. Background
+     * jobs need this, because Android refuses to start the download service from the background.
+     */
+    fun download(mediaMetadata: MediaMetadata, viaService: Boolean = true) {
         scope.launch {
             downloadPreparations.withPermit {
                 if (!shouldPrepareDownload(downloads.value[mediaMetadata.id]?.state)) return@withPermit
@@ -446,12 +451,16 @@ constructor(
                         .setCustomCacheKey(mediaMetadata.id)
                         .setData(mediaMetadata.title.toByteArray())
                         .build()
-                DownloadService.sendAddDownload(
-                    context,
-                    ExoDownloadService::class.java,
-                    request,
-                    false,
-                )
+                if (viaService) {
+                    DownloadService.sendAddDownload(
+                        context,
+                        ExoDownloadService::class.java,
+                        request,
+                        false,
+                    )
+                } else {
+                    withContext(Dispatchers.Main) { downloadManager.addDownload(request) }
+                }
 
                 val albumArtwork = database.getSongByIdBlocking(mediaMetadata.id)?.album?.thumbnailUrl
                 downloadArtworkUrls(mediaMetadata.thumbnailUrl, albumArtwork).forEach(::storeOfflineArtwork)
