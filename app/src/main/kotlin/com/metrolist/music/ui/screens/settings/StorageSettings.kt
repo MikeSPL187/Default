@@ -56,6 +56,7 @@ import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
 import com.metrolist.music.constants.AutoExportForWatchKey
+import com.metrolist.music.constants.DownloadOnWifiOnlyKey
 import com.metrolist.music.constants.EnableSongCacheKey
 import com.metrolist.music.constants.MaxImageCacheSizeKey
 import com.metrolist.music.constants.MaxSongCacheSizeKey
@@ -116,6 +117,10 @@ fun StorageSettings(
         defaultValue = false
     )
     val enableAutoExportForWatch = rememberSharedStorageAction { onAutoExportForWatchChange(true) }
+    val (downloadOnWifiOnly, onDownloadOnWifiOnlyChange) = rememberPreference(
+        key = DownloadOnWifiOnlyKey,
+        defaultValue = false
+    )
     var clearCacheDialog by remember { mutableStateOf(false) }
     var clearImageCacheDialog by remember { mutableStateOf(false) }
 
@@ -349,6 +354,27 @@ fun StorageSettings(
                         description = {
                             Text(text = Formatter.formatShortFileSize(context, downloadCacheSize))
                         },
+                    ),
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.wifi),
+                        title = { Text(stringResource(R.string.download_on_wifi_only)) },
+                        description = { Text(stringResource(R.string.download_on_wifi_only_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = downloadOnWifiOnly,
+                                onCheckedChange = onDownloadOnWifiOnlyChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (downloadOnWifiOnly) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onDownloadOnWifiOnlyChange(!downloadOnWifiOnly) },
                     ),
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.watch_check),

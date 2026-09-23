@@ -22,12 +22,14 @@ import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
+import androidx.media3.exoplayer.scheduler.Requirements
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.SongItem
 import com.metrolist.innertubex.extraction.ContentHints
 import com.metrolist.music.constants.AudioQuality
 import com.metrolist.music.constants.AudioQualityKey
 import com.metrolist.music.constants.AutoExportForWatchKey
+import com.metrolist.music.constants.DownloadOnWifiOnlyKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.AlbumEntity
 import com.metrolist.music.db.entities.FormatEntity
@@ -53,6 +55,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -313,6 +316,16 @@ constructor(
         }
         downloads.value = result
         scope.launch { reconcileDownloads(result) }
+        // Downloads wait (and resume on their own) while only mobile data is available.
+        scope.launch(Dispatchers.Main) {
+            context.dataStore.data
+                .map { it[DownloadOnWifiOnlyKey] ?: false }
+                .distinctUntilChanged()
+                .collect { wifiOnly ->
+                    downloadManager.requirements =
+                        Requirements(if (wifiOnly) Requirements.NETWORK_UNMETERED else Requirements.NETWORK)
+                }
+        }
     }
 
     /**

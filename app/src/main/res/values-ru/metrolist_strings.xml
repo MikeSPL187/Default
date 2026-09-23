@@ -927,4 +927,8 @@
     <!-- Huawei Watch export (automation) -->
     <string name="auto_export_for_watch">Автоматически экспортировать новые загрузки</string>
     <string name="auto_export_for_watch_desc">Каждая завершённая загрузка копируется в Music/Metrolist Watch</string>
+
+    <!-- Downloads -->
+    <string name="download_on_wifi_only">Загружать только по Wi-Fi</string>
+    <string name="download_on_wifi_only_desc">На мобильном интернете загрузки ждут и продолжаются по Wi-Fi</string>
 </resources>
