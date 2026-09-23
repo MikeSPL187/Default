@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -104,6 +105,8 @@ fun ShowMediaInfo(videoId: String) {
         }
     }
 
+    val playCount by database.getLifetimePlayCount(videoId).collectAsState(initial = 0)
+
     LaunchedEffect(Unit, videoId) {
         database.format(videoId).collect {
             currentFormat = it
@@ -132,13 +135,20 @@ fun ShowMediaInfo(videoId: String) {
                                 ArtistNameAliases.resolve(artistNameAliases, null, it)
                             }
                         ),
-                        stringResource(R.string.media_id) to (song?.id ?: info?.videoId)
+                        stringResource(R.string.media_id) to (song?.id ?: info?.videoId),
+                        stringResource(R.string.your_plays) to pluralStringResource(
+                            R.plurals.your_plays_summary,
+                            playCount,
+                            playCount,
+                            formatListeningTime(song?.song?.totalPlayTime ?: 0L),
+                        ),
                     )
 
                     val baseIconsList = listOf(
                         R.drawable.music_note,
                         R.drawable.person,
                         R.drawable.media3_icon_bookmark_filled,
+                        R.drawable.history,
                     )
 
                     val iconsList = listOf(
@@ -264,4 +274,13 @@ fun ShowMediaInfo(videoId: String) {
             }
         }
     }
+}
+
+/** Listening time as "1 h 05 min" or "4 min 12 s". */
+private fun formatListeningTime(millis: Long): String {
+    val totalSeconds = millis / 1000
+    val hours = totalSeconds / 3600
+    val minutes = (totalSeconds % 3600) / 60
+    val seconds = totalSeconds % 60
+    return if (hours > 0) "$hours h %02d min".format(minutes) else "$minutes min %02d s".format(seconds)
 }

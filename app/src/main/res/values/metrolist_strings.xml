@@ -1040,4 +1040,11 @@
     <!-- Downloads -->
     <string name="download_on_wifi_only">Download on Wi-Fi only</string>
     <string name="download_on_wifi_only_desc">Downloads wait on mobile data and continue on Wi-Fi</string>
+
+    <!-- Song details -->
+    <string name="your_plays">Your plays</string>
+    <plurals name="your_plays_summary">
+        <item quantity="one">%1$d time · %2$s</item>
+        <item quantity="other">%1$d times · %2$s</item>
+    </plurals>
 </resources>

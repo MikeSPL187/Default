@@ -931,4 +931,13 @@
     <!-- Downloads -->
     <string name="download_on_wifi_only">Загружать только по Wi-Fi</string>
     <string name="download_on_wifi_only_desc">На мобильном интернете загрузки ждут и продолжаются по Wi-Fi</string>
+
+    <!-- Song details -->
+    <string name="your_plays">Ваши прослушивания</string>
+    <plurals name="your_plays_summary">
+        <item quantity="one">%1$d раз · %2$s</item>
+        <item quantity="few">%1$d раза · %2$s</item>
+        <item quantity="many">%1$d раз · %2$s</item>
+        <item quantity="other">%1$d раза · %2$s</item>
+    </plurals>
 </resources>
