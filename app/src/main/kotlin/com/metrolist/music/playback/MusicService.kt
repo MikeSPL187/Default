@@ -1560,10 +1560,13 @@ class MusicService :
     }
 
     private fun clearPersistedQueueFiles() {
-        runCatching { filesDir.resolve(PERSISTENT_QUEUE_FILE).delete() }
-        runCatching { filesDir.resolve(PERSISTENT_AUTOMIX_FILE).delete() }
-        runCatching { filesDir.resolve(PERSISTENT_PLAYER_STATE_FILE).delete() }
-        runCatching { filesDir.resolve(PERSISTENT_SHUFFLE_ORDER_FILE).delete() }
+        // Through the persistence thread, so a queued write cannot recreate a file after it is cleared.
+        persist(blocking = false) {
+            runCatching { filesDir.resolve(PERSISTENT_QUEUE_FILE).delete() }
+            runCatching { filesDir.resolve(PERSISTENT_AUTOMIX_FILE).delete() }
+            runCatching { filesDir.resolve(PERSISTENT_PLAYER_STATE_FILE).delete() }
+            runCatching { filesDir.resolve(PERSISTENT_SHUFFLE_ORDER_FILE).delete() }
+        }
     }
 
     /** Current shuffled playback order as queue indices, or null when shuffle is off. */
@@ -2751,7 +2754,7 @@ class MusicService :
         }
 
         if (cachedPersistentQueue) {
-            saveQueueToDisk()
+            saveQueueToDisk(onlyIfChanged = true)
         }
     }
 
@@ -2798,7 +2801,7 @@ class MusicService :
 
         // Save state when playback state changes (but not during silence skipping)
         if (cachedPersistentQueue && !isSilenceSkipping) {
-            saveQueueToDisk()
+            saveQueueToDisk(onlyIfChanged = true)
         }
 
         if (playbackState == Player.STATE_READY) {
@@ -2988,7 +2991,7 @@ class MusicService :
         }
 
         if (cachedPersistentQueue) {
-            saveQueueToDisk()
+            saveQueueToDisk(onlyIfChanged = true)
         }
     }
 
@@ -3003,7 +3006,7 @@ class MusicService :
         }
 
         if (cachedPersistentQueue) {
-            saveQueueToDisk()
+            saveQueueToDisk(onlyIfChanged = true)
         }
     }
 
@@ -4283,7 +4286,19 @@ class MusicService :
     private var lastSavedPlayerState: PersistPlayerState? = null
     private var lastSavedShuffleOrder: List<Int>? = null
 
-    private fun saveQueueToDisk(onlyIfChanged: Boolean = false) {
+    // Queue files are written one at a time off the main thread; serializing a long queue there
+    // stalled the UI on every track change and buffering state change.
+    private val persistDispatcher = Dispatchers.IO.limitedParallelism(1)
+
+    private fun persist(blocking: Boolean, write: () -> Unit) {
+        if (blocking) {
+            runBlocking(persistDispatcher) { write() }
+        } else {
+            scope.launch(persistDispatcher) { write() }
+        }
+    }
+
+    private fun saveQueueToDisk(onlyIfChanged: Boolean = false, blocking: Boolean = false) {
         if (player.mediaItemCount == 0) {
             Timber.tag(TAG).d("Skipping queue save - no media items")
             return
@@ -4316,28 +4331,30 @@ class MusicService :
             lastSavedQueue = persistQueue
             lastSavedAutomix = persistAutomix
 
-            runCatching {
-                filesDir.resolve(PERSISTENT_QUEUE_FILE).outputStream().use { fos ->
-                    ObjectOutputStream(fos).use { oos ->
-                        oos.writeObject(persistQueue)
+            persist(blocking) {
+                runCatching {
+                    filesDir.resolve(PERSISTENT_QUEUE_FILE).outputStream().use { fos ->
+                        ObjectOutputStream(fos).use { oos ->
+                            oos.writeObject(persistQueue)
+                        }
                     }
+                    Timber.tag(TAG).d("Queue saved successfully")
+                }.onFailure {
+                    Timber.tag(TAG).e(it, "Failed to save queue")
+                    reportException(it)
                 }
-                Timber.tag(TAG).d("Queue saved successfully")
-            }.onFailure {
-                Timber.tag(TAG).e(it, "Failed to save queue")
-                reportException(it)
-            }
 
-            runCatching {
-                filesDir.resolve(PERSISTENT_AUTOMIX_FILE).outputStream().use { fos ->
-                    ObjectOutputStream(fos).use { oos ->
-                        oos.writeObject(persistAutomix)
+                runCatching {
+                    filesDir.resolve(PERSISTENT_AUTOMIX_FILE).outputStream().use { fos ->
+                        ObjectOutputStream(fos).use { oos ->
+                            oos.writeObject(persistAutomix)
+                        }
                     }
+                    Timber.tag(TAG).d("Automix saved successfully")
+                }.onFailure {
+                    Timber.tag(TAG).e(it, "Failed to save automix")
+                    reportException(it)
                 }
-                Timber.tag(TAG).d("Automix saved successfully")
-            }.onFailure {
-                Timber.tag(TAG).e(it, "Failed to save automix")
-                reportException(it)
             }
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error during queue save operation")
@@ -4491,7 +4508,7 @@ class MusicService :
         audioManager.unregisterAudioDeviceCallback(audioDeviceCallback)
         castConnectionHandler?.release()
         if (pref(PersistentQueueKey, true)) {
-            saveQueueToDisk()
+            saveQueueToDisk(blocking = true)
             savePlayerStateToDisk()
         }
         screenOffHandler.removeCallbacks(screenOffTimeout)
