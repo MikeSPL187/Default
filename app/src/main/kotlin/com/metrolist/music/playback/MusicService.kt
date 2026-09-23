@@ -201,6 +201,8 @@ import com.metrolist.music.playback.alarm.MusicAlarmStore
 import com.metrolist.music.playback.audio.SilenceDetectorAudioProcessor
 import com.metrolist.music.playback.queues.EmptyQueue
 import com.metrolist.music.playback.queues.ListQueue
+import com.metrolist.music.playback.queues.LocalAlbumRadio
+import com.metrolist.music.playback.queues.YouTubeAlbumRadio
 import com.metrolist.music.playback.queues.Queue
 import com.metrolist.music.playback.queues.YouTubeQueue
 import com.metrolist.music.playback.queues.YouTubePlaylistQueue
@@ -503,6 +505,7 @@ class MusicService :
     private var cachedShufflePlaylistFirst = false
     @Volatile
     private var cachedAutoLoadMore = true
+    private var cachedSimilarContent = true
 
     // URL cache for stream URLs - class-level so it can be invalidated on errors
     private val songUrlCache = StreamUrlCache()
@@ -642,6 +645,8 @@ class MusicService :
             cachedHideExplicit = prefs[HideExplicitKey] ?: false
             cachedHideVideoSongs = prefs[HideVideoSongsKey] ?: false
             cachedShufflePlaylistFirst = prefs[ShufflePlaylistFirstKey] ?: false
+            cachedAutoLoadMore = prefs[AutoLoadMoreKey] ?: true
+            cachedSimilarContent = prefs[SimilarContent] ?: true
         }
 
         // 3. Connect the processor to the service
@@ -1213,6 +1218,19 @@ class MusicService :
         }
         scope.launch {
             dataStore.data.map { it[AutoLoadMoreKey] ?: true }.distinctUntilChanged().collect { cachedAutoLoadMore = it }
+        }
+        scope.launch {
+            dataStore.data.map { it[SimilarContent] ?: true }.distinctUntilChanged().collect { cachedSimilarContent = it }
+        }
+        scope.launch {
+            // Suggestions often arrive after the last song already started playing.
+            automixItems.collect { items ->
+                if (items.isNotEmpty() && cachedSimilarContent && playerInitialized.value &&
+                    player.mediaItemCount > 0 && !player.hasNextMediaItem()
+                ) {
+                    addToQueueAutomix(items.first(), 0)
+                }
+            }
         }
         if (startupPrefs!![PersistentQueueKey] ?: true) {
             val queueFile = filesDir.resolve(PERSISTENT_QUEUE_FILE)
@@ -2017,7 +2035,7 @@ class MusicService :
     }
 
     fun getAutomix(playlistId: String) {
-        if (dataStore.get(SimilarContent, true) &&
+        if (cachedSimilarContent &&
             !(cachedDisableLoadMoreWhenRepeatAll && player.repeatMode == REPEAT_MODE_ALL)
         ) {
             scope.launch(SilentHandler) {
@@ -2662,7 +2680,11 @@ class MusicService :
             }
         }
 
+        // Album queues continue with a radio of similar songs once the album is over, which
+        // "Similar content" turns off (#3887).
+        val nextPageIsSimilarContent = currentQueue is YouTubeAlbumRadio || currentQueue is LocalAlbumRadio
         if (cachedAutoLoadMore &&
+            (cachedSimilarContent || !nextPageIsSimilarContent) &&
             reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT &&
             player.mediaItemCount - player.currentMediaItemIndex <= 5 &&
             currentQueue.hasNextPage() &&
@@ -2683,6 +2705,12 @@ class MusicService :
                     }
                 }
             }
+        }
+
+        // Queue the next automix suggestion when the queue runs out, whether or not the
+        // player screen is open.
+        if (cachedSimilarContent && !player.hasNextMediaItem() && automixItems.value.isNotEmpty()) {
+            addToQueueAutomix(automixItems.value.first(), 0)
         }
 
         if (cachedPersistentQueue) {
