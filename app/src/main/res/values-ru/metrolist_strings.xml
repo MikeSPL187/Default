@@ -441,7 +441,7 @@
     <string name="ai_error_language_required">Не выбран язык перевода</string>
     <string name="ai_error_unknown">Произошла неизвестная ошибка</string>
     <string name="ai_error_translation_failed">Ошибка перевода</string>
-    <string name="play_all">Смотреть все</string>
+    <string name="play_all">Слушать все</string>
     <string name="recognize_music">Распознать музыку</string>
     <string name="youtube_url_column">Столбец ссылки на YouTube (необязательно)</string>
     <string name="re_listen">Переслушать</string>

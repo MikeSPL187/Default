@@ -6,8 +6,8 @@
 package com.metrolist.music.ui.component
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -80,23 +80,24 @@ fun CreatePlaylistDialog(
         extraContent = {
             if (allowSyncing) {
                 Row(
-                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 40.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp, horizontal = 24.dp),
                 ) {
-                    Column {
+                    // The text takes the remaining width so long translations wrap instead of running under the switch.
+                    Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
                         Text(
                             text = stringResource(R.string.sync_playlist),
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleMedium,
                         )
                         Text(
                             text = stringResource(R.string.allows_for_sync_witch_youtube),
                             style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.fillMaxWidth(0.7f),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    Row(
-                        modifier = Modifier.weight(1f),
-                        horizontalArrangement = Arrangement.End,
-                    ) {
+                    Row {
                         Switch(
                             checked = syncedPlaylist,
                             onCheckedChange = {
