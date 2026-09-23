@@ -1375,12 +1375,10 @@ class MusicService :
             silenceProcessor.instantModeEnabled = skipSilence && instantSkip
             prefs[AudioTrackPlaybackParamsKey] ?: true
         } else {
-            runBlocking {
-                val skipSilence = pref(SkipSilenceKey, false)
-                val instantSkip = pref(SkipSilenceInstantKey, false)
-                silenceProcessor.instantModeEnabled = skipSilence && instantSkip
-                pref(AudioTrackPlaybackParamsKey, true)
-            }
+            val skipSilence = pref(SkipSilenceKey, false)
+            val instantSkip = pref(SkipSilenceInstantKey, false)
+            silenceProcessor.instantModeEnabled = skipSilence && instantSkip
+            pref(AudioTrackPlaybackParamsKey, true)
         }
 
         var createdPlayer: ExoPlayer? = null
@@ -1427,12 +1425,10 @@ class MusicService :
             player.skipSilenceEnabled = prefs[SkipSilenceKey] ?: false
         } else {
             player.apply {
-                runBlocking {
-                    val offload = pref(AudioOffload, false)
-                    val crossfade = pref(CrossfadeEnabledKey, false)
-                    setOffloadEnabled(if (crossfade) false else offload)
-                    skipSilenceEnabled = pref(SkipSilenceKey, false)
-                }
+                val offload = pref(AudioOffload, false)
+                val crossfade = pref(CrossfadeEnabledKey, false)
+                setOffloadEnabled(if (crossfade) false else offload)
+                skipSilenceEnabled = pref(SkipSilenceKey, false)
             }
         }
         player.addAnalyticsListener(PlaybackStatsListener(false, this@MusicService))
