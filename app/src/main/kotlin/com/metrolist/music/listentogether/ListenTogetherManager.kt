@@ -1301,15 +1301,11 @@ class ListenTogetherManager
                             enqueueQueueMutation(actionQueueGeneration) {
                                 if (playerConnection !== connection) return@enqueueQueueMutation
                                 val startIndex = player.currentMediaItemIndex + 1
-                                var removeIndex = -1
-                                val total = player.mediaItemCount
-                                for (i in startIndex until total) {
-                                    val id = player.getMediaItemAt(i).mediaId
-                                    if (id == removeId) {
-                                        removeIndex = i
-                                        break
-                                    }
-                                }
+                                // The queue can shrink while it is scanned (host edits, skips).
+                                val removeIndex =
+                                    (startIndex until player.mediaItemCount).firstOrNull { i ->
+                                        i < player.mediaItemCount && player.getMediaItemAt(i).mediaId == removeId
+                                    } ?: -1
                                 if (removeIndex >= 0) {
                                     Timber.tag(TAG).d("Guest: QUEUE_REMOVE index=$removeIndex id=$removeId")
                                     player.removeMediaItem(removeIndex)
