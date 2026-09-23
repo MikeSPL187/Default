@@ -1,5 +1,6 @@
 package com.metrolist.music.ui.screens.settings.integrations
 
+import com.metrolist.music.ui.utils.frameAwareDelay
 import android.app.Activity
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
@@ -109,7 +110,6 @@ import com.metrolist.music.utils.makeTimeString
 import com.metrolist.music.utils.safeDataStoreEdit
 import com.metrolist.music.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -210,7 +210,7 @@ fun DiscordSettings(
     LaunchedEffect(playbackState) {
         if (playbackState == STATE_READY) {
             while (isActive) {
-                delay(100)
+                frameAwareDelay(100)
                 position = playerConnection.player.currentPosition
             }
         }

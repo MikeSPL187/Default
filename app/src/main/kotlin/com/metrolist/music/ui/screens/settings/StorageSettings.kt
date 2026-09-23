@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.screens.settings
 
+import com.metrolist.music.ui.utils.frameAwareDelay
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -71,7 +72,6 @@ import com.metrolist.music.ui.utils.rememberSharedStorageAction
 import com.metrolist.music.utils.OfflineArtworkStore
 import com.metrolist.music.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -176,19 +176,19 @@ fun StorageSettings(
 
     LaunchedEffect(imageDiskCache) {
         while (isActive) {
-            delay(CACHE_SIZE_REFRESH_MS)
+            frameAwareDelay(CACHE_SIZE_REFRESH_MS)
             imageCacheSize = imageDiskCache.size
         }
     }
     LaunchedEffect(playerCache) {
         while (isActive) {
-            delay(CACHE_SIZE_REFRESH_MS)
+            frameAwareDelay(CACHE_SIZE_REFRESH_MS)
             playerCacheSize = tryOrNull { playerCache.cacheSpace } ?: 0
         }
     }
     LaunchedEffect(downloadCache) {
         while (isActive) {
-            delay(CACHE_SIZE_REFRESH_MS)
+            frameAwareDelay(CACHE_SIZE_REFRESH_MS)
             downloadCacheSize = tryOrNull { downloadCache.cacheSpace } ?: 0
         }
     }

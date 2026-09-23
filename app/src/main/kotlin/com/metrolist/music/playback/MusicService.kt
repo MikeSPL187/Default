@@ -244,6 +244,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
@@ -1128,11 +1129,18 @@ class MusicService :
         }
 
         scope.launch {
-            while (isActive) {
-                delay(5_000)
-                Timber.tag("DiscordSvc").v("polling: periodic syncDiscordState tick")
-                syncDiscordState()
-            }
+            // Tick only while Discord presence is on, and rarely without a linked account; otherwise
+            // the service would wake the CPU every 5 s for its whole lifetime to do nothing.
+            preferencesState
+                .map { it[EnableDiscordRPCKey] ?: true }
+                .distinctUntilChanged()
+                .collectLatest { enabled ->
+                    while (enabled && isActive) {
+                        delay(if (DiscordRpcManager.getAccessToken() != null) 5_000L else 60_000L)
+                        Timber.tag("DiscordSvc").v("polling: periodic syncDiscordState tick")
+                        syncDiscordState()
+                    }
+                }
         }
 
         dataStore.data
@@ -1342,7 +1350,7 @@ class MusicService :
             while (isActive) {
                 delay(60.seconds)
                 if (cachedPersistentQueue) {
-                    saveQueueToDisk()
+                    saveQueueToDisk(onlyIfChanged = true)
                 }
             }
         }
@@ -1351,7 +1359,7 @@ class MusicService :
             while (isActive) {
                 delay(15.seconds)
                 if (cachedPersistentQueue) {
-                    savePlayerStateToDisk()
+                    savePlayerStateToDisk(onlyIfChanged = true)
                 }
                 val currentMetadata = player.currentMediaItem?.metadata
                 if (currentMetadata?.remembersPosition == true && player.isPlaying && player.currentPosition > 0) {
@@ -4269,7 +4277,13 @@ class MusicService :
         }
     }
 
-    private fun saveQueueToDisk() {
+    // Last written snapshots, so the periodic saves skip rewriting files while nothing changes.
+    private var lastSavedQueue: PersistQueue? = null
+    private var lastSavedAutomix: PersistQueue? = null
+    private var lastSavedPlayerState: PersistPlayerState? = null
+    private var lastSavedShuffleOrder: List<Int>? = null
+
+    private fun saveQueueToDisk(onlyIfChanged: Boolean = false) {
         if (player.mediaItemCount == 0) {
             Timber.tag(TAG).d("Skipping queue save - no media items")
             return
@@ -4291,6 +4305,16 @@ class MusicService :
                     mediaItemIndex = 0,
                     position = 0,
                 )
+
+            // The playback position is saved with the player state, so it alone is no reason to rewrite the queue.
+            if (onlyIfChanged &&
+                persistQueue.copy(position = 0) == lastSavedQueue?.copy(position = 0) &&
+                persistAutomix == lastSavedAutomix
+            ) {
+                return
+            }
+            lastSavedQueue = persistQueue
+            lastSavedAutomix = persistAutomix
 
             runCatching {
                 filesDir.resolve(PERSISTENT_QUEUE_FILE).outputStream().use { fos ->
@@ -4321,9 +4345,13 @@ class MusicService :
         }
     }
 
-    private fun savePlayerStateToDisk() {
+    private fun savePlayerStateToDisk(onlyIfChanged: Boolean = false) {
         if (player.mediaItemCount == 0) return
-        saveShuffleOrderToDisk()
+        val shuffleOrder = currentShuffleOrder()?.toList()
+        if (!onlyIfChanged || shuffleOrder != lastSavedShuffleOrder) {
+            saveShuffleOrderToDisk()
+            lastSavedShuffleOrder = shuffleOrder
+        }
 
         val playerState = PersistPlayerState(
             playWhenReady = player.playWhenReady,
@@ -4334,6 +4362,8 @@ class MusicService :
             currentMediaItemIndex = player.currentMediaItemIndex,
             playbackState = player.playbackState,
         )
+        if (onlyIfChanged && playerState == lastSavedPlayerState) return
+        lastSavedPlayerState = playerState
         runCatching {
             filesDir.resolve(PERSISTENT_PLAYER_STATE_FILE).outputStream().use { fos ->
                 ObjectOutputStream(fos).use { oos ->

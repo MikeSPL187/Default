@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.component
 
+import androidx.compose.runtime.withFrameNanos
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
@@ -561,7 +562,7 @@ fun OriginalLyrics(
             return@LaunchedEffect
         }
         while (isActive) {
-            delay(8) // Faster update for word-by-word animation
+            withFrameNanos { } // Once per frame for word-by-word animation; pauses in the background
             val sliderPosition = sliderPositionProvider()
             isSeeking = sliderPosition != null
             val position = sliderPosition ?: playerConnection.player.currentPosition
