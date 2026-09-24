@@ -57,8 +57,10 @@ import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.ui.utils.resize
 import com.metrolist.music.utils.ArtistNameAliases
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import java.text.Collator
@@ -183,7 +185,7 @@ interface DatabaseDao {
             }
 
         SongSortType.PLAY_TIME -> songsByPlayTimeAsc()
-    }.map { it.reversed(descending) }
+    }.map { it.reversed(descending) }.flowOn(Dispatchers.Default)
 
     @Transaction
     @Query("SELECT * FROM song WHERE liked ORDER BY rowId")
@@ -237,7 +239,7 @@ interface DatabaseDao {
             }
 
         SongSortType.PLAY_TIME -> likedSongsByPlayTimeAsc()
-    }.map { it.reversed(descending) }
+    }.map { it.reversed(descending) }.flowOn(Dispatchers.Default)
 
     @Transaction
     @Query("SELECT COUNT(1) FROM song WHERE liked")
@@ -334,7 +336,7 @@ interface DatabaseDao {
         return songsFlow.map { songs ->
             val sorted = songs.reversed(descending)
             if (limit > 0) sorted.take(limit) else sorted
-        }
+        }.flowOn(Dispatchers.Default)
     }
 
     @Transaction
@@ -1042,7 +1044,7 @@ interface DatabaseDao {
         AlbumSortType.SONG_COUNT -> albumsBySongCountAsc()
         AlbumSortType.LENGTH -> albumsByLengthAsc()
         AlbumSortType.PLAY_TIME -> albumsByPlayTimeAsc()
-    }.map { it.reversed(descending) }
+    }.map { it.reversed(descending) }.flowOn(Dispatchers.Default)
 
     @Transaction
     @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
@@ -1069,7 +1071,7 @@ interface DatabaseDao {
             AlbumSortType.SONG_COUNT -> albums.sortedBy { it.album.songCount }
             AlbumSortType.LENGTH -> albums.sortedBy { it.album.duration }
         }.reversed(descending)
-    }
+    }.flowOn(Dispatchers.Default)
 
     fun albumsLiked(
         sortType: AlbumSortType,
@@ -1094,7 +1096,7 @@ interface DatabaseDao {
         AlbumSortType.SONG_COUNT -> albumsLikedBySongCountAsc()
         AlbumSortType.LENGTH -> albumsLikedByLengthAsc()
         AlbumSortType.PLAY_TIME -> albumsLikedByPlayTimeAsc()
-    }.map { it.reversed(descending) }
+    }.map { it.reversed(descending) }.flowOn(Dispatchers.Default)
 
     fun albumsUploaded(
         sortType: AlbumSortType,
@@ -1119,7 +1121,7 @@ interface DatabaseDao {
         AlbumSortType.SONG_COUNT -> albumsUploadedBySongCountAsc()
         AlbumSortType.LENGTH -> albumsUploadedByLengthAsc()
         AlbumSortType.PLAY_TIME -> albumsUploadedByPlayTimeAsc()
-    }.map { it.reversed(descending) }
+    }.map { it.reversed(descending) }.flowOn(Dispatchers.Default)
 
     @Transaction
     @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
@@ -1176,7 +1178,7 @@ interface DatabaseDao {
 
         PlaylistSortType.SONG_COUNT -> playlistsBySongCountAsc()
         PlaylistSortType.LAST_UPDATED -> playlistsByUpdatedDateAsc()
-    }.map { it.reversed(descending) }
+    }.map { it.reversed(descending) }.flowOn(Dispatchers.Default)
 
     @Transaction
     @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE id = :playlistId")
@@ -1275,7 +1277,7 @@ interface DatabaseDao {
         }
 
         SongSortType.PLAY_TIME -> downloadedSongsByPlayTimeAsc()
-    }.map { it.reversed(descending) }
+    }.map { it.reversed(descending) }.flowOn(Dispatchers.Default)
 
     @Transaction
     @Query("SELECT * FROM playlist_song_map WHERE playlistId = :playlistId ORDER BY position")
@@ -1363,7 +1365,7 @@ interface DatabaseDao {
             }
 
         SongSortType.PLAY_TIME -> uploadedSongsByPlayTimeAsc()
-    }.map { it.reversed(descending) }
+    }.map { it.reversed(descending) }.flowOn(Dispatchers.Default)
 
     @Transaction
     @Query("SELECT * FROM song WHERE isEpisode = 1 ORDER BY inLibrary")
@@ -1426,7 +1428,7 @@ interface DatabaseDao {
                 })
             }
         SongSortType.PLAY_TIME -> savedPodcastEpisodesByPlayTimeAsc()
-    }.map { it.reversed(descending) }
+    }.map { it.reversed(descending) }.flowOn(Dispatchers.Default)
 
     fun downloadedPodcastEpisodes(
         sortType: SongSortType,
@@ -1448,7 +1450,7 @@ interface DatabaseDao {
                 })
             }
         SongSortType.PLAY_TIME -> downloadedPodcastEpisodesByPlayTimeAsc()
-    }.map { it.reversed(descending) }
+    }.map { it.reversed(descending) }.flowOn(Dispatchers.Default)
 
     @Transaction
     @Query("SELECT * FROM song WHERE title LIKE '%' || :query || '%' AND inLibrary IS NOT NULL LIMIT :previewSize")
