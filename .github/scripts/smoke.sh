@@ -12,6 +12,9 @@ adb shell pm grant com.metrolist.music android.permission.POST_NOTIFICATIONS || 
 # A slow emulator can show "Pixel Launcher isn't responding" over the app. Crashes of the app are
 # still caught from logcat below, so hiding system error dialogs loses nothing.
 adb shell settings put global hide_error_dialogs 1 || true
+# The launcher is still starting up right after boot and can freeze the emulator for a while.
+adb shell input keyevent KEYCODE_HOME
+sleep 20
 adb logcat -c
 
 mkdir -p smoke-output
