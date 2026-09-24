@@ -121,6 +121,7 @@ class SyncUtils @Inject constructor(
 
     private var lastfmSendLikes = false
     @Volatile private var cachedLastSyncEpoch: Long = 0L
+    private val autoSyncClaimLock = Any()
     private val playlistsBeingModified = ConcurrentHashMap<String, AtomicInteger>()
     private val playlistEditMutex = Mutex()
     private var lastPlaylistEditAtMs = 0L
@@ -340,16 +341,23 @@ class SyncUtils @Inject constructor(
             }
 
             val lastSync = context.dataStore.get(LastFullSyncKey, 0L)
-            val effectiveLastSync = maxOf(lastSync, cachedLastSyncEpoch)
-            val currentTime = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
-            if (effectiveLastSync > 0 && (currentTime - effectiveLastSync) < SYNC_COOLDOWN) {
-                return@launch
-            }
+            val now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+            // Check and claim the cooldown in one step, so two near-simultaneous calls
+            // cannot both start a full sync.
+            val claimed =
+                synchronized(autoSyncClaimLock) {
+                    val effectiveLastSync = maxOf(lastSync, cachedLastSyncEpoch)
+                    if (effectiveLastSync > 0 && (now - effectiveLastSync) < SYNC_COOLDOWN) {
+                        false
+                    } else {
+                        cachedLastSyncEpoch = now
+                        true
+                    }
+                }
+            if (!claimed) return@launch
 
             enqueue(SyncOperation.FullSync)
 
-            val now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
-            cachedLastSyncEpoch = now
             context.safeDataStoreEdit { settings ->
                 settings[LastFullSyncKey] = now
             }
