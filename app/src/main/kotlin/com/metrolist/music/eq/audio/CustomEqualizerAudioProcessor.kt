@@ -22,6 +22,11 @@ class CustomEqualizerAudioProcessor : BaseAudioProcessor() {
     private var preampGain = 1.0
     private var pendingProfile: ParametricEQ? = null
 
+    // The profile in use and the sample rate its filters were built for: tracks do not all share
+    // one rate (44.1 vs 48 kHz), and filters built for another rate shift every band.
+    private var activeProfile: ParametricEQ? = null
+    private var filtersSampleRate = 0
+
     @Synchronized
     fun applyProfile(parametricEQ: ParametricEQ) {
         if (sampleRate == 0) {
@@ -33,6 +38,7 @@ class CustomEqualizerAudioProcessor : BaseAudioProcessor() {
 
         preampGain = 10.0.pow(parametricEQ.preamp / 20.0)
         createFilters(parametricEQ.bands)
+        activeProfile = parametricEQ
         equalizerEnabled = true
         filters.forEach { it.reset() }
 
@@ -46,6 +52,7 @@ class CustomEqualizerAudioProcessor : BaseAudioProcessor() {
         filters = emptyList()
         preampGain = 1.0
         pendingProfile = null
+        activeProfile = null
         Timber.tag(TAG).d("Equalizer disabled")
     }
 
@@ -64,6 +71,7 @@ class CustomEqualizerAudioProcessor : BaseAudioProcessor() {
                         filterType = band.filterType,
                     )
                 }
+        filtersSampleRate = sampleRate
 
         Timber.tag(TAG)
             .d("Created ${filters.size} biquad filters from ${bands.size} bands (PK/LSC/HSC)")
@@ -71,7 +79,9 @@ class CustomEqualizerAudioProcessor : BaseAudioProcessor() {
 
     override fun onConfigure(inputAudioFormat: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat {
         if (inputAudioFormat.encoding != C.ENCODING_PCM_16BIT || inputAudioFormat.channelCount > 2) {
-            throw AudioProcessor.UnhandledAudioFormatException(inputAudioFormat)
+            // Stay inactive so the audio passes through unchanged; throwing fails the whole playback.
+            Timber.tag(TAG).w("Unsupported format for EQ, passing through: $inputAudioFormat")
+            return AudioProcessor.AudioFormat.NOT_SET
         }
 
         sampleRate = inputAudioFormat.sampleRate
@@ -83,6 +93,7 @@ class CustomEqualizerAudioProcessor : BaseAudioProcessor() {
         pendingProfile?.let { profile ->
             preampGain = 10.0.pow(profile.preamp / 20.0)
             createFilters(profile.bands)
+            activeProfile = profile
             equalizerEnabled = true
             pendingProfile = null
             Timber.tag(TAG)
@@ -145,7 +156,15 @@ class CustomEqualizerAudioProcessor : BaseAudioProcessor() {
         }
     }
 
+    @Synchronized
     override fun onFlush(streamMetadata: AudioProcessor.StreamMetadata) {
+        // A flush makes the configured format the active one; rebuild if the rate changed.
+        sampleRate = inputAudioFormat.sampleRate
+        channelCount = inputAudioFormat.channelCount
+        val profile = activeProfile
+        if (equalizerEnabled && profile != null && sampleRate > 0 && sampleRate != filtersSampleRate) {
+            createFilters(profile.bands)
+        }
         filters.forEach { it.reset() }
     }
 
