@@ -8,6 +8,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -34,7 +35,8 @@ private data class AnimatedElement(
 @Composable
 internal fun AnimatedBackground(
     elementCount: Int = 20,
-    shapeTypes: List<ShapeType> = listOf(ShapeType.Circle)
+    shapeTypes: List<ShapeType> = listOf(ShapeType.Circle),
+    color: Color = MaterialTheme.colorScheme.primary,
 ) {
     val random = remember { Random(System.currentTimeMillis()) }
     val elements = remember {
@@ -75,14 +77,14 @@ internal fun AnimatedBackground(
             when (element.shapeType) {
                 ShapeType.Circle -> {
                     drawCircle(
-                        color = Color.White.copy(alpha = element.alpha),
+                        color = color.copy(alpha = element.alpha),
                         radius = element.size,
                         center = Offset(currentX * size.width, currentY * size.height)
                     )
                 }
                 ShapeType.Rect -> {
                     drawRect(
-                        color = Color.White.copy(alpha = element.alpha),
+                        color = color.copy(alpha = element.alpha),
                         topLeft = Offset(currentX * size.width, currentY * size.height),
                         size = Size(element.size, element.size)
                     )
@@ -91,7 +93,7 @@ internal fun AnimatedBackground(
                     val endX = currentX + (element.targetX - element.initialX) * 0.1f
                     val endY = currentY + (element.targetY - element.initialY) * 0.1f
                     drawLine(
-                        color = Color.White.copy(alpha = element.alpha),
+                        color = color.copy(alpha = element.alpha),
                         start = Offset(currentX * size.width, currentY * size.height),
                         end = Offset(endX * size.width, endY * size.height),
                         strokeWidth = 2f

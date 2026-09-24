@@ -1,6 +1,9 @@
 package com.metrolist.music.ui.screens.wrapped.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -19,41 +22,62 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import coil3.imageLoader
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
+import coil3.toBitmap
 import com.metrolist.music.R
 import com.metrolist.music.ui.theme.bbhBartle
+import com.metrolist.music.ui.theme.extractThemeColor
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
-private val WORD_BOUNDARY = Regex("(?<=-)|\\s+")
+// The recap takes its colours from the app theme (Material You, light or dark, pure black) so it
+// feels like part of the app; artwork pages tint themselves like the player's gradient background.
+
+/** Joins the parts of a hyphenated word so a line never breaks inside it ("топ-исполнители"). */
+private fun String.keepHyphenatedWords(): String = replace("-", "-⁠")
 
 /** "3 minutes", with the plural form the language needs. */
 @Composable
@@ -62,9 +86,54 @@ fun minutesText(playTimeMs: Long?): String {
     return pluralStringResource(R.plurals.minute, minutes, minutes)
 }
 
+/** The page background: the app surface with [accent] glowing in from the top. */
+@Composable
+fun WrappedBackdrop(accent: Color = MaterialTheme.colorScheme.primaryContainer) {
+    val animatedAccent by animateColorAsState(accent, tween(800), label = "wrapped accent")
+    val surface = MaterialTheme.colorScheme.surface
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(surface)
+            .background(Brush.verticalGradient(0f to animatedAccent.copy(alpha = 0.6f), 0.65f to animatedAccent.copy(alpha = 0f))),
+    )
+}
+
+/** The main colour of an artwork, as the player picks it for its gradient; null until known. */
+@Composable
+fun rememberArtworkAccent(url: String?): Color? {
+    val context = LocalContext.current
+    val accent by produceState<Color?>(initialValue = null, url) {
+        if (url == null) return@produceState
+        value =
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    val request = ImageRequest.Builder(context).data(url).size(128, 128).allowHardware(false).build()
+                    context.imageLoader.execute(request).image?.toBitmap()?.extractThemeColor()
+                }.getOrNull()
+            }
+    }
+    return accent
+}
+
+/** Text with `**bold**` parts, which are also drawn in the accent colour. */
+@Composable
+fun highlighted(text: String): AnnotatedString {
+    val accent = MaterialTheme.colorScheme.primary
+    return remember(text, accent) {
+        buildAnnotatedString {
+            var bold = false
+            text.split("**").forEach { part ->
+                if (bold) withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = accent)) { append(part) } else append(part)
+                bold = !bold
+            }
+        }
+    }
+}
+
 /**
  * The largest size from [maxFontSize] down at which [text] fits [maxLines] lines of [maxWidth]
- * without breaking any word in the middle.
+ * with every word whole.
  */
 private fun fitFontSize(
     measurer: TextMeasurer,
@@ -75,7 +144,7 @@ private fun fitFontSize(
     maxFontSize: TextUnit,
     minFontSize: TextUnit,
 ): TextUnit {
-    val words = text.split(WORD_BOUNDARY).filter { it.isNotEmpty() }
+    val words = text.split(Regex("\\s+")).filter { it.isNotEmpty() }
     var size = maxFontSize.value
     while (size > minFontSize.value) {
         val sized = style.copy(fontSize = size.sp)
@@ -86,40 +155,54 @@ private fun fitFontSize(
     return size.coerceAtLeast(minFontSize.value).sp
 }
 
-/** A large page title that shrinks until it fits, never splitting a word, with balanced lines. */
+/** A large page title that shrinks until it fits, never splitting a word. */
 @Composable
 fun WrappedTitle(
     text: String,
     modifier: Modifier = Modifier,
-    maxFontSize: TextUnit = 44.sp,
+    maxFontSize: TextUnit = 40.sp,
     minFontSize: TextUnit = 22.sp,
     maxLines: Int = 3,
 ) {
     val measurer = rememberTextMeasurer()
+    val joined = remember(text) { text.keepHyphenatedWords() }
     val style =
         LocalTextStyle.current.merge(
-            TextStyle(color = Color.White, textAlign = TextAlign.Center, lineHeight = 1.15.em, lineBreak = LineBreak.Heading),
+            TextStyle(
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                lineHeight = 1.15.em,
+            ),
         )
     BoxWithConstraints(modifier.fillMaxWidth()) {
         val widthPx = constraints.maxWidth
         val fontSize =
-            remember(text, widthPx, style) {
-                fitFontSize(measurer, text, style, widthPx, maxLines, maxFontSize, minFontSize)
+            remember(joined, widthPx, style) {
+                fitFontSize(measurer, joined, style, widthPx, maxLines, maxFontSize, minFontSize)
             }
-        Text(text = text, style = style.copy(fontSize = fontSize), modifier = Modifier.fillMaxWidth())
+        Text(text = joined, style = style.copy(fontSize = fontSize), modifier = Modifier.fillMaxWidth())
     }
 }
 
-/** Outlined digits in the display font, each line as large as the width allows, all the same size. */
+/** Heavy digits in the display font, each line as large as the width allows, all the same size. */
 @Composable
-fun OutlinedLabel(
+fun DisplayDigits(
     lines: List<String>,
     modifier: Modifier = Modifier,
-    maxFontSize: TextUnit = 150.sp,
+    maxFontSize: TextUnit = 140.sp,
+    outlined: Boolean = false,
+    color: Color = MaterialTheme.colorScheme.primary,
 ) {
     val measurer = rememberTextMeasurer()
-    val strokeWidth = with(LocalDensity.current) { 1.5.dp.toPx() }
-    val style = TextStyle(fontFamily = bbhBartle, color = Color.White, textAlign = TextAlign.Center, drawStyle = Stroke(width = strokeWidth))
+    val strokeWidth = with(LocalDensity.current) { 2.dp.toPx() }
+    val style =
+        TextStyle(
+            fontFamily = bbhBartle,
+            color = color,
+            textAlign = TextAlign.Center,
+            drawStyle = if (outlined) Stroke(width = strokeWidth) else null,
+        )
     BoxWithConstraints(modifier.fillMaxWidth()) {
         val widthPx = constraints.maxWidth
         val fontSize =
@@ -143,6 +226,64 @@ fun OutlinedLabel(
     }
 }
 
+/** A heading, a number counting up from zero in heavy digits, and a line under it. */
+@Composable
+fun WrappedCounterPage(
+    heading: AnnotatedString,
+    count: Long,
+    caption: AnnotatedString,
+    isVisible: Boolean,
+    background: @Composable () -> Unit = {},
+) {
+    val animated = remember { Animatable(0f) }
+    LaunchedEffect(isVisible, count) {
+        if (isVisible && count > 0) animated.animateTo(count.toFloat(), tween(1500, easing = FastOutSlowInEasing))
+    }
+    val colors = MaterialTheme.colorScheme
+
+    Box(Modifier.fillMaxSize()) {
+        background()
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = heading,
+                style = MaterialTheme.typography.headlineSmall,
+                color = colors.onSurface,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(24.dp))
+            // Sized for the final number so the layout holds still while it counts up.
+            BoxWithConstraints(Modifier.fillMaxWidth()) {
+                val measurer = rememberTextMeasurer()
+                val base = TextStyle(fontFamily = bbhBartle, color = colors.primary, textAlign = TextAlign.Center)
+                val widthPx = constraints.maxWidth
+                val fontSize =
+                    remember(count, widthPx) {
+                        var size = 120f
+                        while (size > 24f && measurer.measure(count.toString(), base.copy(fontSize = size.sp)).size.width > widthPx) size *= 0.95f
+                        size.sp
+                    }
+                Text(
+                    text = animated.value.toLong().toString(),
+                    style = base.copy(fontSize = fontSize, lineHeight = fontSize * 1.08f),
+                    maxLines = 1,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            Spacer(Modifier.height(20.dp))
+            Text(
+                text = caption,
+                style = MaterialTheme.typography.titleMedium,
+                color = colors.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
 /** One row of a top-5 list. */
 data class RankedItem(
     val imageUrl: String?,
@@ -150,60 +291,75 @@ data class RankedItem(
     val subtitle: String,
 )
 
+/** Corner shapes of a card in a joined group, as the app's menus draw them. */
+private fun groupShape(index: Int, count: Int) =
+    when {
+        count == 1 -> RoundedCornerShape(24.dp)
+        index == 0 -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 6.dp, bottomEnd = 6.dp)
+        index == count - 1 -> RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
+        else -> RoundedCornerShape(6.dp)
+    }
+
 @Composable
 private fun RankedRow(
     rank: Int,
     item: RankedItem,
     circleImage: Boolean,
+    shape: RoundedCornerShape,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    val colors = MaterialTheme.colorScheme
+    Card(
+        shape = shape,
+        colors = CardDefaults.cardColors(containerColor = colors.surfaceContainer),
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        Text(
-            text = rank.toString(),
-            fontFamily = bbhBartle,
-            fontSize = 30.sp,
-            color = Color.White.copy(alpha = 0.85f),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.width(40.dp),
-        )
-        Spacer(Modifier.width(12.dp))
-        AsyncImage(
-            model = item.imageUrl,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier =
-                Modifier
-                    .size(56.dp)
-                    .clip(if (circleImage) CircleShape else RoundedCornerShape(6.dp))
-                    .background(Color.White.copy(alpha = 0.08f)),
-        )
-        Spacer(Modifier.width(16.dp))
-        Column(Modifier.weight(1f)) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
-                text = item.title,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
-                lineHeight = 20.sp,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
+                text = rank.toString(),
+                fontFamily = bbhBartle,
+                fontSize = 26.sp,
+                color = colors.primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.width(36.dp),
             )
-            if (item.subtitle.isNotEmpty()) {
+            Spacer(Modifier.width(12.dp))
+            AsyncImage(
+                model = item.imageUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier =
+                    Modifier
+                        .size(52.dp)
+                        .clip(if (circleImage) CircleShape else RoundedCornerShape(12.dp))
+                        .background(colors.surfaceContainerHighest),
+            )
+            Spacer(Modifier.width(16.dp))
+            Column(Modifier.weight(1f)) {
                 Text(
-                    text = item.subtitle,
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 14.sp,
-                    maxLines = 1,
+                    text = item.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = colors.onSurface,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
+                if (item.subtitle.isNotEmpty()) {
+                    Text(
+                        text = item.subtitle,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
     }
 }
 
-/** A title over a ranked list that slides in row by row once the page is shown. */
+/** A title over a ranked list whose cards slide in one by one once the page is shown. */
 @Composable
 fun WrappedTopListPage(
     title: String,
@@ -223,7 +379,7 @@ fun WrappedTopListPage(
     Box(Modifier.fillMaxSize()) {
         background()
         Column(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 32.dp),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -231,24 +387,26 @@ fun WrappedTopListPage(
                 visible = visible,
                 enter = fadeIn(tween(1000, delayMillis = 200)) + slideInVertically(tween(1000, delayMillis = 200)),
             ) {
-                WrappedTitle(text = title, modifier = Modifier.padding(horizontal = 8.dp))
+                WrappedTitle(text = title, modifier = Modifier.padding(horizontal = 16.dp))
             }
-            Spacer(Modifier.height(28.dp))
-            items.forEachIndexed { index, item ->
-                AnimatedVisibility(
-                    visible = visible,
-                    enter =
-                        fadeIn(tween(600, delayMillis = 400 + index * 150)) +
-                            slideInVertically(tween(600, delayMillis = 400 + index * 150)),
-                ) {
-                    RankedRow(rank = index + 1, item = item, circleImage = circleImages)
+            Spacer(Modifier.height(24.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                items.forEachIndexed { index, item ->
+                    AnimatedVisibility(
+                        visible = visible,
+                        enter =
+                            fadeIn(tween(600, delayMillis = 400 + index * 150)) +
+                                slideInVertically(tween(600, delayMillis = 400 + index * 150)),
+                    ) {
+                        RankedRow(rank = index + 1, item = item, circleImage = circleImages, shape = groupShape(index, items.size))
+                    }
                 }
             }
         }
     }
 }
 
-/** A small heading, a large picture, a name and a caption: the reveal of a single top item. */
+/** The reveal of a single top item: a heading, the artwork, the name and a pill with the listening time. */
 @Composable
 fun WrappedTopItemPage(
     heading: String,
@@ -264,6 +422,7 @@ fun WrappedTopItemPage(
     LaunchedEffect(isVisible) {
         if (isVisible) visible = true
     }
+    val colors = MaterialTheme.colorScheme
 
     Box(Modifier.fillMaxSize()) {
         background()
@@ -277,13 +436,13 @@ fun WrappedTopItemPage(
                 enter = fadeIn(tween(1000, delayMillis = 200)) + slideInVertically(tween(1000, delayMillis = 200)),
             ) {
                 Text(
-                    text = heading,
-                    style = MaterialTheme.typography.headlineSmall.copy(lineBreak = LineBreak.Heading),
-                    color = Color.White,
+                    text = heading.keepHyphenatedWords(),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = colors.onSurface,
                     textAlign = TextAlign.Center,
                 )
             }
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(28.dp))
             AnimatedVisibility(
                 visible = visible,
                 enter = fadeIn(tween(1000, delayMillis = 400)) + slideInVertically(tween(1000, delayMillis = 400)),
@@ -294,9 +453,9 @@ fun WrappedTopItemPage(
                     contentScale = ContentScale.Crop,
                     modifier =
                         Modifier
-                            .size(220.dp)
-                            .clip(if (circleImage) CircleShape else RoundedCornerShape(12.dp))
-                            .background(Color.White.copy(alpha = 0.08f)),
+                            .size(240.dp)
+                            .clip(if (circleImage) CircleShape else RoundedCornerShape(28.dp))
+                            .background(colors.surfaceContainerHighest),
                 )
             }
             Spacer(Modifier.height(24.dp))
@@ -307,8 +466,8 @@ fun WrappedTopItemPage(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = name,
-                        style = MaterialTheme.typography.headlineMedium.copy(lineBreak = LineBreak.Heading),
-                        color = Color.White,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = colors.onSurface,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
                         maxLines = 3,
@@ -319,7 +478,7 @@ fun WrappedTopItemPage(
                         Text(
                             text = subtitle,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = Color.White.copy(alpha = 0.7f),
+                            color = colors.onSurfaceVariant,
                             textAlign = TextAlign.Center,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
@@ -327,18 +486,24 @@ fun WrappedTopItemPage(
                     }
                 }
             }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
             AnimatedVisibility(
                 visible = visible,
                 enter = fadeIn(tween(1000, delayMillis = 900)) + slideInVertically(tween(1000, delayMillis = 900)),
             ) {
-                Text(
-                    text = caption,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White.copy(alpha = 0.9f),
-                    textAlign = TextAlign.Center,
-                )
+                Surface(shape = CircleShape, color = colors.secondaryContainer) {
+                    Text(
+                        text = caption,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = colors.onSecondaryContainer,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
             }
         }
     }
 }
+
+/** Whether the app is showing its dark theme, judged from the surface colour. */
+@Composable
+fun isDarkSurface(): Boolean = MaterialTheme.colorScheme.surface.luminance() < 0.5f

@@ -15,12 +15,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
@@ -43,12 +43,13 @@ fun AnimatedDecorativeElement(modifier: Modifier = Modifier, isVisible: Boolean)
             )
         }
     }
+    val color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
     Canvas(modifier.graphicsLayer { rotationZ = rotation.value }) {
         val strokeWidth = 2.dp.toPx()
         when (shapeType) {
-            0 -> drawArc(Color.White.copy(0.2f), 0f, 90f, false, style = Stroke(strokeWidth))
-            1 -> drawCircle(Color.White.copy(0.2f), style = Stroke(strokeWidth))
-            2 -> drawRect(Color.White.copy(0.2f), style = Stroke(strokeWidth))
+            0 -> drawArc(color, 0f, 90f, false, style = Stroke(strokeWidth))
+            1 -> drawCircle(color, style = Stroke(strokeWidth))
+            2 -> drawRect(color, style = Stroke(strokeWidth))
         }
     }
 }

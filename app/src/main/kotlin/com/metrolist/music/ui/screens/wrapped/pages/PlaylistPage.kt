@@ -13,11 +13,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,13 +30,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,6 +45,7 @@ import com.metrolist.music.ui.screens.wrapped.PlaylistCreationState
 import com.metrolist.music.ui.screens.wrapped.components.AnimatedBackground
 import com.metrolist.music.ui.screens.wrapped.components.ShapeType
 import com.metrolist.music.ui.screens.wrapped.components.WrappedTitle
+import com.metrolist.music.ui.screens.wrapped.components.isDarkSurface
 import com.metrolist.music.ui.screens.wrapped.playlistName
 import com.metrolist.music.ui.screens.wrapped.renderWrappedCover
 import kotlinx.coroutines.Dispatchers
@@ -61,9 +59,12 @@ fun PlaylistPage() {
     val playlistCreationState = state.playlistCreationState
 
     val context = LocalContext.current
+    val colors = MaterialTheme.colorScheme
     val playlistName = remember(manager) { manager.period.playlistName(context, manager.now) }
-    val cover by produceState<Bitmap?>(initialValue = null, state.bigLabel) {
-        value = withContext(Dispatchers.Default) { renderWrappedCover(context, state.bigLabel) }
+    // A light tone of the theme colour reads well on the cover's dark background in either theme.
+    val coverAccent = (if (isDarkSurface()) colors.primary else colors.inversePrimary).toArgb()
+    val cover by produceState<Bitmap?>(initialValue = null, state.bigLabel, coverAccent) {
+        value = withContext(Dispatchers.Default) { renderWrappedCover(context, state.bigLabel, coverAccent) }
     }
 
     var startAnimation by remember { mutableStateOf(false) }
@@ -93,8 +94,8 @@ fun PlaylistPage() {
             Box(
                 modifier = Modifier
                     .size(256.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White.copy(alpha = 0.08f)),
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(colors.surfaceContainerHighest),
             ) {
                 cover?.let {
                     Image(
@@ -106,10 +107,10 @@ fun PlaylistPage() {
             }
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = playlistName,
-                style = MaterialTheme.typography.titleLarge.copy(lineBreak = LineBreak.Heading),
+                text = remember(playlistName) { playlistName.withoutOrphan() },
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = colors.onSurface,
                 textAlign = TextAlign.Center,
                 maxLines = 2,
             )
@@ -122,26 +123,30 @@ fun PlaylistPage() {
                     }
                 },
                 enabled = cover != null,
-                shape = CircleShape,
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                 modifier = Modifier.height(50.dp)
             ) {
                 when (playlistCreationState) {
                     is PlaylistCreationState.Idle -> Text(
                         text = stringResource(R.string.wrapped_create_playlist),
-                        style = TextStyle(color = Color.Black, fontWeight = FontWeight.Bold)
+                        style = MaterialTheme.typography.titleMedium
                     )
                     is PlaylistCreationState.Creating -> CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = Color.Black,
+                        color = LocalContentColor.current,
                         strokeWidth = 2.dp
                     )
                     is PlaylistCreationState.Success -> Text(
                         text = stringResource(R.string.wrapped_playlist_saved),
-                        style = TextStyle(color = Color.Black, fontWeight = FontWeight.Bold)
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
             }
         }
     }
+}
+
+/** Keeps a short last word such as "г." on the line before it. */
+private fun String.withoutOrphan(): String {
+    val lastSpace = lastIndexOf(' ')
+    return if (lastSpace > 0 && length - lastSpace <= 4) replaceRange(lastSpace, lastSpace + 1, "\u00A0") else this
 }

@@ -11,26 +11,33 @@ import android.graphics.Rect
 import android.graphics.Shader
 import android.graphics.Typeface
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.ColorUtils
 import com.metrolist.music.R
 
 /**
- * Draws the recap playlist cover: "METROLIST", the period's digits in outline and "WRAPPED", in the
- * recap's black and white style. Built per period, so a weekly recap never wears a yearly cover.
+ * Draws the recap playlist cover: "METROLIST", the period's digits and "WRAPPED" on a deep shade of
+ * the theme colour [accent]. Built per period, so a weekly recap never wears a yearly cover.
  */
 fun renderWrappedCover(
     context: Context,
     label: List<String>,
+    accent: Int,
     size: Int = 1024,
 ): Bitmap {
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
     val scale = size / 1024f
     val center = size / 2f
-    canvas.drawColor(Color.BLACK)
+    canvas.drawColor(ColorUtils.blendARGB(Color.BLACK, accent, 0.16f))
 
     val glow =
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            shader = RadialGradient(center, center, size * 0.6f, 0x2EFFFFFF, 0x00FFFFFF, Shader.TileMode.CLAMP)
+            shader =
+                RadialGradient(
+                    center, center, size * 0.6f,
+                    ColorUtils.setAlphaComponent(accent, 0x55), ColorUtils.setAlphaComponent(accent, 0),
+                    Shader.TileMode.CLAMP,
+                )
         }
     canvas.drawRect(0f, 0f, size.toFloat(), size.toFloat(), glow)
 
@@ -76,8 +83,7 @@ fun renderWrappedCover(
     val title = Paint(text).apply { fitTo(listOf("METROLIST"), 600f * scale, 110f * scale) }
     val digits =
         Paint(text).apply {
-            style = Paint.Style.STROKE
-            strokeWidth = 4f * scale
+            color = accent
             fitTo(label, 640f * scale, if (label.size > 1) 190f * scale else 260f * scale)
         }
     val footer =
