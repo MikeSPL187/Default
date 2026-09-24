@@ -1104,4 +1104,7 @@
     <string name="listen_together_connection_error">Connection error: %1$s</string>
     <string name="listen_together_server_error">Error: %1$s</string>
     <string name="no_recognition_history">No recognition history</string>
+
+    <!-- CSV import -->
+    <string name="csv_preview_failed">Failed to preview CSV file</string>
 </resources>

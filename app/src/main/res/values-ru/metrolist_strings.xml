@@ -997,4 +997,7 @@
     <string name="listen_together_connection_error">Ошибка подключения: %1$s</string>
     <string name="listen_together_server_error">Ошибка: %1$s</string>
     <string name="no_recognition_history">История распознавания пуста</string>
+
+    <!-- CSV import -->
+    <string name="csv_preview_failed">Не удалось открыть предпросмотр CSV-файла</string>
 </resources>
