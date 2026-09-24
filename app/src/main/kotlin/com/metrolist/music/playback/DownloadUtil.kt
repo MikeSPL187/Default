@@ -102,6 +102,10 @@ constructor(
             .build()
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    // Download state changes are written in the order they happen: in parallel, a quick remove
+    // could finish before the slower completed write and leave the song marked as downloaded.
+    private val downloadStateWrites = Dispatchers.IO.limitedParallelism(1)
     private val downloadPreparations = Semaphore(3)
 
     val downloads = MutableStateFlow<Map<String, Download>>(emptyMap())
@@ -278,7 +282,7 @@ constructor(
                             }
                         }
 
-                        scope.launch {
+                        scope.launch(downloadStateWrites) {
                             when (download.state) {
                                 Download.STATE_COMPLETED -> {
                                     removeFromPlayerCache(download.request.id)
@@ -304,7 +308,7 @@ constructor(
                         songUrlCache.invalidate(downloadId)
 
                         // Listener callbacks run on the main thread; keep the database write off it.
-                        scope.launch {
+                        scope.launch(downloadStateWrites) {
                             runCatching {
                                 database.updateDownloadedInfo(downloadId, false, null)
                             }.onSuccess {
