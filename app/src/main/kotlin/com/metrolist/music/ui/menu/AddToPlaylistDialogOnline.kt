@@ -406,15 +406,17 @@ fun AddToPlaylistDialogOnline(
                 TextButton(
                     onClick = {
                         showDuplicateDialog = false
-                        coroutineScope.launch {
-                            database.addSongsToPlaylist(
-                                selectedPlaylist!!,
-                                songIds!!.filter {
-                                    !duplicates.contains(it)
-                                }.map { it to null },
-                                prepend = addToPlaylistPosition.prepend,
-                            )
-                            onDismiss()
+                        val target = selectedPlaylist
+                        val ids = songIds
+                        if (target != null && ids != null) {
+                            coroutineScope.launch {
+                                database.addSongsToPlaylist(
+                                    target,
+                                    ids.filter { !duplicates.contains(it) }.map { it to null },
+                                    prepend = addToPlaylistPosition.prepend,
+                                )
+                                onDismiss()
+                            }
                         }
                     }
                 ) {
@@ -424,13 +426,17 @@ fun AddToPlaylistDialogOnline(
                 TextButton(
                     onClick = {
                         showDuplicateDialog = false
-                        coroutineScope.launch {
-                            database.addSongsToPlaylist(
-                                selectedPlaylist!!,
-                                songIds!!.map { it to null },
-                                prepend = addToPlaylistPosition.prepend,
-                            )
-                            onDismiss()
+                        val target = selectedPlaylist
+                        val ids = songIds
+                        if (target != null && ids != null) {
+                            coroutineScope.launch {
+                                database.addSongsToPlaylist(
+                                    target,
+                                    ids.map { it to null },
+                                    prepend = addToPlaylistPosition.prepend,
+                                )
+                                onDismiss()
+                            }
                         }
                     }
                 ) {

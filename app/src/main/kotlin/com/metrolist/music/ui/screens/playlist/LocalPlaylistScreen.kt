@@ -969,11 +969,12 @@ fun LocalPlaylistHeader(
                 }
 
                 else -> {
-                    val bytes = uriToByteArray(context, uri)
+                    // The picked file can be gone or unreadable by now.
+                    val bytes = uriToByteArray(context, uri) ?: return@withContext
                     YouTube
                         .uploadCustomThumbnailLink(
                             playlist.playlist.browseId,
-                            bytes!!,
+                            bytes,
                         ).onSuccess { newThumbnailUrl ->
                             overrideThumbnail.value = newThumbnailUrl
                             isCustomThumbnail = true
@@ -1477,5 +1478,7 @@ fun uriToByteArray(
     try {
         context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
     } catch (_: SecurityException) {
+        null
+    } catch (_: java.io.IOException) {
         null
     }

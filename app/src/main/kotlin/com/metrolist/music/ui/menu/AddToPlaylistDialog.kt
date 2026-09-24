@@ -304,12 +304,14 @@ fun AddToPlaylistDialog(
                     .clickable {
                         selectedPlaylist = playlist
                         coroutineScope.launch(Dispatchers.IO) {
-                            songIds = onGetSong()
-                            duplicates = database.playlistDuplicatesBatched(playlist.id, songIds!!)
+                            // A local copy: dismissing the dialog resets songIds while this runs.
+                            val ids = onGetSong()
+                            songIds = ids
+                            duplicates = database.playlistDuplicatesBatched(playlist.id, ids)
                             if (duplicates.isNotEmpty()) {
                                 showDuplicateDialog = true
                             } else {
-                                addSongsAndSync(playlist, songIds!!)
+                                addSongsAndSync(playlist, ids)
                                 withContext(Dispatchers.Main) { onDismiss() }
                             }
                         }
@@ -335,12 +337,13 @@ fun AddToPlaylistDialog(
                     TextButton(
                         onClick = {
                             showDuplicateDialog = false
-                            coroutineScope.launch(Dispatchers.IO) {
-                                addSongsAndSync(
-                                    selectedPlaylist!!,
-                                    songIds!!.filter { !duplicates.contains(it) }
-                                )
-                                withContext(Dispatchers.Main) { onDismiss() }
+                            val target = selectedPlaylist
+                            val ids = songIds
+                            if (target != null && ids != null) {
+                                coroutineScope.launch(Dispatchers.IO) {
+                                    addSongsAndSync(target, ids.filter { !duplicates.contains(it) })
+                                    withContext(Dispatchers.Main) { onDismiss() }
+                                }
                             }
                         }
                     ) {
@@ -350,9 +353,13 @@ fun AddToPlaylistDialog(
                     TextButton(
                         onClick = {
                             showDuplicateDialog = false
-                            coroutineScope.launch(Dispatchers.IO) {
-                                addSongsAndSync(selectedPlaylist!!, songIds!!)
-                                withContext(Dispatchers.Main) { onDismiss() }
+                            val target = selectedPlaylist
+                            val ids = songIds
+                            if (target != null && ids != null) {
+                                coroutineScope.launch(Dispatchers.IO) {
+                                    addSongsAndSync(target, ids)
+                                    withContext(Dispatchers.Main) { onDismiss() }
+                                }
                             }
                         }
                     ) {
