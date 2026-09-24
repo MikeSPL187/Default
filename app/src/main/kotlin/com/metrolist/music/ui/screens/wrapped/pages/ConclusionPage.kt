@@ -17,18 +17,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.metrolist.music.R
-import com.metrolist.music.ui.screens.wrapped.components.AnimatedBackground
-import com.metrolist.music.ui.screens.wrapped.components.ShapeType
+import com.metrolist.music.ui.screens.wrapped.components.WrappedHeading
 
 @Composable
 fun ConclusionPage(onClose: () -> Unit) {
     val colors = MaterialTheme.colorScheme
     Box(modifier = Modifier.fillMaxSize()) {
-        AnimatedBackground(elementCount = 30, shapeTypes = listOf(ShapeType.Circle, ShapeType.Line))
         Column(
             modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp),
             verticalArrangement = Arrangement.Center,
@@ -41,13 +38,7 @@ fun ConclusionPage(onClose: () -> Unit) {
                 tint = colors.primary
             )
             Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = stringResource(R.string.wrapped_thank_you),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = colors.onSurface,
-                textAlign = TextAlign.Center
-            )
+            WrappedHeading(stringResource(R.string.wrapped_thank_you), style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = stringResource(R.string.wrapped_special_thanks),

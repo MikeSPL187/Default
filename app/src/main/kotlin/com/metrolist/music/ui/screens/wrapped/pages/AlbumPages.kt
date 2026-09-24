@@ -10,9 +10,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import com.metrolist.music.R
 import com.metrolist.music.db.entities.AlbumPlayStats
-import com.metrolist.music.ui.screens.wrapped.components.AnimatedBackground
 import com.metrolist.music.ui.screens.wrapped.components.RankedItem
-import com.metrolist.music.ui.screens.wrapped.components.ShapeType
 import com.metrolist.music.ui.screens.wrapped.components.WrappedCounterPage
 import com.metrolist.music.ui.screens.wrapped.components.WrappedTopItemPage
 import com.metrolist.music.ui.screens.wrapped.components.WrappedTopListPage
@@ -25,7 +23,6 @@ fun WrappedTotalAlbumsScreen(uniqueAlbumCount: Int, isVisible: Boolean) {
         count = uniqueAlbumCount.toLong(),
         caption = AnnotatedString(stringResource(R.string.wrapped_total_albums_subtitle)),
         isVisible = isVisible,
-        background = { AnimatedBackground(shapeTypes = listOf(ShapeType.Circle)) },
     )
 }
 
@@ -38,7 +35,6 @@ fun WrappedTopAlbumScreen(topAlbum: AlbumPlayStats?, isVisible: Boolean) {
         subtitle = null,
         caption = minutesText(topAlbum?.timeListened),
         isVisible = isVisible,
-        background = { AnimatedBackground(shapeTypes = listOf(ShapeType.Rect)) },
     )
 }
 
@@ -48,6 +44,5 @@ fun WrappedTop5AlbumsScreen(title: String, topAlbums: List<AlbumPlayStats>, isVi
         title = title,
         items = topAlbums.take(5).map { RankedItem(it.thumbnailUrl, it.title, minutesText(it.timeListened)) },
         isVisible = isVisible,
-        background = { AnimatedBackground(shapeTypes = listOf(ShapeType.Circle)) },
     )
 }

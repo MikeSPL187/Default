@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.metrolist.music.R
 import com.metrolist.music.db.entities.SongWithStats
-import com.metrolist.music.ui.screens.wrapped.components.DecorativeCorners
 import com.metrolist.music.ui.screens.wrapped.components.WrappedTopItemPage
 import com.metrolist.music.ui.screens.wrapped.components.minutesText
 import com.metrolist.music.utils.joinToArtistString
@@ -24,7 +23,6 @@ fun WrappedTopSongScreen(topSong: SongWithStats?, isVisible: Boolean) {
         subtitle = topSong?.let { song -> song.artists.joinToArtistString(" $andWord ") { it.name }.ifBlank { song.artistName.orEmpty() } },
         caption = minutesText(topSong?.timeListened),
         isVisible = isVisible,
-        background = { DecorativeCorners(isVisible) },
     )
 }
 

@@ -5,10 +5,15 @@
 
 package com.metrolist.music.ui.screens.wrapped
 
+import android.os.Build
+import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -45,7 +50,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.metrolist.music.LocalNavController
 import com.metrolist.music.R
-import com.metrolist.music.ui.screens.wrapped.components.WrappedBackdrop
+import com.metrolist.music.ui.screens.wrapped.components.WrappedAmbience
 import com.metrolist.music.ui.screens.wrapped.components.rememberArtworkAccent
 import com.metrolist.music.ui.screens.wrapped.pages.ConclusionPage
 import com.metrolist.music.ui.screens.wrapped.pages.PlaylistPage
@@ -126,6 +131,11 @@ fun WrappedScreenContent() {
         val window = (view.context as android.app.Activity).window
         val insetsController = WindowCompat.getInsetsController(window, view)
         insetsController.hide(WindowInsetsCompat.Type.systemBars())
+        // With the status bar hidden the camera cutout would otherwise stay a black band.
+        val previousCutoutMode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) window.attributes.layoutInDisplayCutoutMode else null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            window.attributes = window.attributes.apply { layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES }
+        }
 
         val observer =
             LifecycleEventObserver { _, event ->
@@ -144,6 +154,9 @@ fun WrappedScreenContent() {
         lifecycleOwner.lifecycle.addObserver(observer)
 
         onDispose {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && previousCutoutMode != null) {
+                window.attributes = window.attributes.apply { layoutInDisplayCutoutMode = previousCutoutMode }
+            }
             insetsController.show(WindowInsetsCompat.Type.systemBars())
             lifecycleOwner.lifecycle.removeObserver(observer)
             audioService.release()
@@ -221,125 +234,125 @@ fun WrappedScreenContent() {
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
             )
         },
         containerColor = MaterialTheme.colorScheme.surface,
     ) { paddingValues ->
+        // Each chapter glows in its artwork's colour, like the player; the rest in the theme's.
+        val songAccent = rememberArtworkAccent(state.topSongs.firstOrNull()?.thumbnailUrl)
+        val albumAccent = rememberArtworkAccent(state.topAlbums.firstOrNull()?.thumbnailUrl)
+        val artistAccent = rememberArtworkAccent(state.topArtists.firstOrNull()?.artist?.thumbnailUrl)
+        val accent =
+            when (screens.getOrNull(pagerState.currentPage)) {
+                WrappedScreenType.TopSongReveal, WrappedScreenType.Top5Songs -> songAccent
+                WrappedScreenType.TopAlbumReveal, WrappedScreenType.Top5Albums -> albumAccent
+                WrappedScreenType.TopArtistReveal, WrappedScreenType.Top5Artists -> artistAccent
+                else -> null
+            } ?: MaterialTheme.colorScheme.primaryContainer
+        WrappedAmbience(accent = accent)
+
         VerticalPager(
             state = pagerState,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(paddingValues),
         ) { page ->
-            val screen = screens[page]
-            // Pages revealing one song, album or artist glow in its artwork's colour, like the player.
-            val artwork =
-                when (screen) {
-                    WrappedScreenType.TopSongReveal -> state.topSongs.firstOrNull()?.thumbnailUrl
-                    WrappedScreenType.TopAlbumReveal -> state.topAlbums.firstOrNull()?.thumbnailUrl
-                    WrappedScreenType.TopArtistReveal -> state.topArtists.firstOrNull()?.artist?.thumbnailUrl
-                    else -> null
+            when (screens[page]) {
+                is WrappedScreenType.Welcome -> {
+                    WrappedIntro(
+                        label = state.bigLabel,
+                        subtitle = stringResource(R.string.wrapped_intro_subtitle_period, periodPhrase),
+                    ) { scope.launch { pagerState.animateScrollToPage(page = 1) } }
                 }
-            Box(Modifier.fillMaxSize()) {
-                WrappedBackdrop(accent = rememberArtworkAccent(artwork) ?: MaterialTheme.colorScheme.primaryContainer)
-                Box(Modifier.fillMaxSize().padding(paddingValues)) {
-                    when (screen) {
-                        is WrappedScreenType.Welcome -> {
-                            WrappedIntro(
-                                label = state.bigLabel,
-                                subtitle = stringResource(R.string.wrapped_intro_subtitle_period, periodPhrase),
-                            ) { scope.launch { pagerState.animateScrollToPage(page = 1) } }
-                        }
 
-                        is WrappedScreenType.MinutesTease -> {
-                            WrappedMinutesTease(
-                                messagePair = messagePair,
-                                onNavigateForward = { scope.launch { pagerState.animateScrollToPage(page = 2) } },
-                                isDataReady = state.isDataReady,
-                            )
-                        }
+                is WrappedScreenType.MinutesTease -> {
+                    WrappedMinutesTease(
+                        messagePair = messagePair,
+                        onNavigateForward = { scope.launch { pagerState.animateScrollToPage(page = 2) } },
+                        isDataReady = state.isDataReady,
+                    )
+                }
 
-                        is WrappedScreenType.MinutesReveal -> {
-                            WrappedMinutesScreen(
-                                messagePair = messagePair,
-                                totalMinutes = state.totalMinutes,
-                                isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.MinutesReveal),
-                            )
-                        }
+                is WrappedScreenType.MinutesReveal -> {
+                    WrappedMinutesScreen(
+                        messagePair = messagePair,
+                        totalMinutes = state.totalMinutes,
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.MinutesReveal),
+                    )
+                }
 
-                        is WrappedScreenType.TotalSongs -> {
-                            WrappedTotalSongsScreen(
-                                uniqueSongCount = state.uniqueSongCount,
-                                isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TotalSongs),
-                            )
-                        }
+                is WrappedScreenType.TotalSongs -> {
+                    WrappedTotalSongsScreen(
+                        uniqueSongCount = state.uniqueSongCount,
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TotalSongs),
+                    )
+                }
 
-                        is WrappedScreenType.TopSongReveal -> {
-                            WrappedTopSongScreen(
-                                topSong = state.topSongs.firstOrNull(),
-                                isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TopSongReveal),
-                            )
-                        }
+                is WrappedScreenType.TopSongReveal -> {
+                    WrappedTopSongScreen(
+                        topSong = state.topSongs.firstOrNull(),
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TopSongReveal),
+                    )
+                }
 
-                        is WrappedScreenType.Top5Songs -> {
-                            WrappedTop5SongsScreen(
-                                title = stringResource(R.string.wrapped_top_songs_title_period, periodPhrase),
-                                topSongs = state.topSongs.take(5),
-                                isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.Top5Songs),
-                            )
-                        }
+                is WrappedScreenType.Top5Songs -> {
+                    WrappedTop5SongsScreen(
+                        title = stringResource(R.string.wrapped_top_songs_title_period, periodPhrase),
+                        topSongs = state.topSongs.take(5),
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.Top5Songs),
+                    )
+                }
 
-                        is WrappedScreenType.TotalAlbums -> {
-                            WrappedTotalAlbumsScreen(
-                                uniqueAlbumCount = state.totalAlbums,
-                                isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TotalAlbums),
-                            )
-                        }
+                is WrappedScreenType.TotalAlbums -> {
+                    WrappedTotalAlbumsScreen(
+                        uniqueAlbumCount = state.totalAlbums,
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TotalAlbums),
+                    )
+                }
 
-                        is WrappedScreenType.TopAlbumReveal -> {
-                            WrappedTopAlbumScreen(
-                                topAlbum = state.topAlbums.firstOrNull(),
-                                isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TopAlbumReveal),
-                            )
-                        }
+                is WrappedScreenType.TopAlbumReveal -> {
+                    WrappedTopAlbumScreen(
+                        topAlbum = state.topAlbums.firstOrNull(),
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TopAlbumReveal),
+                    )
+                }
 
-                        is WrappedScreenType.Top5Albums -> {
-                            WrappedTop5AlbumsScreen(
-                                title = stringResource(R.string.wrapped_top_albums_title_period, periodPhrase),
-                                topAlbums = state.topAlbums,
-                                isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.Top5Albums),
-                            )
-                        }
+                is WrappedScreenType.Top5Albums -> {
+                    WrappedTop5AlbumsScreen(
+                        title = stringResource(R.string.wrapped_top_albums_title_period, periodPhrase),
+                        topAlbums = state.topAlbums,
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.Top5Albums),
+                    )
+                }
 
-                        is WrappedScreenType.TotalArtists -> {
-                            WrappedTotalArtistsScreen(
-                                uniqueArtistCount = state.uniqueArtistCount,
-                                isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TotalArtists),
-                            )
-                        }
+                is WrappedScreenType.TotalArtists -> {
+                    WrappedTotalArtistsScreen(
+                        uniqueArtistCount = state.uniqueArtistCount,
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TotalArtists),
+                    )
+                }
 
-                        is WrappedScreenType.TopArtistReveal -> {
-                            WrappedTopArtistScreen(
-                                title = stringResource(R.string.wrapped_top_artist_title_period, periodPhrase),
-                                topArtist = state.topArtists.firstOrNull(),
-                                isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TopArtistReveal),
-                            )
-                        }
+                is WrappedScreenType.TopArtistReveal -> {
+                    WrappedTopArtistScreen(
+                        title = stringResource(R.string.wrapped_top_artist_title_period, periodPhrase),
+                        topArtist = state.topArtists.firstOrNull(),
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TopArtistReveal),
+                    )
+                }
 
-                        is WrappedScreenType.Top5Artists -> {
-                            WrappedTop5ArtistsScreen(
-                                title = stringResource(R.string.wrapped_top_artists_title_period, periodPhrase),
-                                topArtists = state.topArtists,
-                                isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.Top5Artists),
-                            )
-                        }
+                is WrappedScreenType.Top5Artists -> {
+                    WrappedTop5ArtistsScreen(
+                        title = stringResource(R.string.wrapped_top_artists_title_period, periodPhrase),
+                        topArtists = state.topArtists,
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.Top5Artists),
+                    )
+                }
 
-                        is WrappedScreenType.Playlist -> {
-                            PlaylistPage()
-                        }
+                is WrappedScreenType.Playlist -> {
+                    PlaylistPage()
+                }
 
-                        is WrappedScreenType.Conclusion -> {
-                            ConclusionPage(onClose = onClose)
-                        }
-                    }
+                is WrappedScreenType.Conclusion -> {
+                    ConclusionPage(onClose = onClose)
                 }
             }
         }

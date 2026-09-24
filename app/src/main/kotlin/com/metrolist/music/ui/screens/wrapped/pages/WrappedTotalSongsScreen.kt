@@ -9,8 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import com.metrolist.music.R
-import com.metrolist.music.ui.screens.wrapped.components.AnimatedBackground
-import com.metrolist.music.ui.screens.wrapped.components.ShapeType
 import com.metrolist.music.ui.screens.wrapped.components.WrappedCounterPage
 
 @Composable
@@ -23,6 +21,5 @@ fun WrappedTotalSongsScreen(
         count = uniqueSongCount.toLong(),
         caption = AnnotatedString(stringResource(R.string.wrapped_total_songs_subtitle)),
         isVisible = isVisible,
-        background = { AnimatedBackground(shapeTypes = listOf(ShapeType.Line)) },
     )
 }

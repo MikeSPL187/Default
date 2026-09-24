@@ -37,14 +37,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.metrolist.music.R
 import com.metrolist.music.ui.screens.wrapped.LocalWrappedManager
 import com.metrolist.music.ui.screens.wrapped.PlaylistCreationState
-import com.metrolist.music.ui.screens.wrapped.components.AnimatedBackground
-import com.metrolist.music.ui.screens.wrapped.components.ShapeType
-import com.metrolist.music.ui.screens.wrapped.components.WrappedTitle
+import com.metrolist.music.ui.screens.wrapped.components.WrappedHeading
 import com.metrolist.music.ui.screens.wrapped.components.isDarkSurface
 import com.metrolist.music.ui.screens.wrapped.playlistName
 import com.metrolist.music.ui.screens.wrapped.renderWrappedCover
@@ -80,7 +77,6 @@ fun PlaylistPage() {
     )
 
     Box(modifier = Modifier.fillMaxSize()) {
-        AnimatedBackground(shapeTypes = listOf(ShapeType.Circle))
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -89,7 +85,7 @@ fun PlaylistPage() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            WrappedTitle(text = stringResource(R.string.wrapped_playlist_ready), maxFontSize = 32.sp, maxLines = 2)
+            WrappedHeading(stringResource(R.string.wrapped_playlist_ready))
             Spacer(modifier = Modifier.height(32.dp))
             Box(
                 modifier = Modifier
@@ -109,7 +105,7 @@ fun PlaylistPage() {
             Text(
                 text = remember(playlistName) { playlistName.withoutOrphan() },
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 color = colors.onSurface,
                 textAlign = TextAlign.Center,
                 maxLines = 2,

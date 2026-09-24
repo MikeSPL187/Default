@@ -9,9 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.metrolist.music.R
 import com.metrolist.music.db.entities.SongWithStats
-import com.metrolist.music.ui.screens.wrapped.components.AnimatedBackground
 import com.metrolist.music.ui.screens.wrapped.components.RankedItem
-import com.metrolist.music.ui.screens.wrapped.components.ShapeType
 import com.metrolist.music.ui.screens.wrapped.components.WrappedTopListPage
 import com.metrolist.music.utils.joinToArtistString
 
@@ -29,6 +27,5 @@ fun WrappedTop5SongsScreen(title: String, topSongs: List<SongWithStats>, isVisib
                 )
             },
         isVisible = isVisible,
-        background = { AnimatedBackground(elementCount = 25, shapeTypes = listOf(ShapeType.Rect)) },
     )
 }
