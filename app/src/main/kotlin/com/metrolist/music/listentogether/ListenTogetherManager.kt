@@ -95,6 +95,7 @@ class ListenTogetherManager
 
         private var playerConnection: PlayerConnection? = null
         private var eventCollectorJob: Job? = null
+        private var roleCollectorJob: Job? = null
         private var queueObserverJob: Job? = null
         private var volumeObserverJob: Job? = null
         private var playerListenerRegistered = false
@@ -397,8 +398,12 @@ class ListenTogetherManager
                     }
                 }
 
-            // Role change listener
-            scope.launch {
+            // Role change listener. Kept like the event collector: initialize() runs on every
+            // activity creation (rotation, theme change), and each extra collector would start the
+            // host sync services once more.
+            roleCollectorJob?.cancel()
+            roleCollectorJob =
+                scope.launch {
                 role.collect { newRole ->
                     try {
                         val previousRole = lastRole
