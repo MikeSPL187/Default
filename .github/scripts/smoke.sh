@@ -9,6 +9,9 @@ echo "Installing $APK"
 adb install -r "$APK"
 # Grant up front so the Android 13+ notification prompt cannot cover the app mid-flow.
 adb shell pm grant com.metrolist.music android.permission.POST_NOTIFICATIONS || true
+# A slow emulator can show "Pixel Launcher isn't responding" over the app. Crashes of the app are
+# still caught from logcat below, so hiding system error dialogs loses nothing.
+adb shell settings put global hide_error_dialogs 1 || true
 adb logcat -c
 
 mkdir -p smoke-output

@@ -7,6 +7,11 @@ appId: com.metrolist.music
       visible: "Allow"
     commands:
       - tapOn: "Allow"
+- runFlow:
+    when:
+      visible: ".*isn't responding"
+    commands:
+      - tapOn: "Wait"
 - extendedWaitUntil:
     visible: "Home"
     timeout: 90000
