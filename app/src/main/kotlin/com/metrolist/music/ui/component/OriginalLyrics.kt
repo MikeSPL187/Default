@@ -169,7 +169,7 @@ import com.metrolist.music.ui.component.shimmer.ShimmerHost
 import com.metrolist.music.ui.component.shimmer.TextPlaceholder
 import com.metrolist.music.ui.screens.settings.DarkMode
 import com.metrolist.music.ui.screens.settings.LyricsPosition
-import com.metrolist.music.ui.screens.settings.defaultList
+import com.metrolist.music.ui.screens.settings.enabledRomanizationLanguages
 import com.metrolist.music.ui.utils.fadingEdge
 import com.metrolist.music.utils.ComposeToImage
 import com.metrolist.music.utils.rememberEnumPreference
@@ -248,17 +248,8 @@ fun OriginalLyrics(
             if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
         }
 
-    val decodedList =
-        if (romanizeLyricsList.value.isEmpty()) {
-            defaultList
-        } else {
-            romanizeLyricsList.value.split(",").map { entry ->
-                val (lang, checked) = entry.split(":")
-                Pair(lang, checked.toBoolean())
-            }
-        }
-
-    val enabledLanguages = decodedList.filter { (_, checked) -> checked }.map { (lang, _) -> lang }
+    // Parsed once per setting change instead of on every recomposition of the lyrics.
+    val enabledLanguages = remember(romanizeLyricsList.value) { enabledRomanizationLanguages(romanizeLyricsList.value) }
 
     val lines =
         remember(lyrics, scope) {

@@ -41,7 +41,7 @@ import com.metrolist.music.ui.component.Material3SettingsItem
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.utils.rememberPreference
 
-val defaultList = mutableListOf(
+val defaultList = listOf(
     "Japanese" to true,
     "Korean" to true,
     "Chinese" to true,
@@ -56,6 +56,23 @@ val defaultList = mutableListOf(
     "Macedonian" to true,
 )
 
+/**
+ * Reads the saved romanization choices ("Japanese:true,Korean:false"). Malformed entries, e.g.
+ * from a backup of another version, are skipped instead of crashing the lyrics screens.
+ */
+fun parseRomanizationLanguages(saved: String): List<Pair<String, Boolean>> {
+    if (saved.isEmpty()) return defaultList
+    val savedMap =
+        saved.split(",").mapNotNull { entry ->
+            val parts = entry.split(":")
+            if (parts.size == 2 && parts[0].isNotBlank()) parts[0] to parts[1].toBoolean() else null
+        }.toMap()
+    return defaultList.map { (lang, defaultChecked) -> lang to (savedMap[lang] ?: defaultChecked) }
+}
+
+fun enabledRomanizationLanguages(saved: String): List<String> =
+    parseRomanizationLanguages(saved).filter { it.second }.map { it.first }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RomanizationSettings(
@@ -63,19 +80,7 @@ fun RomanizationSettings(
 ) {
     val (pref, prefValue) = rememberPreference(LyricsRomanizeList, "")
 
-    val initialList = remember(pref) {
-        if (pref.isEmpty()) defaultList
-        else {
-            val savedMap = pref.split(",").associate { entry ->
-                val (lang, checked) = entry.split(":")
-                lang to checked.toBoolean()
-            }
-
-            defaultList.map { (lang, defaultChecked) ->
-                Pair(lang, savedMap[lang] ?: defaultChecked)
-            }
-        }
-    }
+    val initialList = remember(pref) { parseRomanizationLanguages(pref) }
 
     val states = remember(initialList) { mutableStateListOf(*initialList.toTypedArray()) }
 

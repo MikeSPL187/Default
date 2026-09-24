@@ -115,7 +115,7 @@ import com.metrolist.music.lyrics.lyricsTextLooksSynced
 import com.metrolist.music.ui.component.shimmer.ShimmerHost
 import com.metrolist.music.ui.component.shimmer.TextPlaceholder
 import com.metrolist.music.ui.screens.settings.LyricsPosition
-import com.metrolist.music.ui.screens.settings.defaultList
+import com.metrolist.music.ui.screens.settings.enabledRomanizationLanguages
 import com.metrolist.music.ui.utils.fadingEdge
 import com.metrolist.music.utils.ComposeToImage
 import com.metrolist.music.utils.rememberEnumPreference
@@ -208,16 +208,7 @@ fun ExperimentalLyrics(
         defaultValue = PlayerBackgroundStyle.DEFAULT
     )
 
-    val enabledLanguages = remember(romanizeLyricsList.value) {
-        if (romanizeLyricsList.value.isEmpty()) {
-            defaultList
-        } else {
-            romanizeLyricsList.value.split(",").map { entry ->
-                val (lang, checked) = entry.split(":")
-                Pair(lang, checked.toBoolean())
-            }
-        }.filter { it.second }.map { it.first }
-    }
+    val enabledLanguages = remember(romanizeLyricsList.value) { enabledRomanizationLanguages(romanizeLyricsList.value) }
 
     val lines by lyricsViewModel.lines.collectAsStateWithLifecycle()
     val mergedLyricsList by lyricsViewModel.mergedLyricsList.collectAsStateWithLifecycle()
