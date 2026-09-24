@@ -24,9 +24,13 @@ appId: com.metrolist.music
 - tapOn: "Search"
 - waitForAnimationToEnd
 - takeScreenshot: 03-search
-# On a slow emulator the keyboard may still be up; a single back would only close it.
-- hideKeyboard
 - back
+# If the keyboard was still up, that back only closed it.
+- runFlow:
+    when:
+      notVisible: "Library"
+    commands:
+      - back
 
 - tapOn: "Library"
 - waitForAnimationToEnd
