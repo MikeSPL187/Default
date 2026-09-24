@@ -42,3 +42,21 @@ fun String.resize(
 
     return this
 }
+
+private val YOUTUBE_VIDEO_THUMBNAIL_PATTERN =
+    Regex("^https?://i\\d?\\.ytimg\\.com/vi(?:_webp)?/([^/]+)/([^/?]+)")
+
+/** Thumbnails of YouTube videos (i.ytimg.com), which are 16:9 or letterboxed 4:3 instead of square. */
+fun String.isYouTubeVideoThumbnail(): Boolean = YOUTUBE_VIDEO_THUMBNAIL_PATTERN.containsMatchIn(this)
+
+/**
+ * The 1280×720 frame of a video thumbnail. hqdefault/sddefault are 4:3 with the black bars
+ * drawn into the image, and too small to fill the player. Null when this is not a video
+ * thumbnail or already the widescreen one.
+ */
+fun String.widescreenVideoThumbnail(): String? {
+    val match = YOUTUBE_VIDEO_THUMBNAIL_PATTERN.find(this) ?: return null
+    val (videoId, file) = match.destructured
+    if (file.startsWith("hq720") || file.startsWith("maxresdefault")) return null
+    return "https://i.ytimg.com/vi/$videoId/hq720.jpg"
+}

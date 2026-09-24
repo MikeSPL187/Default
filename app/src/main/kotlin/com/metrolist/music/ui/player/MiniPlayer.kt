@@ -99,6 +99,7 @@ import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.playback.CastConnectionHandler
 import com.metrolist.music.playback.PlayerConnection
 import com.metrolist.music.ui.screens.settings.DarkMode
+import com.metrolist.music.ui.utils.artworkContentScale
 import com.metrolist.music.ui.utils.resize
 import com.metrolist.music.utils.joinToArtistString
 import com.metrolist.music.utils.rememberEnumPreference
@@ -583,7 +584,7 @@ private fun NewMiniPlayerPlayButton(
                 AsyncImage(
                     model = thumbnailUrl,
                     contentDescription = null,
-                    contentScale = ContentScale.Crop,
+                    contentScale = artworkContentScale(thumbnailUrl, cropAlbumArt = true),
                     modifier = Modifier.fillMaxSize().clip(CircleShape),
                 )
             }
@@ -968,7 +969,7 @@ private fun LegacyMiniMediaInfo(
             AsyncImage(
                 model = thumbnailUrl,
                 contentDescription = null,
-                contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
+                contentScale = artworkContentScale(thumbnailUrl, cropAlbumArt),
                 modifier =
                     Modifier
                         .fillMaxSize()
