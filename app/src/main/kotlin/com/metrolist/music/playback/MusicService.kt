@@ -7,7 +7,6 @@
 
 package com.metrolist.music.playback
 
-import kotlinx.coroutines.CompletableDeferred
 import com.metrolist.music.utils.NotRecommended
 import com.metrolist.music.utils.notRecommended
 import com.metrolist.music.utils.filterNotRecommended
@@ -1268,17 +1267,6 @@ class MusicService :
                 }
             }
         }
-        val queueFileExists = filesDir.resolve(PERSISTENT_QUEUE_FILE).exists()
-        val playerStateFileExists = filesDir.resolve(PERSISTENT_PLAYER_STATE_FILE).exists()
-        if (!(startupPrefs!![PersistentQueueKey] ?: true) || !queueFileExists) {
-            queueRestored.complete(Unit)
-        } else if (!playerStateFileExists) {
-            scope.launch {
-                playerInitialized.first { it }
-                withTimeoutOrNull(QUEUE_RESTORE_TIMEOUT_MS) { while (player.mediaItemCount == 0) delay(100) }
-                queueRestored.complete(Unit)
-            }
-        }
         if (startupPrefs!![PersistentQueueKey] ?: true) {
             val queueFile = filesDir.resolve(PERSISTENT_QUEUE_FILE)
             if (queueFile.exists()) {
@@ -1357,12 +1345,10 @@ class MusicService :
                         if (playerState.currentMediaItemIndex < player.mediaItemCount) {
                             player.seekTo(playerState.currentMediaItemIndex, playerState.currentPosition)
                         }
-                        queueRestored.complete(Unit)
                     }
                 }.onFailure { error ->
                     Timber.tag(TAG).w(error, "Failed to read player state, clearing data")
                     clearPersistedQueueFiles()
-                    queueRestored.complete(Unit)
                 }
             }
         }
@@ -2168,24 +2154,6 @@ class MusicService :
     private fun filteredAutomix(items: List<MediaItem>) = items.filterNotRecommended(notRecommended())
 
     private var smartShuffleJob: Job? = null
-
-    /** Completes once the persisted queue, if any, has been put back into the player. */
-    private val queueRestored = CompletableDeferred<Unit>()
-
-    /**
-     * The queue to hand to the system when it asks to resume playback, e.g. Play pressed on
-     * headphones or a car stereo while the app was not running. Waits for the persisted queue
-     * so playback continues at the last song and position instead of doing nothing.
-     */
-    suspend fun playbackResumptionItems(): MediaSession.MediaItemsWithStartPosition {
-        withTimeoutOrNull(QUEUE_RESTORE_TIMEOUT_MS) { queueRestored.await() }
-        val items = List(player.mediaItemCount) { player.getMediaItemAt(it) }
-        return MediaSession.MediaItemsWithStartPosition(
-            items,
-            if (items.isEmpty()) 0 else player.currentMediaItemIndex.coerceIn(items.indices),
-            if (items.isEmpty()) C.TIME_UNSET else player.currentPosition,
-        )
-    }
 
     /**
      * Plays [items] shuffled and, once fetched, slips a marked recommendation in after every few
