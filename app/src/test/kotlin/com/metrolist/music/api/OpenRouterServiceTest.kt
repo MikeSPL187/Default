@@ -47,6 +47,31 @@ class OpenRouterServiceTest {
     }
 
     @Test
+    fun `fallback request drops structured outputs and strict routing`() {
+        val request =
+            buildTranslationRequest(
+                text = "one",
+                targetLanguage = "Spanish",
+                model = "some/free-model",
+                mode = "Translated",
+                customSystemPrompt = "",
+                structuredOutput = false,
+            )
+
+        assertTrue("response_format" !in request)
+        assertTrue("provider" !in request)
+        assertTrue(request.containsKey("messages"))
+    }
+
+    @Test
+    fun `only the no-endpoints answer triggers the fallback`() {
+        val noEndpoints = """{"error":{"message":"No endpoints found that can handle the requested parameters.","code":404}}"""
+        assertTrue(isNoEndpointsError(404, noEndpoints))
+        assertTrue(!isNoEndpointsError(401, """{"error":{"message":"No auth credentials found"}}"""))
+        assertTrue(!isNoEndpointsError(500, noEndpoints))
+    }
+
+    @Test
     fun `openrouter-only provider routing is omitted for direct providers`() {
         val request =
             buildTranslationRequest(

@@ -50,17 +50,7 @@ object OpenRouterStreamingService {
             }
 
             try {
-                val body =
-                    buildTranslationRequest(
-                        text = text,
-                        targetLanguage = targetLanguage,
-                        model = model,
-                        mode = mode,
-                        customSystemPrompt = customSystemPrompt,
-                        baseUrl = baseUrl.ifBlank { OpenRouterDefaultBaseUrl },
-                        stream = true,
-                    )
-                val request =
+                fun request(structuredOutput: Boolean) =
                     Request
                         .Builder()
                         .url(baseUrl.ifBlank { OpenRouterDefaultBaseUrl })
@@ -69,10 +59,32 @@ object OpenRouterStreamingService {
                         }.addHeader("Content-Type", "application/json")
                         .addHeader("HTTP-Referer", "https://github.com/MetrolistGroup/Metrolist")
                         .addHeader("X-Title", "Metrolist")
-                        .post(body.toString().toRequestBody(jsonMediaType))
-                        .build()
+                        .post(
+                            buildTranslationRequest(
+                                text = text,
+                                targetLanguage = targetLanguage,
+                                model = model,
+                                mode = mode,
+                                customSystemPrompt = customSystemPrompt,
+                                baseUrl = baseUrl.ifBlank { OpenRouterDefaultBaseUrl },
+                                stream = true,
+                                structuredOutput = structuredOutput,
+                            ).toString().toRequestBody(jsonMediaType),
+                        ).build()
 
-                client.newCall(request).execute().use { response ->
+                var response = client.newCall(request(structuredOutput = true)).execute()
+                if (!response.isSuccessful) {
+                    val errorBody = response.body.string()
+                    response.close()
+                    if (!isNoEndpointsError(response.code, errorBody)) {
+                        emit(StreamChunk.Error("Translation failed: ${apiErrorMessage(errorBody, response.code, response.message)}"))
+                        return@flow
+                    }
+                    // The model has no endpoint with structured outputs; the parser copes without them.
+                    response = client.newCall(request(structuredOutput = false)).execute()
+                }
+
+                response.use { response ->
                     if (!response.isSuccessful) {
                         emit(
                             StreamChunk.Error(

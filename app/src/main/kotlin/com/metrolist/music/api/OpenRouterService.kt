@@ -53,10 +53,12 @@ object OpenRouterService {
         withContext(Dispatchers.IO) {
             if (text.isBlank()) return@withContext Result.failure(Exception("Input text is empty"))
 
+            var structuredOutput = true
             repeat(maxRetries) { attempt ->
                 try {
                     val body =
                         buildTranslationRequest(
+                            structuredOutput = structuredOutput,
                             text = text,
                             targetLanguage = targetLanguage,
                             model = model,
@@ -78,6 +80,10 @@ object OpenRouterService {
 
                     client.newCall(request).execute().use { response ->
                         val responseBody = response.body.string()
+                        if (!response.isSuccessful && structuredOutput && isNoEndpointsError(response.code, responseBody)) {
+                            structuredOutput = false
+                            return@repeat
+                        }
                         if (!response.isSuccessful) {
                             val error = apiErrorMessage(responseBody, response.code, response.message)
                             if (response.code >= 500) throw Exception(error)
@@ -119,6 +125,7 @@ internal fun buildTranslationRequest(
     customSystemPrompt: String,
     baseUrl: String = OpenRouterDefaultBaseUrl,
     stream: Boolean = false,
+    structuredOutput: Boolean = true,
 ): JsonObject {
     val lineCount = text.lines().size
     val systemPrompt =
@@ -219,56 +226,58 @@ Output MUST be a JSON object {"lines": [...]} with EXACTLY $lineCount strings.""
         if (model.isNotBlank()) put("model", model)
         put("temperature", 0.3)
         put("max_tokens", lineCount * 100)
-        put(
-            "response_format",
-            buildJsonObject {
-                put("type", "json_schema")
-                put(
-                    "json_schema",
-                    buildJsonObject {
-                        put("name", "translated_lyrics")
-                        put("strict", true)
-                        put(
-                            "schema",
-                            buildJsonObject {
-                                put("type", "object")
-                                put(
-                                    "properties",
-                                    buildJsonObject {
-                                        put(
-                                            "lines",
-                                            buildJsonObject {
-                                                put("type", "array")
-                                                put(
-                                                    "description",
-                                                    "Translated lines, one per input line, empty lines preserved as empty strings",
-                                                )
-                                                put(
-                                                    "items",
-                                                    buildJsonObject {
-                                                        put("type", "string")
-                                                    },
-                                                )
-                                            },
-                                        )
-                                    },
-                                )
-                                put(
-                                    "required",
-                                    buildJsonArray {
-                                        add("lines")
-                                    },
-                                )
-                                put("additionalProperties", false)
-                            },
-                        )
-                    },
-                )
-            },
-        )
+        if (structuredOutput) {
+            put(
+                "response_format",
+                buildJsonObject {
+                    put("type", "json_schema")
+                    put(
+                        "json_schema",
+                        buildJsonObject {
+                            put("name", "translated_lyrics")
+                            put("strict", true)
+                            put(
+                                "schema",
+                                buildJsonObject {
+                                    put("type", "object")
+                                    put(
+                                        "properties",
+                                        buildJsonObject {
+                                            put(
+                                                "lines",
+                                                buildJsonObject {
+                                                    put("type", "array")
+                                                    put(
+                                                        "description",
+                                                        "Translated lines, one per input line, empty lines preserved as empty strings",
+                                                    )
+                                                    put(
+                                                        "items",
+                                                        buildJsonObject {
+                                                            put("type", "string")
+                                                        },
+                                                    )
+                                                },
+                                            )
+                                        },
+                                    )
+                                    put(
+                                        "required",
+                                        buildJsonArray {
+                                            add("lines")
+                                        },
+                                    )
+                                    put("additionalProperties", false)
+                                },
+                            )
+                        },
+                    )
+                },
+            )
+        }
         // OpenRouter-only routing preference; fail instead of silently degrading to
         // unvalidated JSON on endpoints without structured-output support
-        if (baseUrl.contains("openrouter.ai")) {
+        if (structuredOutput && baseUrl.contains("openrouter.ai")) {
             put(
                 "provider",
                 buildJsonObject {
@@ -316,6 +325,15 @@ private fun extractLines(element: JsonElement): List<String>? =
         is JsonArray -> element.map { it.jsonPrimitive.content }
         else -> null
     }
+
+/**
+ * OpenRouter answers this when no provider of the chosen model supports structured outputs,
+ * which many free and smaller models lack (#4401). Such requests are retried without the schema.
+ */
+internal fun isNoEndpointsError(
+    code: Int,
+    body: String?,
+): Boolean = code in 400..499 && body.orEmpty().contains("No endpoints found", ignoreCase = true)
 
 internal fun apiErrorMessage(
     body: String?,
