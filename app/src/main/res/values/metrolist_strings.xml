@@ -1179,4 +1179,42 @@
 
     <!-- Wrapped top albums for a period -->
     <string name="wrapped_top_albums_title_period">Your top albums %s</string>
+
+    <!-- Playlist transfer from Yandex Music and Spotify -->
+    <string name="playlist_import_title">Transfer playlists</string>
+    <string name="playlist_import_entry_description">From Yandex Music or Spotify, by link</string>
+    <string name="playlist_import_intro">Paste a link to a playlist or album, and each track will be found on YouTube Music and saved to your library.</string>
+    <string name="playlist_import_by_link">By link</string>
+    <string name="playlist_import_by_list">As a list</string>
+    <string name="playlist_import_link_label">Playlist or album link</string>
+    <string name="playlist_import_link_hint">Yandex Music or Spotify. The playlist must be public.</string>
+    <string name="playlist_import_paste">Paste</string>
+    <string name="playlist_import_find">Find playlist</string>
+    <string name="playlist_import_list_label">Tracks, one per line</string>
+    <string name="playlist_import_list_hint">Artist — Title</string>
+    <string name="playlist_import_name_label">Playlist name</string>
+    <string name="playlist_import_default_name">Imported playlist</string>
+    <string name="playlist_import_continue">Continue</string>
+    <string name="playlist_import_start">Transfer</string>
+    <string name="playlist_import_back">Back</string>
+    <string name="playlist_import_source_yandex">Yandex Music</string>
+    <string name="playlist_import_source_spotify">Spotify</string>
+    <string name="playlist_import_source_text">Your list</string>
+    <string name="playlist_import_searching">Looking up tracks on YouTube Music…</string>
+    <string name="playlist_import_progress">Found %1$d of %2$d</string>
+    <string name="playlist_import_background_note">You can leave this screen, the transfer keeps going.</string>
+    <string name="playlist_import_done">Transferred %1$d of %2$d</string>
+    <string name="playlist_import_not_found_note">Tracks marked with a cross were not found on YouTube Music.</string>
+    <string name="playlist_import_open">Open playlist</string>
+    <string name="playlist_import_again">Transfer another</string>
+    <string name="playlist_import_truncated">Without an account Spotify shows only the first 100 tracks. For the whole playlist, export it to CSV with Exportify and import the file in Backup and restore.</string>
+    <string name="playlist_import_error_link">This isn\'t a link to a Yandex Music or Spotify playlist or album.</string>
+    <string name="playlist_import_error_not_found">Playlist not found. Check that it is public.</string>
+    <string name="playlist_import_error_network">Couldn\'t reach the service. Check your connection and try again.</string>
+    <string name="playlist_import_error_empty">No tracks found.</string>
+    <string name="playlist_import_error_unreadable">The service answered in an unexpected way. Try again later or transfer the tracks as a list.</string>
+    <plurals name="playlist_import_track_count">
+        <item quantity="one">%d track</item>
+        <item quantity="other">%d tracks</item>
+    </plurals>
 </resources>

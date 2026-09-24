@@ -1072,4 +1072,44 @@
 
     <!-- Wrapped top albums for a period -->
     <string name="wrapped_top_albums_title_period">Ваши топ-альбомы %s</string>
+
+    <!-- Playlist transfer from Yandex Music and Spotify -->
+    <string name="playlist_import_title">Перенос плейлистов</string>
+    <string name="playlist_import_entry_description">Из Яндекс Музыки или Spotify по ссылке</string>
+    <string name="playlist_import_intro">Вставьте ссылку на плейлист или альбом, и каждый трек найдётся в YouTube Music и сохранится в вашу медиатеку.</string>
+    <string name="playlist_import_by_link">По ссылке</string>
+    <string name="playlist_import_by_list">Списком</string>
+    <string name="playlist_import_link_label">Ссылка на плейлист или альбом</string>
+    <string name="playlist_import_link_hint">Яндекс Музыка или Spotify. Плейлист должен быть открытым.</string>
+    <string name="playlist_import_paste">Вставить</string>
+    <string name="playlist_import_find">Найти плейлист</string>
+    <string name="playlist_import_list_label">Треки, по одному в строке</string>
+    <string name="playlist_import_list_hint">Исполнитель — Название</string>
+    <string name="playlist_import_name_label">Название плейлиста</string>
+    <string name="playlist_import_default_name">Перенесённый плейлист</string>
+    <string name="playlist_import_continue">Продолжить</string>
+    <string name="playlist_import_start">Перенести</string>
+    <string name="playlist_import_back">Назад</string>
+    <string name="playlist_import_source_yandex">Яндекс Музыка</string>
+    <string name="playlist_import_source_spotify">Spotify</string>
+    <string name="playlist_import_source_text">Ваш список</string>
+    <string name="playlist_import_searching">Ищем треки в YouTube Music…</string>
+    <string name="playlist_import_progress">Найдено %1$d из %2$d</string>
+    <string name="playlist_import_background_note">Можно уйти с экрана, перенос продолжится.</string>
+    <string name="playlist_import_done">Перенесено %1$d из %2$d</string>
+    <string name="playlist_import_not_found_note">Треки с крестиком не нашлись в YouTube Music.</string>
+    <string name="playlist_import_open">Открыть плейлист</string>
+    <string name="playlist_import_again">Перенести ещё</string>
+    <string name="playlist_import_truncated">Без входа в аккаунт Spotify показывает только первые 100 треков. Чтобы перенести весь плейлист, выгрузите его в CSV через Exportify и импортируйте файл в разделе «Резервное копирование».</string>
+    <string name="playlist_import_error_link">Это не ссылка на плейлист или альбом Яндекс Музыки или Spotify.</string>
+    <string name="playlist_import_error_not_found">Плейлист не найден. Проверьте, что он открытый.</string>
+    <string name="playlist_import_error_network">Не удалось связаться с сервисом. Проверьте интернет и попробуйте ещё раз.</string>
+    <string name="playlist_import_error_empty">Треки не найдены.</string>
+    <string name="playlist_import_error_unreadable">Сервис ответил неожиданно. Попробуйте позже или перенесите треки списком.</string>
+    <plurals name="playlist_import_track_count">
+        <item quantity="one">%d трек</item>
+        <item quantity="few">%d трека</item>
+        <item quantity="many">%d треков</item>
+        <item quantity="other">%d трека</item>
+    </plurals>
 </resources>

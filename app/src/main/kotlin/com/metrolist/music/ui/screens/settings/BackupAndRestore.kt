@@ -198,6 +198,12 @@ fun BackupAndRestore(
                         },
                     ),
                     Material3SettingsItem(
+                        title = { Text(stringResource(R.string.playlist_import_title)) },
+                        description = { Text(stringResource(R.string.playlist_import_entry_description)) },
+                        icon = painterResource(R.drawable.link),
+                        onClick = { navController.navigate("playlist_import") },
+                    ),
+                    Material3SettingsItem(
                         title = { Text(stringResource(R.string.import_online)) },
                         icon = painterResource(R.drawable.playlist_add),
                         onClick = {

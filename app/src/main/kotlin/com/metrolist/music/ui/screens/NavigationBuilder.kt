@@ -441,6 +441,10 @@ fun NavGraphBuilder.navigationBuilder(
         WrappedScreen(period)
     }
 
+    composable("playlist_import") {
+        PlaylistImportScreen(navController)
+    }
+
     composable("equalizer") {
         EqScreen()
     }
