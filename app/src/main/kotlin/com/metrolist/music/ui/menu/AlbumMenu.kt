@@ -115,7 +115,7 @@ fun AlbumMenu(
 
     val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(album.id) {
         database.albumSongs(album.id).collect {
             songs = it
         }

@@ -109,7 +109,7 @@ fun PlaylistMenu(
         mutableStateOf(emptyList<PlaylistSongMap>())
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(playlist.id) {
         if (autoPlaylist == false) {
             database.playlistSongs(playlist.id).collect {
                 songs = it.map(PlaylistSong::song)

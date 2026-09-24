@@ -101,7 +101,7 @@ fun YouTubeAlbumMenu(
     val artistNameAliases = LocalArtistNameAliases.current
     val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(albumItem.id) {
         database.album(albumItem.id).collect { album ->
             if (album == null) {
                 YouTube
