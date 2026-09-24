@@ -984,4 +984,7 @@
     <!-- Smart shuffle -->
     <string name="smart_shuffle">Умное перемешивание</string>
     <string name="smart_shuffle_pick">Рекомендация</string>
+
+    <!-- Player pause button (#4354) -->
+    <string name="player_pause">Пауза</string>
 </resources>

@@ -1091,4 +1091,7 @@
     <!-- Smart shuffle -->
     <string name="smart_shuffle">Smart shuffle</string>
     <string name="smart_shuffle_pick">Suggestion</string>
+
+    <!-- Player pause button (#4354) -->
+    <string name="player_pause">Pause</string>
 </resources>
