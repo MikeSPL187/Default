@@ -380,17 +380,19 @@ constructor(
                 lastUpdateTime = now,
             )
 
-        if (existingPlaylist == null) {
-            database.insert(playlistEntity)
-        } else {
-            database.update(playlistEntity)
-        }
+        // One transaction, so an interrupted rebuild never leaves the playlist empty.
+        database.withTransaction {
+            if (existingPlaylist == null) {
+                insert(playlistEntity)
+            } else {
+                update(playlistEntity)
+            }
 
-        database.clearPlaylist(playlistId)
+            clearPlaylist(playlistId)
 
-        val fullPlaylist = database.playlist(playlistId).first()
-        if (fullPlaylist != null) {
-            database.addSongsToPlaylist(fullPlaylist, songs.map { it.id to null })
+            playlistBlocking(playlistId)?.let { fullPlaylist ->
+                addSongsToPlaylist(fullPlaylist, songs.map { it.id to null })
+            }
         }
     }
 

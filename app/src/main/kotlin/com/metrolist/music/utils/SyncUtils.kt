@@ -787,8 +787,9 @@ class SyncUtils @Inject constructor(
                     val localSongs = database.uploadedSongEntitiesByNameAsc()
                     val songIdsWithoutArtists = findSongIdsWithoutArtists(remoteIds)
 
-                    // Remove uploaded flag from songs no longer in remote
-                    localSongs.filterNot { it.id in remoteIds }.forEach { song ->
+                    // Remove uploaded flag from songs no longer in remote. An empty answer is more
+                    // likely a parsing failure than an empty library.
+                    localSongs.filter { remoteIds.isNotEmpty() && it.id !in remoteIds }.forEach { song ->
                         try {
                             database.update(song.toggleUploaded())
                             delay(DB_OPERATION_DELAY_MS)
@@ -895,7 +896,8 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remoteAlbums.map { it.id }.toSet()
                     val localAlbums = database.uploadedAlbumEntitiesByNameAsc()
 
-                    localAlbums.filterNot { it.id in remoteIds }.forEach { album ->
+                    // An empty answer is more likely a parsing failure than an empty library.
+                    localAlbums.filter { remoteIds.isNotEmpty() && it.id !in remoteIds }.forEach { album ->
                         try {
                             database.update(album.toggleUploaded())
                             delay(DB_OPERATION_DELAY_MS)
@@ -1458,6 +1460,11 @@ class SyncUtils @Inject constructor(
                         .map(localSongs::get)
                         .filter { it.setVideoId == null }
 
+                    // The fetch above is slow; a song removed meanwhile would come back from the stale page.
+                    if (isPlaylistBeingModified(playlistId)) {
+                        Timber.d("syncPlaylist: Playlist changed during the fetch, skipping this sync")
+                        return@onSuccess
+                    }
                     database.withTransaction {
                         database.clearPlaylist(playlistId)
                         metadataInserts.forEach(database::insert)

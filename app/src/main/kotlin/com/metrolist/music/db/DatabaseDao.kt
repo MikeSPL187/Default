@@ -323,7 +323,8 @@ interface DatabaseDao {
 
             ArtistSongSortType.PLAY_TIME -> {
                 if (fromTimeStamp != null && toTimeStamp != null) {
-                    mostPlayedSongsByArtist(artistId, fromTimeStamp, toTimeStamp)
+                    // The query sorts most played first; every branch here is ascending.
+                    mostPlayedSongsByArtist(artistId, fromTimeStamp, toTimeStamp).map { it.asReversed() }
                 } else {
                     artistSongsByPlayTimeAsc(artistId)
                 }
@@ -331,8 +332,8 @@ interface DatabaseDao {
         }
 
         return songsFlow.map { songs ->
-            val limitedSongs = if (limit > 0) songs.take(limit) else songs
-            limitedSongs.reversed(descending)
+            val sorted = songs.reversed(descending)
+            if (limit > 0) sorted.take(limit) else sorted
         }
     }
 
@@ -367,11 +368,9 @@ interface DatabaseDao {
     @Query(
         """
         SELECT song.*
-        FROM (SELECT *, COUNT(1) AS referredCount
+        FROM (SELECT relatedSongId, COUNT(1) AS referredCount
               FROM related_song_map
-              GROUP BY relatedSongId) map
-                 JOIN song ON song.id = map.relatedSongId
-        WHERE songId IN (SELECT songId
+              WHERE songId IN (SELECT songId
                          FROM (SELECT songId
                                FROM event
                                ORDER BY ROWID DESC
@@ -390,6 +389,8 @@ interface DatabaseDao {
                                FROM song
                                ORDER BY totalPlayTime DESC
                                LIMIT 10))
+              GROUP BY relatedSongId) map
+                 JOIN song ON song.id = map.relatedSongId
         ORDER BY referredCount DESC
         LIMIT 100
     """,
@@ -1642,7 +1643,7 @@ interface DatabaseDao {
 
     @Transaction
     @Query(
-        "SELECT song.* FROM (SELECT * from related_song_map GROUP BY relatedSongId) map JOIN song ON song.id = map.relatedSongId where songId = :songId",
+        "SELECT song.* FROM (SELECT DISTINCT relatedSongId FROM related_song_map WHERE songId = :songId) map JOIN song ON song.id = map.relatedSongId",
     )
     fun getRelatedSongs(songId: String): Flow<List<Song>>
 
@@ -1650,13 +1651,12 @@ interface DatabaseDao {
     @Query(
         """
         SELECT song.*
-        FROM (SELECT *
+        FROM (SELECT DISTINCT relatedSongId
               FROM related_song_map
-              GROUP BY relatedSongId) map
+              WHERE songId = :songId) map
                  JOIN
              song
              ON song.id = map.relatedSongId
-        WHERE songId = :songId
         """
     )
     fun relatedSongs(songId: String): List<Song>
@@ -1689,6 +1689,9 @@ interface DatabaseDao {
 
     @Query("SELECT * FROM artist WHERE id = :id LIMIT 1")
     fun getArtistById(id: String): ArtistEntity?
+
+    @Query("SELECT * FROM album WHERE id = :id LIMIT 1")
+    fun getAlbumById(id: String): AlbumEntity?
 
     // Writes the one column rather than the whole row: callers reach this holding an artist that
     // came from a relation, and those do not carry cachedPageJson.
@@ -1905,8 +1908,10 @@ interface DatabaseDao {
         artist: ArtistEntity,
         artistPage: ArtistPage
     ) {
+        // Callers pass a snapshot taken before a network call; start from the current row so a
+        // subscribe or unsubscribe made in the meantime is kept.
         update(
-            artist.copy(
+            (getArtistById(artist.id) ?: artist).copy(
                 name = ArtistNameAliases.resolve(artist.id, artistPage.artist.title),
                 thumbnailUrl = artistPage.artist.thumbnail?.resize(1080, 1080),
                 lastUpdateTime = LocalDateTime.now()
@@ -1918,10 +1923,12 @@ interface DatabaseDao {
     fun update(
         album: AlbumEntity,
         albumPage: AlbumPage,
-        artists: List<ArtistEntity>? = emptyList(),
+        @Suppress("UNUSED_PARAMETER") artists: List<ArtistEntity>? = emptyList(),
     ) {
+        // Start from the current row, not the caller's pre-network snapshot, so a like or library
+        // change made while the page loaded is kept.
         update(
-            album.copy(
+            (getAlbumById(album.id) ?: album).copy(
                 id = albumPage.album.browseId,
                 playlistId = albumPage.album.playlistId,
                 title = albumPage.album.title,
@@ -1932,9 +1939,6 @@ interface DatabaseDao {
                 explicit = albumPage.album.explicit || albumPage.songs.any { it.explicit },
             ),
         )
-        if (artists?.size != albumPage.album.artists?.size) {
-            artists?.forEach(::delete)
-        }
         albumPage.songs
             .map(SongItem::toMediaMetadata)
             .onEach(::insert)
