@@ -404,41 +404,41 @@ class ListenTogetherManager
             roleCollectorJob?.cancel()
             roleCollectorJob =
                 scope.launch {
-                role.collect { newRole ->
-                    try {
-                        val previousRole = lastRole
-                        lastRole = newRole
+                    role.collect { newRole ->
+                        try {
+                            val previousRole = lastRole
+                            lastRole = newRole
 
-                        val wasHost = previousRole == RoomRole.HOST
-                        if (newRole == RoomRole.HOST && !wasHost) {
-                            val connection = playerConnection
-                            if (connection != null) {
-                                Timber.tag(TAG).d("Role changed to HOST, starting sync services")
-                                startQueueSyncObservation()
-                                startHeartbeat()
-                                startVolumeSyncObservation()
-                                // Re-register listener if needed
-                                if (!playerListenerRegistered) {
-                                    try {
-                                        connection.player.addListener(playerListener)
-                                        playerListenerRegistered = true
-                                    } catch (e: Exception) {
-                                        Timber.tag(TAG).e(e, "Failed to add player listener on role change")
+                            val wasHost = previousRole == RoomRole.HOST
+                            if (newRole == RoomRole.HOST && !wasHost) {
+                                val connection = playerConnection
+                                if (connection != null) {
+                                    Timber.tag(TAG).d("Role changed to HOST, starting sync services")
+                                    startQueueSyncObservation()
+                                    startHeartbeat()
+                                    startVolumeSyncObservation()
+                                    // Re-register listener if needed
+                                    if (!playerListenerRegistered) {
+                                        try {
+                                            connection.player.addListener(playerListener)
+                                            playerListenerRegistered = true
+                                        } catch (e: Exception) {
+                                            Timber.tag(TAG).e(e, "Failed to add player listener on role change")
+                                        }
                                     }
                                 }
+                            } else if (newRole != RoomRole.HOST && wasHost) {
+                                Timber.tag(TAG).d("Role changed from HOST, stopping sync services")
+                                stopQueueSyncObservation()
+                                stopHeartbeat()
+                                stopVolumeSyncObservation()
                             }
-                        } else if (newRole != RoomRole.HOST && wasHost) {
-                            Timber.tag(TAG).d("Role changed from HOST, stopping sync services")
-                            stopQueueSyncObservation()
-                            stopHeartbeat()
-                            stopVolumeSyncObservation()
+                            updateGuestMuteState()
+                        } catch (e: Exception) {
+                            Timber.tag(TAG).e(e, "Error in role change handler")
                         }
-                        updateGuestMuteState()
-                    } catch (e: Exception) {
-                        Timber.tag(TAG).e(e, "Error in role change handler")
                     }
                 }
-            }
         }
 
         private fun handleEvent(event: ListenTogetherEvent) {
