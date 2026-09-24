@@ -61,7 +61,7 @@ fun ArtistMenu(
     val playerConnection = LocalPlayerConnection.current ?: return
     val listenTogetherManager = LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
-    val artistState = database.artist(originalArtist.id).collectAsStateWithLifecycle(initialValue = originalArtist)
+    val artistState = remember(originalArtist.id) { database.artist(originalArtist.id) }.collectAsStateWithLifecycle(initialValue = originalArtist)
     val artist = artistState.value ?: originalArtist
     val isPinned by remember(artist.id) { database.speedDialDao.isPinned(artist.id) }.collectAsStateWithLifecycle(initialValue = false)
     val notRecommended by rememberNotRecommended()

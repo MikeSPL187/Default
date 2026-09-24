@@ -113,7 +113,7 @@ fun YouTubePlaylistMenu(
     val playerConnection = LocalPlayerConnection.current ?: return
     val listenTogetherManager = LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
-    val dbPlaylist by database.playlistByBrowseId(playlist.id).collectAsStateWithLifecycle(initialValue = null)
+    val dbPlaylist by remember(playlist.id) { database.playlistByBrowseId(playlist.id) }.collectAsStateWithLifecycle(initialValue = null)
     val isPinned by remember(playlist.id) { database.speedDialDao.isPinned(playlist.id) }.collectAsStateWithLifecycle(initialValue = false)
     val artistNameAliases = LocalArtistNameAliases.current
 

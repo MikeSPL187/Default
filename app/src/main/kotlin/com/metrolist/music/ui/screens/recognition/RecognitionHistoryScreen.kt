@@ -72,7 +72,7 @@ fun RecognitionHistoryScreen(navController: NavController) {
     val menuState = LocalMenuState.current
     val coroutineScope = rememberCoroutineScope()
 
-    val historyItems by database.recognitionHistory().collectAsStateWithLifecycle(initialValue = emptyList())
+    val historyItems by remember { database.recognitionHistory() }.collectAsStateWithLifecycle(initialValue = emptyList())
     var showClearDialog by remember { mutableStateOf(false) }
     var itemToDelete by remember { mutableStateOf<RecognitionHistory?>(null) }
 

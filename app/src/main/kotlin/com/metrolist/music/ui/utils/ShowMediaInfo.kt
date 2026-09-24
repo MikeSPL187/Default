@@ -105,7 +105,7 @@ fun ShowMediaInfo(videoId: String) {
         }
     }
 
-    val playCount by database.getLifetimePlayCount(videoId).collectAsStateWithLifecycle(initialValue = 0)
+    val playCount by remember(videoId) { database.getLifetimePlayCount(videoId) }.collectAsStateWithLifecycle(initialValue = 0)
 
     LaunchedEffect(Unit, videoId) {
         database.format(videoId).collect {

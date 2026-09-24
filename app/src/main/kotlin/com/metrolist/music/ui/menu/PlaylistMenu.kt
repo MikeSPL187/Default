@@ -101,7 +101,7 @@ fun PlaylistMenu(
         }
     }
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
-    val dbPlaylist by database.playlist(playlist.id).collectAsStateWithLifecycle(initialValue = playlist)
+    val dbPlaylist by remember(playlist.id) { database.playlist(playlist.id) }.collectAsStateWithLifecycle(initialValue = playlist)
     var songs by remember {
         mutableStateOf(emptyList<Song>())
     }

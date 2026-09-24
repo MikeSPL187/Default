@@ -59,7 +59,7 @@ fun YouTubeArtistMenu(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val libraryArtist by database.artist(artist.id).collectAsStateWithLifecycle(initialValue = null)
+    val libraryArtist by remember(artist.id) { database.artist(artist.id) }.collectAsStateWithLifecycle(initialValue = null)
     val listenTogetherManager = LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
     val isPinned by remember(artist.id) { database.speedDialDao.isPinned(artist.id) }.collectAsStateWithLifecycle(initialValue = false)
