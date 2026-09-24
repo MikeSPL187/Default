@@ -1898,7 +1898,7 @@ fun HomeScreen(
                                         contentPadding = PaddingValues(horizontal = 16.dp),
                                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                                     ) {
-                                        items(playlists) { item ->
+                                        items(playlists, key = { it.playlist.id }) { item ->
                                             CommunityPlaylistCard(
                                                 item = item,
                                                 onClick = {

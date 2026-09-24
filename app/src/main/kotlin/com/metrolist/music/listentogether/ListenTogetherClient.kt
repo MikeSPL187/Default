@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -1157,7 +1158,8 @@ class ListenTogetherClient
                             return
                         }
 
-                        _pendingJoinRequests.value += payload
+                        // A repeated request from the same user replaces the old one instead of piling up.
+                        _pendingJoinRequests.update { requests -> requests.filter { it.userId != payload.userId } + payload }
                         log(LogLevel.INFO, "Join request received", "User: ${payload.username}")
 
                         // Check if auto-approval is enabled
@@ -1428,7 +1430,7 @@ class ListenTogetherClient
                                 approveSuggestion(payload.suggestionId)
                             } else {
                                 // Add to pending list and show notification
-                                _pendingSuggestions.value += payload
+                                _pendingSuggestions.update { suggestions -> suggestions.filter { it.suggestionId != payload.suggestionId } + payload }
                                 // Notify the host with actionable notification
                                 if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
                                     PackageManager.PERMISSION_GRANTED

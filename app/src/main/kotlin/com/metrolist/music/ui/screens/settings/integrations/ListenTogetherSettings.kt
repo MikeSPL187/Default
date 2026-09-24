@@ -827,7 +827,7 @@ fun BlockedUsersDialog(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    items(blockedUsernames.toList()) { username ->
+                    items(blockedUsernames.toList(), key = { it }) { username ->
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier =
