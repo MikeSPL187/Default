@@ -35,6 +35,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -87,16 +88,24 @@ fun AlarmSettingsSection(showTitle: Boolean = true) {
     var showEditor by remember { mutableStateOf(false) }
     var editorTarget by remember { mutableStateOf<MusicAlarmEntry?>(null) }
 
+    // Both permissions are granted in system settings; read them again when the user comes back.
+    var resumeCount by remember { mutableIntStateOf(0) }
+    LifecycleResumeEffect(Unit) {
+        resumeCount++
+        onPauseOrDispose {}
+    }
     val alarmManager = context.getSystemService(AlarmManager::class.java)
     val canScheduleExact =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            alarmManager?.canScheduleExactAlarms() == true
-        } else {
-            true
+        remember(resumeCount) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                alarmManager?.canScheduleExactAlarms() == true
+            } else {
+                true
+            }
         }
     val powerManager = context.getSystemService(PowerManager::class.java)
     val ignoringBatteryOptimization =
-        powerManager?.isIgnoringBatteryOptimizations(context.packageName) == true
+        remember(resumeCount) { powerManager?.isIgnoringBatteryOptimizations(context.packageName) == true }
     val systemItems = buildList {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !canScheduleExact) {
             add(

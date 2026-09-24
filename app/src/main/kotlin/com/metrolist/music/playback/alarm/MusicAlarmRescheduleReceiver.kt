@@ -14,7 +14,10 @@ class MusicAlarmRescheduleReceiver : BroadcastReceiver() {
             Intent.ACTION_BOOT_COMPLETED,
             Intent.ACTION_TIME_CHANGED,
             Intent.ACTION_TIMEZONE_CHANGED,
-            Intent.ACTION_MY_PACKAGE_REPLACED -> {
+            Intent.ACTION_MY_PACKAGE_REPLACED,
+            // Alarms set while exact alarms were denied are inexact, and an inexact alarm may not
+            // start the playback service from the background: set them again as exact ones.
+            ACTION_EXACT_ALARM_PERMISSION_CHANGED -> {
                 val pendingResult = goAsync()
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
@@ -25,5 +28,10 @@ class MusicAlarmRescheduleReceiver : BroadcastReceiver() {
                 }
             }
         }
+    }
+
+    private companion object {
+        /** AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED, API 31+. */
+        const val ACTION_EXACT_ALARM_PERMISSION_CHANGED = "android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED"
     }
 }
