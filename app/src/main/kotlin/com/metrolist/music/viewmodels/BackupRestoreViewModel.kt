@@ -126,12 +126,25 @@ class BackupRestoreViewModel @Inject constructor(
         }
     }
 
+    /** Restarts into a fresh process, so Room opens whichever database file is now in place. */
+    private suspend fun restartApp(context: Context, afterFailure: Boolean): Nothing {
+        // Leave the failure toast on screen for a moment before the app goes away.
+        if (afterFailure) kotlinx.coroutines.delay(1_500)
+        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        }
+        context.startActivity(intent)
+        kotlin.system.exitProcess(0)
+    }
+
     fun restore(context: Context, uri: Uri, clearAuthData: Boolean = false) {
         // Run in viewModelScope to allow suspending
         viewModelScope.launch(Dispatchers.IO) {
             val restoreDbName = "restored_${InternalDatabase.DB_NAME}"
             val restoreDbPath = context.getDatabasePath(restoreDbName).absolutePath
             val tempSettings = File(context.filesDir, "datastore/$SETTINGS_FILENAME.restore")
+            // Once the database is closed the app cannot keep running on it, whatever happens next.
+            var databaseClosed = false
 
             runCatching {
                 Timber.tag("RESTORE").i("Starting restore from URI: $uri, clearAuthData: $clearAuthData")
@@ -233,6 +246,7 @@ class BackupRestoreViewModel @Inject constructor(
 
                 // 2. Close the database — all operations should be done by now
                 database.close()
+                databaseClosed = true
 
                 // 3. Swap DB files — staged copy to avoid corrupting the live DB
                 var dbSwapSucceeded = true
@@ -308,7 +322,7 @@ class BackupRestoreViewModel @Inject constructor(
                                 kotlinx.coroutines.withContext(Dispatchers.Main) {
                                     Toast.makeText(context, R.string.restore_failed, Toast.LENGTH_SHORT).show()
                                 }
-                                return@launch
+                                restartApp(context, afterFailure = true)
                             }
                         } else {
                             val actualSettings = File(
@@ -325,15 +339,13 @@ class BackupRestoreViewModel @Inject constructor(
                     ArtistNameAliases.restore(context, restoredArtistNameAliases.orEmpty())
 
                     // 4. Restart — Room will open the swapped DB and run migrations if needed
-                    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                    }
-                    context.startActivity(intent)
-                    Runtime.getRuntime().exit(0)
+                    restartApp(context, afterFailure = false)
                 } else {
                     kotlinx.coroutines.withContext(Dispatchers.Main) {
                         Toast.makeText(context, R.string.restore_failed, Toast.LENGTH_SHORT).show()
                     }
+                    // The original database was put back, but it is closed: reopen it by restarting.
+                    restartApp(context, afterFailure = true)
                 }
             }.onFailure {
                 reportException(it)
@@ -341,6 +353,7 @@ class BackupRestoreViewModel @Inject constructor(
                 kotlinx.coroutines.withContext(Dispatchers.Main) {
                     Toast.makeText(context, R.string.restore_failed, Toast.LENGTH_SHORT).show()
                 }
+                if (databaseClosed) restartApp(context, afterFailure = true)
             }
 
             File(restoreDbPath).delete()
