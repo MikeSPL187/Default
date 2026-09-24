@@ -201,7 +201,8 @@ fun SongMenu(
                 }
             },
             onDoneMultiple = { values ->
-                val newTitle = values[0]
+                // An emptied title field keeps the old title instead of leaving a nameless song.
+                val newTitle = values[0].trim().ifBlank { song.song.title }
                 val newArtistNames =
                     values[1]
                         .split(',')
@@ -1075,37 +1076,28 @@ fun SongMenu(
                                     },
                                     onClick = {
                                         Timber.d("[PODCAST_LIB] Toggling podcast save for: $podcastId")
-                                        coroutineScope.launch(Dispatchers.IO) {
-                                            val existingPodcast = podcastEntity
-                                            val isCurrentlySaved = existingPodcast?.bookmarkedAt != null
-
-                                            // Call the API to save/unsave on YTM
-                                            YouTube
-                                                .savePodcast(podcastId, !isCurrentlySaved)
-                                                .onSuccess {
-                                                    Timber.d("[PODCAST_LIB] savePodcast API success!")
-                                                }.onFailure { e ->
-                                                    Timber.e(e, "[PODCAST_LIB] savePodcast API failed")
-                                                }
-
-                                            // Update local database
-                                            if (existingPodcast != null) {
-                                                Timber.d("[PODCAST_LIB] Updating existing podcast")
-                                                database.query {
-                                                    update(existingPodcast.toggleBookmark())
-                                                }
-                                            } else {
-                                                Timber.d("[PODCAST_LIB] Creating new podcast entry")
-                                                database.query {
-                                                    insert(
-                                                        PodcastEntity(
-                                                            id = podcastId,
-                                                            title = song.song.albumName ?: "Unknown Podcast",
-                                                            author = song.artists.firstOrNull()?.name,
-                                                            thumbnailUrl = song.song.thumbnailUrl,
-                                                        ).toggleBookmark(),
-                                                    )
-                                                }
+                                        val existingPodcast = podcastEntity
+                                        val isCurrentlySaved = existingPodcast?.bookmarkedAt != null
+                                        // The sync queue outlives this menu; a request started here was cancelled
+                                        // as soon as the menu closed.
+                                        syncUtils.savePodcast(podcastId, !isCurrentlySaved)
+                                        // Update local database
+                                        if (existingPodcast != null) {
+                                            Timber.d("[PODCAST_LIB] Updating existing podcast")
+                                            database.query {
+                                                update(existingPodcast.toggleBookmark())
+                                            }
+                                        } else {
+                                            Timber.d("[PODCAST_LIB] Creating new podcast entry")
+                                            database.query {
+                                                insert(
+                                                    PodcastEntity(
+                                                        id = podcastId,
+                                                        title = song.song.albumName ?: "Unknown Podcast",
+                                                        author = song.artists.firstOrNull()?.name,
+                                                        thumbnailUrl = song.song.thumbnailUrl,
+                                                    ).toggleBookmark(),
+                                                )
                                             }
                                         }
                                         onDismiss()
