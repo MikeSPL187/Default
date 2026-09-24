@@ -678,7 +678,7 @@ fun Queue(
         )
         val queueLength =
             remember(queueWindows) {
-                queueWindows.sumOf { it.mediaItem.metadata!!.duration }
+                queueWindows.sumOf { it.mediaItem.metadata?.duration?.coerceAtLeast(0) ?: 0 }
             }
 
         val coroutineScope = rememberCoroutineScope()

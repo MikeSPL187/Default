@@ -378,8 +378,8 @@ fun OriginalLyrics(
 
     val aiApiKeyRequiredStr = stringResource(R.string.ai_api_key_required)
 
-    // Listen for manual trigger
-    LaunchedEffect(showLyrics, lines.size) {
+    // Listen for manual trigger. Keyed on lines: the collector must translate the current song's lines.
+    LaunchedEffect(showLyrics, lines) {
         LyricsTranslationHelper.manualTrigger.collect {
             val effectiveApiKey = if (aiProvider == "DeepL") deeplApiKey else openRouterApiKey
             if (showLyrics && lines.isNotEmpty() && effectiveApiKey.isNotBlank()) {
@@ -407,7 +407,7 @@ fun OriginalLyrics(
     }
 
     // Listen for clear translations trigger
-    LaunchedEffect(Unit) {
+    LaunchedEffect(lines) {
         LyricsTranslationHelper.clearTranslationsTrigger.collect {
             lines.forEach { it.translatedTextFlow.value = null }
         }

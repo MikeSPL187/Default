@@ -132,7 +132,9 @@ fun OnlineSearchScreen(
                 .background(if (pureBlack) Color.Black else MaterialTheme.colorScheme.background),
     ) {
         // Show parsed URL item at the top if present
-        if (viewState.isUrlQuery && viewState.parsedUrlItem != null) {
+        // Read once: the item lambdas below may recompose after the state has moved on.
+        val parsedUrlItem = viewState.parsedUrlItem
+        if (viewState.isUrlQuery && parsedUrlItem != null) {
             item(key = "parsed_url_header") {
                 Column(
                     modifier =
@@ -150,7 +152,7 @@ fun OnlineSearchScreen(
             }
 
             item(key = "parsed_url_item") {
-                val item = viewState.parsedUrlItem!!
+                val item = parsedUrlItem
                 YouTubeListItem(
                     item = item,
                     isActive =

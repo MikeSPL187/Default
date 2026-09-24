@@ -154,7 +154,8 @@ class DiscordGateway(
     }
 
     fun setGatewayUrl(url: String) {
-        gatewayUrl = url
+        // resume_gateway_url comes without the API version and encoding the client relies on.
+        gatewayUrl = if ('?' in url) url else "${url.trimEnd('/')}/?v=10&encoding=json"
         Timber.tag(TAG).i("setGatewayUrl: %s", url)
     }
 
@@ -286,6 +287,8 @@ class DiscordGateway(
                 Timber.tag(TAG).w("INVALID_SESSION: resumable=%s", resumable)
                 if (!resumable) {
                     _sessionId = null
+                    // A new session has to be identified on the main gateway, not the old resume host.
+                    gatewayUrl = DEFAULT_GATEWAY_URL
                 }
                 _events.emit(GatewayEvent.InvalidSession(resumable))
                 webSocket?.close(4000, "invalid session")

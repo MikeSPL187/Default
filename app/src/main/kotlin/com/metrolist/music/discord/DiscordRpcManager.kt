@@ -282,7 +282,8 @@ object DiscordRpcManager {
             val json = JSONObject(responseBody)
             val id = json.getString("id")
             val username = json.getString("username")
-            val name = json.optString("global_name", username)
+            // optString turns a JSON null into "null" instead of using the fallback.
+            val name = if (json.isNull("global_name")) username else json.optString("global_name", username)
             val avatarHash = json.optString("avatar")
             val avatar = if (avatarHash.isNotEmpty() && avatarHash != "null") {
                 "https://cdn.discordapp.com/avatars/$id/$avatarHash.png"

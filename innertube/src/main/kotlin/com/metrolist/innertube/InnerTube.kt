@@ -24,6 +24,7 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.jvm.javaio.toByteReadChannel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -421,8 +422,15 @@ class InnerTube {
                     ?.find { it?.videoPrimaryInfoRenderer != null }
                     ?.videoPrimaryInfoRenderer
 
+            // A third-party service: when it is down, the YouTube details are still worth showing.
             val returnYouTubeDislikeResponse =
-                returnYouTubeDislike(videoId).body<ReturnYouTubeDislikeResponse>()
+                try {
+                    returnYouTubeDislike(videoId).body<ReturnYouTubeDislikeResponse>()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    null
+                }
 
             MediaInfo(
                 videoId = videoId,
@@ -441,9 +449,9 @@ class InnerTube {
                 description = baseForInfo?.attributedDescription?.content,
                 subscribers = baseForInfo?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText?.split(" ")?.firstOrNull(),
                 uploadDate = baseForTitle?.dateText?.simpleText,
-                viewCount = returnYouTubeDislikeResponse.viewCount,
-                like = returnYouTubeDislikeResponse.likes,
-                dislike = returnYouTubeDislikeResponse.dislikes,
+                viewCount = returnYouTubeDislikeResponse?.viewCount,
+                like = returnYouTubeDislikeResponse?.likes,
+                dislike = returnYouTubeDislikeResponse?.dislikes,
             )
         }
 }

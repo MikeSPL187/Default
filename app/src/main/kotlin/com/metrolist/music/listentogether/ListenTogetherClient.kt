@@ -1488,7 +1488,10 @@ class ListenTogetherClient
                                     // Try rejoining as a guest
                                     scope.launch {
                                         delay(500) // Small delay before rejoin attempt
-                                        joinRoom(storedRoomCode!!, storedUsername!!)
+                                        // The user may have left the room during the delay.
+                                        val roomCode = storedRoomCode ?: return@launch
+                                        val username = storedUsername ?: return@launch
+                                        joinRoom(roomCode, username)
                                     }
                                 } else if (storedRoomCode != null && storedUsername != null) {
                                     // Host session expired - would need to create new room

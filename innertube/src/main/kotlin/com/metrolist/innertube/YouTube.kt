@@ -3155,7 +3155,7 @@ object YouTube {
                             .transcriptCueRenderer.cue.simpleText
                             .trim('♪')
                             .trim(' ')
-                    "[%02d:%02d.%03d]$text".format(time / 60000, (time / 1000) % 60, time % 1000)
+                    "[%02d:%02d.%03d]%s".format(time / 60000, (time / 1000) % 60, time % 1000, text)
                 }!!
         }
 

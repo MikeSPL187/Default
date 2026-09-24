@@ -152,11 +152,6 @@ object ZemerLyricsProvider : LyricsProvider {
         return ls.joinToString("\n") { "[${lrcTime(it.start!!)}]${it.text!!.trim()}" }
     }
 
-    private fun lrcTime(s: Double): String {
-        val m = (s / 60).toInt()
-        return String.format(Locale.US, "%02d:%05.2f", m, s - m * 60)
-    }
-
     @Serializable
     private data class LrcLibTrack(val syncedLyrics: String? = null, val plainLyrics: String? = null, val instrumental: Boolean = false)
 
@@ -264,4 +259,10 @@ object ZemerLyricsProvider : LyricsProvider {
         )
         return tidy(text.split("\n")).ifBlank { null }
     }
+}
+
+/** Formats seconds as an LRC timestamp. Rounds first, so 59.996 s becomes 01:00.00 and never 00:60.00. */
+internal fun lrcTime(s: Double): String {
+    val centis = Math.round(s * 100)
+    return String.format(Locale.US, "%02d:%02d.%02d", centis / 6000, (centis / 100) % 60, centis % 100)
 }
