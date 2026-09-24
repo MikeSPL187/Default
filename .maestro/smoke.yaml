@@ -44,6 +44,10 @@ appId: com.metrolist.music
     element: "Smart downloads"
     timeout: 10000
 - takeScreenshot: 08-storage-smart-downloads
+- scrollUntilVisible:
+    element: "Export downloads for watch"
+    timeout: 10000
+- takeScreenshot: 08b-storage-watch-export
 - back
 
 - tapOn: "Content"
@@ -62,6 +66,30 @@ appId: com.metrolist.music
 - tapOn: "Appearance"
 - waitForAnimationToEnd
 - takeScreenshot: 11-appearance
+- back
+
+- scrollUntilVisible:
+    element: "AI lyrics translation"
+    timeout: 10000
+- tapOn: "AI lyrics translation"
+- waitForAnimationToEnd
+- takeScreenshot: 11b-ai-translation
+- back
+
+- scrollUntilVisible:
+    element: "Privacy"
+    timeout: 10000
+- tapOn: "Privacy"
+- waitForAnimationToEnd
+- takeScreenshot: 11c-privacy
+- back
+
+- scrollUntilVisible:
+    element: "Backup and restore"
+    timeout: 10000
+- tapOn: "Backup and restore"
+- waitForAnimationToEnd
+- takeScreenshot: 11d-backup
 - back
 - back
 
