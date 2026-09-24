@@ -564,7 +564,7 @@ constructor(
                 val allLocalSongs = database.searchSongsExtended(query, limit).first()
                 allLocalSongs.forEach { song ->
                     searchResults.add(song.toMediaItem(
-                        path = "${MusicService.SEARCH}/$query",
+                        path = "${MusicService.SEARCH}/${Uri.encode(query)}",
                         isPlayable = true,
                         isBrowsable = false,
                     ))
@@ -597,7 +597,7 @@ constructor(
                         
                         searchResults.add(
                             MediaItem.Builder()
-                                .setMediaId("${MusicService.SEARCH}/$query/${songItem.id}")
+                                .setMediaId("${MusicService.SEARCH}/${Uri.encode(query)}/${songItem.id}")
                                 .setMediaMetadata(
                                     MediaMetadata.Builder()
                                         .setTitle(songItem.title)
@@ -646,7 +646,8 @@ constructor(
                 mediaItems.firstOrNull()?.mediaId?.split("/")
             } ?: return@future defaultResult
 
-            when (path.firstOrNull()) {
+            val root = path.firstOrNull()
+            when (root) {
                 MusicService.SONG -> {
                     val songId = path.getOrNull(1) ?: return@future defaultResult
                     val allSongs = database.songsByCreateDateAsc().first()
@@ -752,7 +753,10 @@ constructor(
 
                 MusicService.SEARCH -> {
                     val songId = path.getOrNull(2) ?: return@future defaultResult
-                    val searchQuery = path.getOrNull(1) ?: return@future defaultResult
+                    // Browsed search results carry the query URL-encoded, so "AC/DC" survives the split.
+                    val searchQuery =
+                        path.getOrNull(1)?.let { if (voiceQuery.isNullOrBlank()) Uri.decode(it) else it }
+                            ?: return@future defaultResult
 
                     val isVoiceSearch = songId.isBlank() && searchQuery.isNotBlank()
 
@@ -872,6 +876,14 @@ constructor(
                 }
 
                 else -> defaultResult
+            }.also { result ->
+                // Search adopts its own queue above. Without this, the previous queue (e.g. a radio)
+                // stays current and its next pages get appended after the chosen album or playlist.
+                if (root != MusicService.SEARCH && result !== defaultResult && result.mediaItems.isNotEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        service.adoptQueue(ListQueue(items = result.mediaItems, startIndex = result.startIndex))
+                    }
+                }
             }
         }
 

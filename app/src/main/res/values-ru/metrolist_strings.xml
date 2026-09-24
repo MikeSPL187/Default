@@ -987,4 +987,14 @@
 
     <!-- Player pause button (#4354) -->
     <string name="player_pause">Пауза</string>
+
+    <!-- Previously hardcoded texts -->
+    <string name="listen_together_reconnect">Переподключиться</string>
+    <string name="listen_together_joined_room">Вы в комнате: %1$s</string>
+    <string name="listen_together_join_rejected">Запрос отклонён: %1$s</string>
+    <string name="listen_together_wants_to_join">%1$s хочет присоединиться</string>
+    <string name="listen_together_kicked">Вас удалили из комнаты: %1$s</string>
+    <string name="listen_together_connection_error">Ошибка подключения: %1$s</string>
+    <string name="listen_together_server_error">Ошибка: %1$s</string>
+    <string name="no_recognition_history">История распознавания пуста</string>
 </resources>
