@@ -61,7 +61,10 @@ class CustomEqualizerAudioProcessor : BaseAudioProcessor() {
     private fun createFilters(bands: List<ParametricEQBand>) {
         filters =
             bands
-                .filter { it.enabled && it.frequency < sampleRate / 2.0 }
+                .filter {
+                    // A zero frequency or Q from an imported file yields NaN coefficients, i.e. silence.
+                    it.enabled && it.frequency > 0 && it.frequency < sampleRate / 2.0 && it.q > 0
+                }
                 .map { band ->
                     BiquadFilter(
                         sampleRate = sampleRate,
