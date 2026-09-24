@@ -135,6 +135,8 @@ import com.metrolist.innertube.models.WatchEndpoint
 import com.metrolist.music.constants.AppBarHeight
 import com.metrolist.music.constants.AppLanguageKey
 import com.metrolist.music.constants.CheckForUpdatesKey
+import com.metrolist.music.constants.CropAlbumArtKey
+import com.metrolist.music.constants.SwipeToSongKey
 import com.metrolist.music.constants.DarkModeKey
 import com.metrolist.music.constants.DefaultOpenTabKey
 import com.metrolist.music.constants.DismissedKmpUpdateKey
@@ -1052,6 +1054,8 @@ class MainActivity : FragmentActivity() {
 
                 val baseBg = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer
                 val artistNameAliases by ArtistNameAliases.aliases.collectAsStateWithLifecycle()
+                val cropAlbumArt by rememberPreference(CropAlbumArtKey, false)
+                val swipeToSong by rememberPreference(SwipeToSongKey, false)
 
                 CompositionLocalProvider(
                     LocalDatabase provides database,
@@ -1065,6 +1069,8 @@ class MainActivity : FragmentActivity() {
                     LocalListenTogetherManager provides listenTogetherManager,
                     LocalChangelogState provides showChangelog,
                     LocalArtistNameAliases provides artistNameAliases,
+                    LocalCropAlbumArt provides cropAlbumArt,
+                    LocalSwipeToSong provides swipeToSong,
                 ) {
                     if (showChangelog.value) {
                         ChangelogScreen(onDismiss = { showChangelog.value = false })
@@ -1745,3 +1751,7 @@ val LocalListenTogetherManager = staticCompositionLocalOf<com.metrolist.music.li
 val LocalChangelogState = staticCompositionLocalOf<MutableState<Boolean>> { error("No LocalChangelogState provided") }
 val LocalArtistNameAliases = staticCompositionLocalOf<Map<String, String>> { emptyMap() }
 val LocalIsPlayerExpanded = compositionLocalOf { false }
+
+/** Read once here so list rows and thumbnails don't each subscribe to DataStore. */
+val LocalCropAlbumArt = compositionLocalOf { false }
+val LocalSwipeToSong = compositionLocalOf { false }
