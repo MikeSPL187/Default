@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,7 +22,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,25 +32,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
 import com.metrolist.music.R
-import com.metrolist.music.db.entities.Album
+import com.metrolist.music.db.entities.AlbumPlayStats
 import com.metrolist.music.ui.screens.wrapped.components.AnimatedBackground
+import com.metrolist.music.ui.screens.wrapped.components.RankedItem
 import com.metrolist.music.ui.screens.wrapped.components.ShapeType
+import com.metrolist.music.ui.screens.wrapped.components.WrappedTopItemPage
+import com.metrolist.music.ui.screens.wrapped.components.WrappedTopListPage
+import com.metrolist.music.ui.screens.wrapped.components.minutesText
 import com.metrolist.music.ui.theme.bbh_bartle
-import kotlinx.coroutines.delay
 
 @Composable
 fun WrappedTotalAlbumsScreen(uniqueAlbumCount: Int, isVisible: Boolean) {
@@ -146,165 +143,24 @@ fun WrappedTotalAlbumsScreen(uniqueAlbumCount: Int, isVisible: Boolean) {
 }
 
 @Composable
-fun WrappedTopAlbumScreen(topAlbum: Album?, isVisible: Boolean) {
-    var visible by remember { mutableStateOf(false) }
-    LaunchedEffect(isVisible) {
-        if (isVisible) {
-            visible = true
-        }
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        AnimatedBackground(shapeTypes = listOf(ShapeType.Rect))
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            AnimatedVisibility(
-                visible = visible,
-                enter = fadeIn(animationSpec = tween(1000, delayMillis = 200)) + slideInVertically(animationSpec = tween(1000, delayMillis = 200))
-            ) {
-                Text(
-                    text = stringResource(R.string.wrapped_top_album_title),
-                    style = TextStyle(
-                        fontFamily = bbh_bartle,
-                        fontSize = 40.sp,
-                        color = Color.White,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 48.sp
-                    )
-                )
-            }
-            Spacer(modifier = Modifier.height(32.dp))
-            AnimatedVisibility(
-                visible = visible,
-                enter = fadeIn(animationSpec = tween(1000, delayMillis = 400)) + slideInVertically(animationSpec = tween(1000, delayMillis = 400))
-            ) {
-                AsyncImage(
-                    model = topAlbum?.thumbnailUrl,
-                    contentDescription = stringResource(R.string.album_art_for, topAlbum?.title ?: ""),
-                    modifier = Modifier
-                        .size(200.dp)
-                        .clip(RoundedCornerShape(3.dp)),
-                    contentScale = ContentScale.Crop
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            AnimatedVisibility(
-                visible = visible,
-                enter = fadeIn(animationSpec = tween(1000, delayMillis = 600)) + slideInVertically(animationSpec = tween(1000, delayMillis = 600))
-            ) {
-                Text(
-                    text = topAlbum?.title ?: stringResource(id = R.string.wrapped_no_data),
-                    fontSize = 24.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            AnimatedVisibility(
-                visible = visible,
-                enter = fadeIn(animationSpec = tween(1000, delayMillis = 800)) + slideInVertically(animationSpec = tween(1000, delayMillis = 800))
-            ) {
-                Text(
-                    text = stringResource(R.string.wrapped_album_listening_time, topAlbum?.timeListened?.div(60000) ?: 0),
-                    fontSize = 16.sp,
-                    color = Color.White.copy(alpha = 0.8f),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    }
+fun WrappedTopAlbumScreen(topAlbum: AlbumPlayStats?, isVisible: Boolean) {
+    WrappedTopItemPage(
+        heading = stringResource(R.string.wrapped_top_album_title),
+        imageUrl = topAlbum?.thumbnailUrl,
+        name = topAlbum?.title ?: stringResource(R.string.wrapped_no_data),
+        subtitle = null,
+        caption = minutesText(topAlbum?.timeListened),
+        isVisible = isVisible,
+        background = { AnimatedBackground(shapeTypes = listOf(ShapeType.Rect)) },
+    )
 }
 
 @Composable
-fun WrappedTop5AlbumsScreen(topAlbums: List<Album>, isVisible: Boolean) {
-    var visible by remember { mutableStateOf(false) }
-
-    LaunchedEffect(isVisible) {
-        if (isVisible) {
-            delay(200)
-            visible = true
-        }
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        AnimatedBackground(shapeTypes = listOf(ShapeType.Circle))
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            AnimatedVisibility(
-                visible = visible,
-                enter = fadeIn(animationSpec = tween(1000, delayMillis = 200)) + slideInVertically(animationSpec = tween(1000, delayMillis = 200))
-            ) {
-                Text(
-                    text = stringResource(R.string.wrapped_top_5_albums_title),
-                    style = TextStyle(
-                        fontFamily = bbh_bartle,
-                        fontSize = 48.sp,
-                        color = Color.White,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 56.sp
-                    )
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Column {
-                topAlbums.forEachIndexed { index, album ->
-                    AnimatedVisibility(
-                        visible = visible,
-                        enter = fadeIn(animationSpec = tween(600, delayMillis = 400 + (index * 200))) + slideInVertically(animationSpec = tween(600, delayMillis = 400 + (index * 200)))
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "${index + 1}",
-                                fontFamily = bbh_bartle,
-                                fontSize = 36.sp,
-                                color = Color.White.copy(alpha = 0.8f),
-                                modifier = Modifier.width(40.dp)
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            AsyncImage(
-                                model = album.thumbnailUrl,
-                                contentDescription = stringResource(R.string.album_art_for, album.title),
-                                modifier = Modifier
-                                    .size(64.dp)
-                                    .clip(RoundedCornerShape(3.dp)),
-                                contentScale = ContentScale.Crop
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Column {
-                                Text(
-                                    text = album.title,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp,
-                                    maxLines = 1
-                                )
-                                Text(
-                                    text = stringResource(R.string.wrapped_album_listening_time_minutes, album.timeListened?.div(60000) ?: 0),
-                                    color = Color.White.copy(alpha = 0.7f),
-                                    fontSize = 14.sp
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+fun WrappedTop5AlbumsScreen(title: String, topAlbums: List<AlbumPlayStats>, isVisible: Boolean) {
+    WrappedTopListPage(
+        title = title,
+        items = topAlbums.take(5).map { RankedItem(it.thumbnailUrl, it.title, minutesText(it.timeListened)) },
+        isVisible = isVisible,
+        background = { AnimatedBackground(shapeTypes = listOf(ShapeType.Circle)) },
+    )
 }

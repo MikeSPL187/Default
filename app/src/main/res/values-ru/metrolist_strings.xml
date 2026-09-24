@@ -1069,4 +1069,7 @@
 
     <!-- Wrapped card dismissal hint -->
     <string name="wrapped_find_in_stats">Итоги за любой период всегда есть в разделе «Статистика»</string>
+
+    <!-- Wrapped top albums for a period -->
+    <string name="wrapped_top_albums_title_period">Ваши топ-альбомы %s</string>
 </resources>

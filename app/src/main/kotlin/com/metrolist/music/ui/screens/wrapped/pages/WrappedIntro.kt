@@ -6,26 +6,24 @@
 package com.metrolist.music.ui.screens.wrapped.pages
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -40,164 +38,135 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.metrolist.music.R
 import com.metrolist.music.ui.screens.wrapped.components.AutoResizingText
+import com.metrolist.music.ui.screens.wrapped.components.OutlinedLabel
 import com.metrolist.music.ui.theme.bbhBartle
 import kotlinx.coroutines.delay
 
 private const val FADE_IN_DURATION = 1000
 private const val SLIDE_IN_DURATION = 1000
 private const val INITIAL_DELAY = 200
-private const val ICON_DELAY = 200
-private const val TITLE_DELAY = 400
-private const val SUBTITLE_DELAY = 600
-private const val BUTTON_DELAY = 1000
-private val BOTTOM_PADDING = 64.dp
+private const val LABEL_DELAY = 0
+private const val ICON_DELAY = 300
+private const val TITLE_DELAY = 500
+private const val SUBTITLE_DELAY = 700
+private const val BUTTON_DELAY = 1100
 
+/** Opens the recap: the period in large outlined digits, then the app name and what is coming. */
 @Composable
-fun WrappedIntro(label: String, subtitle: String, onNext: () -> Unit) {
+fun WrappedIntro(label: List<String>, subtitle: String, onNext: () -> Unit) {
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         delay(INITIAL_DELAY.toLong())
         visible = true
     }
+    val breathing by rememberInfiniteTransition(label = "intro label").animateFloat(
+        initialValue = 1f,
+        targetValue = 1.04f,
+        animationSpec = infiniteRepeatable(tween(durationMillis = 3000), repeatMode = RepeatMode.Reverse),
+        label = "intro label scale",
+    )
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
+            .padding(horizontal = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        val infiniteTransition = rememberInfiniteTransition(label = "WrappedIntro bg")
-        val scale by infiniteTransition.animateFloat(
-            initialValue = 1f,
-            targetValue = 1.1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = 3000, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "intro scale"
-        )
-        val rotation by infiniteTransition.animateFloat(
-            initialValue = -95f,
-            targetValue = -85f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = 5000, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "intro rotation"
-        )
+        Spacer(Modifier.weight(1f))
 
-        // Background period label, e.g. "2025"
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                    rotationZ = rotation
-                }
-        ) {
-            BoxWithConstraints {
-                AutoResizingText(
-                    text = label,
-                    style = TextStyle.Default.copy(
-                        fontFamily = bbhBartle,
-                        fontSize = 800.sp, // Increased size
-                        color = Color.White,
-                        drawStyle = Stroke(width = 2f)
-                    ),
-                    modifier = Modifier.width(this.maxHeight) // Use height for width due to rotation
-                )
-            }
-        }
-
-
-
-        // Main Content Column
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            // App Icon
-            AnimatedVisibility(
-                visible = visible,
-                enter = fadeIn(animationSpec = tween(FADE_IN_DURATION, delayMillis = ICON_DELAY)) + slideInVertically(animationSpec = tween(SLIDE_IN_DURATION, delayMillis = ICON_DELAY))
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.app_logo),
-                    contentDescription = stringResource(id = R.string.wrapped_logo_content_description),
-                    modifier = Modifier.size(100.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Metrolist Title with Layered Effect
-            AnimatedVisibility(
-                visible = visible,
-                enter = fadeIn(animationSpec = tween(FADE_IN_DURATION, delayMillis = TITLE_DELAY)) + slideInVertically(animationSpec = tween(SLIDE_IN_DURATION, delayMillis = TITLE_DELAY))
-            ) {
-                Box {
-                    val baseStyle = TextStyle(
-                        fontFamily = bbhBartle,
-                        textAlign = TextAlign.Center,
-                        letterSpacing = 2.sp,
-                        fontSize = 50.sp
-                    )
-                    AutoResizingText(text = stringResource(id = R.string.wrapped_intro_title), style = baseStyle.copy(color = Color.DarkGray), modifier = Modifier.offset(x = 2.dp, y = 2.dp))
-                    AutoResizingText(text = stringResource(id = R.string.wrapped_intro_title), style = baseStyle.copy(color = Color.Gray), modifier = Modifier.offset(x = 1.dp, y = 1.dp))
-                    AutoResizingText(text = stringResource(id = R.string.wrapped_intro_title), style = baseStyle.copy(color = Color.White))
-                }
-            }
-
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Subtitle
-            AnimatedVisibility(
-                visible = visible,
-                enter = fadeIn(animationSpec = tween(FADE_IN_DURATION, delayMillis = SUBTITLE_DELAY)) + slideInVertically(animationSpec = tween(SLIDE_IN_DURATION, delayMillis = SUBTITLE_DELAY))
-            ) {
-                Text(
-                    text = subtitle,
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 32.dp)
-                )
-            }
-        }
-
-        // "Let's go!" Button at the bottom
         AnimatedVisibility(
             visible = visible,
-            enter = fadeIn(animationSpec = tween(FADE_IN_DURATION, delayMillis = BUTTON_DELAY)) + slideInVertically(animationSpec = tween(SLIDE_IN_DURATION, delayMillis = BUTTON_DELAY)) { it },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = BOTTOM_PADDING)
+            enter = fadeIn(tween(1400, delayMillis = LABEL_DELAY)) + scaleIn(tween(1400, delayMillis = LABEL_DELAY), initialScale = 0.9f),
+        ) {
+            OutlinedLabel(
+                lines = label,
+                maxFontSize = 140.sp,
+                modifier = Modifier.graphicsLayer {
+                    scaleX = breathing
+                    scaleY = breathing
+                },
+            )
+        }
+
+        Spacer(Modifier.height(40.dp))
+
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(tween(FADE_IN_DURATION, delayMillis = ICON_DELAY)) + slideInVertically(tween(SLIDE_IN_DURATION, delayMillis = ICON_DELAY)),
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.app_logo),
+                contentDescription = stringResource(id = R.string.wrapped_logo_content_description),
+                tint = Color.White,
+                modifier = Modifier.size(72.dp),
+            )
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // The app name with a layered drop shadow.
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(tween(FADE_IN_DURATION, delayMillis = TITLE_DELAY)) + slideInVertically(tween(SLIDE_IN_DURATION, delayMillis = TITLE_DELAY)),
+        ) {
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                val baseStyle = TextStyle(fontFamily = bbhBartle, textAlign = TextAlign.Center, letterSpacing = 2.sp, fontSize = 44.sp)
+                val title = stringResource(id = R.string.wrapped_intro_title)
+                AutoResizingText(text = title, style = baseStyle.copy(color = Color.DarkGray), modifier = Modifier.offset(x = 2.dp, y = 2.dp))
+                AutoResizingText(text = title, style = baseStyle.copy(color = Color.Gray), modifier = Modifier.offset(x = 1.dp, y = 1.dp))
+                AutoResizingText(text = title, style = baseStyle.copy(color = Color.White))
+            }
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(tween(FADE_IN_DURATION, delayMillis = SUBTITLE_DELAY)) + slideInVertically(tween(SLIDE_IN_DURATION, delayMillis = SUBTITLE_DELAY)),
+        ) {
+            Text(
+                text = subtitle,
+                color = Color.White.copy(alpha = 0.85f),
+                fontSize = 16.sp,
+                lineHeight = 22.sp,
+                textAlign = TextAlign.Center,
+                style = TextStyle(lineBreak = LineBreak.Heading),
+                modifier = Modifier.padding(horizontal = 8.dp),
+            )
+        }
+
+        Spacer(Modifier.weight(1f))
+
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(tween(FADE_IN_DURATION, delayMillis = BUTTON_DELAY)) + slideInVertically(tween(SLIDE_IN_DURATION, delayMillis = BUTTON_DELAY)) { it },
         ) {
             Button(
                 onClick = onNext,
                 shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
             ) {
                 Text(
                     text = stringResource(id = R.string.wrapped_intro_button),
                     color = Color.Black,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                 )
             }
         }
+
+        Spacer(Modifier.height(64.dp))
     }
 }

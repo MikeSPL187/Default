@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.metrolist.music.constants.ArtistSongSortType
+import com.metrolist.music.db.entities.AlbumEntity
 import com.metrolist.music.db.entities.ArtistEntity
 import com.metrolist.music.db.entities.Event
 import com.metrolist.music.db.entities.RelatedSongMap
@@ -133,6 +134,28 @@ class PlayStatsQueriesTest {
         play("b", 10, at = NOW.minusDays(30))
 
         assertEquals(NOW.minusDays(30), dao.firstListenTime())
+    }
+
+    @Test
+    fun `albums count by the played songs, even without an album row`() = runBlocking {
+        dao.insert(SongEntity(id = "x1", title = "x1", albumId = "alb", albumName = "Album X"))
+        dao.insert(SongEntity(id = "x2", title = "x2", albumId = "alb", albumName = "Album X"))
+        dao.insert(SongEntity(id = "y1", title = "y1", albumId = "alb2", albumName = "Album Y"))
+        dao.insert(AlbumEntity(id = "alb2", title = "Real Y", thumbnailUrl = "cover", songCount = 1, duration = 0))
+        play("x1", 100)
+        play("x2", 50)
+        play("y1", 120)
+        play("a", 500)
+        play("x2", 500, at = NOW.minusDays(60))
+
+        val from = NOW.minusDays(7)
+        val albums = dao.mostPlayedAlbumStats(from, NOW, limit = 5)
+
+        assertEquals(listOf("alb", "alb2"), albums.map { it.id })
+        assertEquals(listOf("Album X", "Real Y"), albums.map { it.title })
+        assertEquals(150_000L, albums.first().timeListened)
+        assertEquals("cover", albums.last().thumbnailUrl)
+        assertEquals("x1", dao.mostPlayedSongOfAlbum("alb", from, NOW))
     }
 
     private companion object {

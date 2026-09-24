@@ -37,9 +37,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.metrolist.music.ui.screens.wrapped.MessagePair
-import com.metrolist.music.ui.screens.wrapped.components.AnimatedDecorativeElement
+import com.metrolist.music.ui.screens.wrapped.components.DecorativeCorners
 import com.metrolist.music.ui.theme.bbh_bartle
-import kotlin.random.Random
 
 @Composable
 fun WrappedMinutesScreen(
@@ -57,38 +56,7 @@ fun WrappedMinutesScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         // More dynamic and overlapping decorative elements
-        Box(modifier = Modifier.align(Alignment.TopStart)) {
-            repeat(5) {
-                AnimatedDecorativeElement(
-                    Modifier.padding(start = (Random.nextInt(0, 150)).dp, top = (Random.nextInt(0, 150)).dp).size((Random.nextInt(20, 100)).dp),
-                    isVisible
-                )
-            }
-        }
-        Box(modifier = Modifier.align(Alignment.BottomEnd)) {
-            repeat(5) {
-                AnimatedDecorativeElement(
-                    Modifier.padding(end = (Random.nextInt(0, 150)).dp, bottom = (Random.nextInt(0, 150)).dp).size((Random.nextInt(20, 100)).dp),
-                    isVisible
-                )
-            }
-        }
-        Box(modifier = Modifier.align(Alignment.TopEnd)) {
-            repeat(3) {
-                AnimatedDecorativeElement(
-                    Modifier.padding(end = (Random.nextInt(0, 100)).dp, top = (Random.nextInt(0, 100)).dp).size((Random.nextInt(20, 80)).dp),
-                    isVisible
-                )
-            }
-        }
-        Box(modifier = Modifier.align(Alignment.BottomStart)) {
-            repeat(3) {
-                AnimatedDecorativeElement(
-                    Modifier.padding(start = (Random.nextInt(0, 100)).dp, bottom = (Random.nextInt(0, 100)).dp).size((Random.nextInt(20, 80)).dp),
-                    isVisible
-                )
-            }
-        }
+        DecorativeCorners(isVisible, corners = listOf(Alignment.TopStart to 5, Alignment.BottomEnd to 5, Alignment.TopEnd to 3, Alignment.BottomStart to 3), spread = 150)
 
         Column(
             modifier = Modifier.fillMaxSize().padding(vertical = 32.dp),

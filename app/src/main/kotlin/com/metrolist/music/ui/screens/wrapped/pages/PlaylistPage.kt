@@ -1,8 +1,10 @@
 package com.metrolist.music.ui.screens.wrapped.pages
 
+import android.graphics.Bitmap
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,38 +18,41 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.metrolist.music.R
 import com.metrolist.music.ui.screens.wrapped.LocalWrappedManager
 import com.metrolist.music.ui.screens.wrapped.PlaylistCreationState
-import com.metrolist.music.ui.screens.wrapped.playlistName
 import com.metrolist.music.ui.screens.wrapped.components.AnimatedBackground
-import com.metrolist.music.ui.screens.wrapped.components.AutoResizingText
 import com.metrolist.music.ui.screens.wrapped.components.ShapeType
-import com.metrolist.music.ui.theme.bbh_bartle
+import com.metrolist.music.ui.screens.wrapped.components.WrappedTitle
+import com.metrolist.music.ui.screens.wrapped.playlistName
+import com.metrolist.music.ui.screens.wrapped.renderWrappedCover
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlin.random.Random
+import kotlinx.coroutines.withContext
 
 @Composable
 fun PlaylistPage() {
@@ -56,10 +61,10 @@ fun PlaylistPage() {
     val playlistCreationState = state.playlistCreationState
 
     val context = LocalContext.current
-    val playlistImageRes = rememberSaveable {
-        if (Random.nextBoolean()) R.drawable.wrapped_playlistv1 else R.drawable.wrapped_playlistv2
-    }
     val playlistName = remember(manager) { manager.period.playlistName(context, manager.now) }
+    val cover by produceState<Bitmap?>(initialValue = null, state.bigLabel) {
+        value = withContext(Dispatchers.Default) { renderWrappedCover(context, state.bigLabel) }
+    }
 
     var startAnimation by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
@@ -69,7 +74,8 @@ fun PlaylistPage() {
 
     val contentAlpha by animateFloatAsState(
         targetValue = if (startAnimation) 1f else 0f,
-        animationSpec = tween(durationMillis = 800, delayMillis = 200)
+        animationSpec = tween(durationMillis = 800, delayMillis = 200),
+        label = "playlist page alpha",
     )
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -82,41 +88,40 @@ fun PlaylistPage() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            AutoResizingText(
-                text = stringResource(R.string.wrapped_playlist_ready),
-                style = TextStyle(
-                    fontFamily = bbh_bartle,
-                    fontSize = 40.sp,
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 48.sp
-                )
-            )
+            WrappedTitle(text = stringResource(R.string.wrapped_playlist_ready), maxFontSize = 32.sp, maxLines = 2)
             Spacer(modifier = Modifier.height(32.dp))
-            Image(
-                painter = painterResource(id = playlistImageRes),
-                contentDescription = stringResource(R.string.album_cover_desc),
+            Box(
                 modifier = Modifier
                     .size(256.dp)
-                    .clip(RoundedCornerShape(3.dp))
-            )
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.White.copy(alpha = 0.08f)),
+            ) {
+                cover?.let {
+                    Image(
+                        bitmap = it.asImageBitmap(),
+                        contentDescription = stringResource(R.string.album_cover_desc),
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = playlistName,
-                style = TextStyle(
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    textAlign = TextAlign.Center
-                )
+                style = MaterialTheme.typography.titleLarge.copy(lineBreak = LineBreak.Heading),
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
             )
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(40.dp))
             Button(
                 onClick = {
-                    if (playlistCreationState == PlaylistCreationState.Idle) {
-                        manager.createPlaylist(playlistImageRes, playlistName)
+                    val image = cover
+                    if (playlistCreationState == PlaylistCreationState.Idle && image != null) {
+                        manager.createPlaylist(image, playlistName)
                     }
                 },
+                enabled = cover != null,
                 shape = CircleShape,
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                 modifier = Modifier.height(50.dp)

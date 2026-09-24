@@ -29,6 +29,7 @@ import com.metrolist.music.constants.SongSortType
 import com.metrolist.music.db.entities.Album
 import com.metrolist.music.db.entities.AlbumArtistMap
 import com.metrolist.music.db.entities.AlbumEntity
+import com.metrolist.music.db.entities.AlbumPlayStats
 import com.metrolist.music.db.entities.AlbumWithSongs
 import com.metrolist.music.db.entities.Artist
 import com.metrolist.music.db.entities.ArtistEntity
@@ -628,6 +629,51 @@ interface DatabaseDao {
         offset: Int = 0,
         toTimeStamp: LocalDateTime? = LocalDateTime.now(),
     ): Flow<List<Album>>
+
+    /**
+     * Most played albums by the songs' own album, so albums that were never opened in the app (and
+     * so have no album row) still count; the album row only improves the title and cover.
+     */
+    @Query(
+        """
+        SELECT song.albumId AS id,
+               COALESCE(album.title, song.albumName) AS title,
+               COALESCE(album.thumbnailUrl, song.thumbnailUrl) AS thumbnailUrl,
+               SUM(event.playTime) AS timeListened
+        FROM event
+                 JOIN song ON song.id = event.songId
+                 LEFT JOIN album ON album.id = song.albumId
+        WHERE song.albumId IS NOT NULL AND song.albumId != ''
+          AND COALESCE(album.title, song.albumName) IS NOT NULL
+          AND event.timestamp >= :fromTimeStamp AND event.timestamp <= :toTimeStamp
+        GROUP BY song.albumId
+        ORDER BY timeListened DESC
+        LIMIT :limit
+        """,
+    )
+    suspend fun mostPlayedAlbumStats(
+        fromTimeStamp: LocalDateTime,
+        toTimeStamp: LocalDateTime,
+        limit: Int,
+    ): List<AlbumPlayStats>
+
+    @Query(
+        """
+        SELECT event.songId
+        FROM event
+                 JOIN song ON song.id = event.songId
+        WHERE song.albumId = :albumId
+          AND event.timestamp >= :fromTimeStamp AND event.timestamp <= :toTimeStamp
+        GROUP BY event.songId
+        ORDER BY SUM(event.playTime) DESC
+        LIMIT 1
+        """,
+    )
+    suspend fun mostPlayedSongOfAlbum(
+        albumId: String,
+        fromTimeStamp: LocalDateTime,
+        toTimeStamp: LocalDateTime,
+    ): String?
 
     @Query("SELECT SUM(playTime) FROM event WHERE timestamp >= :fromTimeStamp AND timestamp <= :toTimeStamp")
     fun getTotalPlayTimeInRange(fromTimeStamp: LocalDateTime, toTimeStamp: LocalDateTime): Flow<Long?>

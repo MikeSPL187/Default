@@ -93,14 +93,18 @@ class WrappedPeriodTest {
     }
 
     @Test
-    fun `intro label is built from digits only`() {
-        assertEquals("2025", WrappedPeriod.InYear(2025).bigLabel(NOW, firstListen = null))
-        assertEquals("09.2026", WrappedPeriod.InMonth(YearMonth.of(2026, 9)).bigLabel(NOW, firstListen = null))
-        assertEquals("18.09–24.09", WrappedPeriod.Last7Days.bigLabel(NOW, firstListen = null))
-        assertEquals("2025–2026", WrappedPeriod.Last7Days.bigLabel(LocalDateTime.of(2026, 1, 3, 10, 0), firstListen = null))
-        assertEquals("01.09–15.09", WrappedPeriod.Custom(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 15)).bigLabel(NOW, firstListen = null))
-        assertEquals("2023–2026", WrappedPeriod.AllTime.bigLabel(NOW, firstListen = LocalDateTime.of(2023, 6, 1, 0, 0)))
-        assertEquals("2026", WrappedPeriod.AllTime.bigLabel(NOW, firstListen = LocalDateTime.of(2026, 6, 1, 0, 0)))
+    fun `period label is built from digits only`() {
+        assertEquals(listOf("2025"), WrappedPeriod.InYear(2025).bigLabel(NOW, firstListen = null))
+        assertEquals(listOf("09.2026"), WrappedPeriod.InMonth(YearMonth.of(2026, 9)).bigLabel(NOW, firstListen = null))
+        assertEquals(listOf("18.09", "24.09"), WrappedPeriod.Last7Days.bigLabel(NOW, firstListen = null))
+        assertEquals(listOf("2025", "2026"), WrappedPeriod.Last7Days.bigLabel(LocalDateTime.of(2026, 1, 3, 10, 0), firstListen = null))
+        assertEquals(
+            listOf("01.09", "15.09"),
+            WrappedPeriod.Custom(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 15)).bigLabel(NOW, firstListen = null),
+        )
+        assertEquals(listOf("01.09"), WrappedPeriod.Custom(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 1)).bigLabel(NOW, firstListen = null))
+        assertEquals(listOf("2023", "2026"), WrappedPeriod.AllTime.bigLabel(NOW, firstListen = LocalDateTime.of(2023, 6, 1, 0, 0)))
+        assertEquals(listOf("2026"), WrappedPeriod.AllTime.bigLabel(NOW, firstListen = LocalDateTime.of(2026, 6, 1, 0, 0)))
     }
 
     @Test

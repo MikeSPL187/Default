@@ -35,9 +35,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.metrolist.music.R
-import com.metrolist.music.ui.screens.wrapped.components.AnimatedDecorativeElement
+import com.metrolist.music.ui.screens.wrapped.components.DecorativeCorners
 import com.metrolist.music.ui.theme.bbh_bartle
-import kotlin.random.Random
 
 @Composable
 fun WrappedTotalArtistsScreen(
@@ -54,22 +53,7 @@ fun WrappedTotalArtistsScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Box(modifier = Modifier.align(Alignment.TopStart)) {
-            repeat(5) {
-                AnimatedDecorativeElement(
-                    Modifier.padding(start = (Random.nextInt(0, 150)).dp, top = (Random.nextInt(0, 150)).dp).size((Random.nextInt(20, 100)).dp),
-                    isVisible
-                )
-            }
-        }
-        Box(modifier = Modifier.align(Alignment.BottomEnd)) {
-            repeat(5) {
-                AnimatedDecorativeElement(
-                    Modifier.padding(end = (Random.nextInt(0, 150)).dp, bottom = (Random.nextInt(0, 150)).dp).size((Random.nextInt(20, 100)).dp),
-                    isVisible
-                )
-            }
-        }
+        DecorativeCorners(isVisible, corners = listOf(Alignment.TopStart to 5, Alignment.BottomEnd to 5), spread = 150)
 
         Column(
             modifier = Modifier.fillMaxSize().padding(vertical = 32.dp),

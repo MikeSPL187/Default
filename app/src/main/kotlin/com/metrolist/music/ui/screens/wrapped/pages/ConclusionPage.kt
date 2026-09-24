@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
@@ -20,6 +21,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineBreak
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.metrolist.music.R
@@ -31,7 +34,7 @@ fun ConclusionPage(onClose: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize()) {
         AnimatedBackground(elementCount = 30, shapeTypes = listOf(ShapeType.Circle, ShapeType.Line))
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -46,8 +49,11 @@ fun ConclusionPage(onClose: () -> Unit) {
                 text = stringResource(R.string.wrapped_thank_you),
                 style = TextStyle(
                     fontSize = 28.sp,
+                    lineHeight = 34.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    lineBreak = LineBreak.Heading
                 )
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -55,7 +61,10 @@ fun ConclusionPage(onClose: () -> Unit) {
                 text = stringResource(R.string.wrapped_special_thanks),
                 style = TextStyle(
                     fontSize = 16.sp,
-                    color = Color.Gray
+                    lineHeight = 22.sp,
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    lineBreak = LineBreak.Heading
                 )
             )
             Spacer(modifier = Modifier.height(48.dp))

@@ -1176,4 +1176,7 @@
 
     <!-- Wrapped card dismissal hint -->
     <string name="wrapped_find_in_stats">Recaps for any period are always in Stats</string>
+
+    <!-- Wrapped top albums for a period -->
+    <string name="wrapped_top_albums_title_period">Your top albums %s</string>
 </resources>

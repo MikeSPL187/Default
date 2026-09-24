@@ -14,7 +14,9 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -34,6 +36,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
@@ -144,27 +147,31 @@ fun WrappedScreenContent() {
         }
     }
 
+    val state by manager.state.collectAsStateWithLifecycle()
+    // Songs played outside any album leave nothing to show there, so those pages are skipped.
+    val showAlbums = !state.isDataReady || state.topAlbums.isNotEmpty()
     val screens =
-        remember {
-            listOf(
-                WrappedScreenType.Welcome,
-                WrappedScreenType.MinutesTease,
-                WrappedScreenType.MinutesReveal,
-                WrappedScreenType.TotalSongs,
-                WrappedScreenType.TopSongReveal,
-                WrappedScreenType.Top5Songs,
-                WrappedScreenType.TotalAlbums,
-                WrappedScreenType.TopAlbumReveal,
-                WrappedScreenType.Top5Albums,
-                WrappedScreenType.TotalArtists,
-                WrappedScreenType.TopArtistReveal,
-                WrappedScreenType.Top5Artists,
-                WrappedScreenType.Playlist,
-                WrappedScreenType.Conclusion,
-            )
+        remember(showAlbums) {
+            buildList {
+                add(WrappedScreenType.Welcome)
+                add(WrappedScreenType.MinutesTease)
+                add(WrappedScreenType.MinutesReveal)
+                add(WrappedScreenType.TotalSongs)
+                add(WrappedScreenType.TopSongReveal)
+                add(WrappedScreenType.Top5Songs)
+                if (showAlbums) {
+                    add(WrappedScreenType.TotalAlbums)
+                    add(WrappedScreenType.TopAlbumReveal)
+                    add(WrappedScreenType.Top5Albums)
+                }
+                add(WrappedScreenType.TotalArtists)
+                add(WrappedScreenType.TopArtistReveal)
+                add(WrappedScreenType.Top5Artists)
+                add(WrappedScreenType.Playlist)
+                add(WrappedScreenType.Conclusion)
+            }
         }
     val pagerState = rememberPagerState(pageCount = { screens.size })
-    val state by manager.state.collectAsStateWithLifecycle()
     val isMuted by audioService.isMuted.collectAsStateWithLifecycle()
     val messageTier = WrappedRepository.tier(state.totalMinutes, state.elapsedDays)
     val messageIndex = rememberSaveable(messageTier) { WrappedRepository.randomIndex(messageTier) }
@@ -172,6 +179,7 @@ fun WrappedScreenContent() {
     val minutesText = pluralStringResource(R.plurals.minute, state.totalMinutes.toInt(), state.totalMinutes)
     val messagePair = MessagePair(tease = stringResource(message.tease), reveal = stringResource(message.reveal, minutesText))
     val periodPhrase = remember(manager) { manager.period.phrase(context, manager.now.toLocalDate()) }
+    val periodTitle = remember(manager) { manager.period.title(context) }
 
     LaunchedEffect(manager) {
         manager.prepare()
@@ -189,7 +197,15 @@ fun WrappedScreenContent() {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { },
+                title = {
+                    Text(
+                        text = periodTitle,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White.copy(alpha = 0.7f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onClose) {
                         Icon(painterResource(R.drawable.arrow_back), stringResource(R.string.back_button_desc), tint = Color.White)
@@ -268,14 +284,15 @@ fun WrappedScreenContent() {
 
                 is WrappedScreenType.TopAlbumReveal -> {
                     WrappedTopAlbumScreen(
-                        topAlbum = state.topAlbum,
+                        topAlbum = state.topAlbums.firstOrNull(),
                         isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TopAlbumReveal),
                     )
                 }
 
                 is WrappedScreenType.Top5Albums -> {
                     WrappedTop5AlbumsScreen(
-                        topAlbums = state.top5Albums,
+                        title = stringResource(R.string.wrapped_top_albums_title_period, periodPhrase),
+                        topAlbums = state.topAlbums,
                         isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.Top5Albums),
                     )
                 }

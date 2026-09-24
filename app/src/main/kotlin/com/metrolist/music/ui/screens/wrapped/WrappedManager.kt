@@ -6,7 +6,7 @@
 package com.metrolist.music.ui.screens.wrapped
 
 import android.content.Context
-import androidx.annotation.DrawableRes
+import android.graphics.Bitmap
 import com.metrolist.music.constants.ArtistSongSortType
 import com.metrolist.music.db.DatabaseDao
 import com.metrolist.music.db.entities.PlaylistEntity
@@ -47,7 +47,7 @@ class WrappedManager(
     private val _state = MutableStateFlow(WrappedState(bigLabel = period.bigLabel(now, firstListen = null)))
     val state = _state.asStateFlow()
 
-    fun createPlaylist(@DrawableRes cover: Int, playlistName: String) {
+    fun createPlaylist(cover: Bitmap, playlistName: String) {
         if (_state.value.playlistCreationState != PlaylistCreationState.Idle) return
 
         _state.update { it.copy(playlistCreationState = PlaylistCreationState.Creating) }
@@ -61,9 +61,7 @@ class WrappedManager(
 
                     // Kept in app storage, not the cache, so the system never takes the cover away.
                     val file = File(File(context.filesDir, "playlist_covers").apply { mkdirs() }, "$playlistId.png")
-                    context.resources.openRawResource(cover).use { input ->
-                        file.outputStream().use { input.copyTo(it) }
-                    }
+                    file.outputStream().use { cover.compress(Bitmap.CompressFormat.PNG, 100, it) }
 
                     val newPlaylist = PlaylistEntity(
                         id = playlistId,
@@ -116,12 +114,10 @@ class WrappedManager(
             playlistMap[WrappedScreenType.TopSongReveal] = topSong.id
             playlistMap[WrappedScreenType.Top5Songs] = topSong.id
 
-            // Album Part: Random song from top album
-            val topAlbum = _state.value.topAlbum
-            val albumSong = topAlbum?.let { album ->
-                val albumSongs = databaseDao.albumSongs(album.id).first()
-                albumSongs.randomOrNull()?.id
-            } ?: topSong.id // Fallback to top song if no album songs
+            // Album Part: the top album's most played song
+            val albumSong = _state.value.topAlbums.firstOrNull()?.let { album ->
+                databaseDao.mostPlayedSongOfAlbum(album.id, range.from, range.to)
+            } ?: topSong.id
             playlistMap[WrappedScreenType.TotalAlbums] = albumSong
             playlistMap[WrappedScreenType.TopAlbumReveal] = albumSong
             playlistMap[WrappedScreenType.Top5Albums] = albumSong
@@ -174,20 +170,18 @@ class WrappedManager(
         withContext(Dispatchers.IO) {
             val topSongs = async { databaseDao.mostPlayedSongsStats(from, toTimeStamp = to, limit = 30).first() }
             val topArtists = async { databaseDao.mostPlayedArtists(from, toTimeStamp = to, limit = 5).first() }
-            val topAlbums = async { databaseDao.mostPlayedAlbums(from, toTimeStamp = to, limit = 5).first() }
+            val topAlbums = async { databaseDao.mostPlayedAlbumStats(from, to, limit = 5) }
             val uniqueSongCount = async { databaseDao.getUniqueSongCountInRange(from, to).first() }
             val uniqueArtistCount = async { databaseDao.getUniqueArtistCountInRange(from, to).first() }
             val uniqueAlbumCount = async { databaseDao.getUniqueAlbumCountInRange(from, to).first() }
             val totalPlayTimeMs = async { databaseDao.getTotalPlayTimeInRange(from, to).first() ?: 0L }
             val firstListen = async { databaseDao.firstListenTime() }
 
-            val albums = topAlbums.await()
             _state.update {
                 it.copy(
                     topSongs = topSongs.await(),
                     topArtists = topArtists.await(),
-                    top5Albums = albums,
-                    topAlbum = albums.firstOrNull(),
+                    topAlbums = topAlbums.await(),
                     uniqueSongCount = uniqueSongCount.await(),
                     uniqueArtistCount = uniqueArtistCount.await(),
                     totalAlbums = uniqueAlbumCount.await(),

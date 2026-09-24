@@ -10,9 +10,15 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -43,6 +49,40 @@ fun AnimatedDecorativeElement(modifier: Modifier = Modifier, isVisible: Boolean)
             0 -> drawArc(Color.White.copy(0.2f), 0f, 90f, false, style = Stroke(strokeWidth))
             1 -> drawCircle(Color.White.copy(0.2f), style = Stroke(strokeWidth))
             2 -> drawRect(Color.White.copy(0.2f), style = Stroke(strokeWidth))
+        }
+    }
+}
+
+/**
+ * A few spinning outlines gathered in the given corners, each corner with its count. Placed once,
+ * so they hold still while the page recomposes, for example during a counting animation.
+ */
+@Composable
+fun DecorativeCorners(
+    isVisible: Boolean,
+    corners: List<Pair<Alignment, Int>> = listOf(Alignment.TopStart to 3, Alignment.BottomEnd to 4),
+    spread: Int = 120,
+) {
+    val placements =
+        remember {
+            corners.map { (alignment, count) ->
+                alignment to List(count) { Triple(Random.nextInt(0, spread), Random.nextInt(0, spread), Random.nextInt(20, 90)) }
+            }
+        }
+    Box(Modifier.fillMaxSize()) {
+        placements.forEach { (alignment, shapes) ->
+            Box(Modifier.align(alignment)) {
+                shapes.forEach { (x, y, size) ->
+                    val padding =
+                        when (alignment) {
+                            Alignment.TopStart -> PaddingValues(start = x.dp, top = y.dp)
+                            Alignment.TopEnd -> PaddingValues(end = x.dp, top = y.dp)
+                            Alignment.BottomStart -> PaddingValues(start = x.dp, bottom = y.dp)
+                            else -> PaddingValues(end = x.dp, bottom = y.dp)
+                        }
+                    AnimatedDecorativeElement(Modifier.padding(padding).size(size.dp), isVisible)
+                }
+            }
         }
     }
 }

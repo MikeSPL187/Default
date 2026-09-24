@@ -50,25 +50,26 @@ fun WrappedPeriod.elapsedDays(now: LocalDateTime, firstListen: LocalDateTime?): 
 }
 
 /**
- * The large decorative label on the intro page. The display font only has Latin glyphs and
- * digits, so it is built from numbers: "2025", "09.2026", "18.09–24.09" or "2023–2026".
+ * The large period label of the intro page and the playlist cover, one or two lines. The display
+ * font only has Latin glyphs and digits, so it is built from numbers: "2025", "09.2026",
+ * "18.09" over "24.09", or "2023" over "2026".
  */
-fun WrappedPeriod.bigLabel(now: LocalDateTime, firstListen: LocalDateTime?): String {
+fun WrappedPeriod.bigLabel(now: LocalDateTime, firstListen: LocalDateTime?): List<String> {
     fun days(start: LocalDate, end: LocalDate) =
-        if (start.year == end.year) {
-            "${start.format(DAY_MONTH)}–${end.format(DAY_MONTH)}"
-        } else {
-            years(start.year, end.year)
+        when {
+            start == end -> listOf(start.format(DAY_MONTH))
+            start.year == end.year -> listOf(start.format(DAY_MONTH), end.format(DAY_MONTH))
+            else -> years(start.year, end.year)
         }
     return when (this) {
-        is WrappedPeriod.InYear -> year.toString()
-        is WrappedPeriod.InMonth -> month.format(MONTH_YEAR)
+        is WrappedPeriod.InYear -> listOf(year.toString())
+        is WrappedPeriod.InMonth -> listOf(month.format(MONTH_YEAR))
         WrappedPeriod.Last7Days, is WrappedPeriod.Custom -> range(now).let { days(it.from.toLocalDate(), it.to.toLocalDate()) }
         WrappedPeriod.AllTime -> years((firstListen ?: now).year, now.year)
     }
 }
 
-private fun years(first: Int, last: Int) = if (first >= last) last.toString() else "$first–$last"
+private fun years(first: Int, last: Int) = if (first >= last) listOf(last.toString()) else listOf(first.toString(), last.toString())
 
 private val DAY_MONTH = DateTimeFormatter.ofPattern("dd.MM")
 private val MONTH_YEAR = DateTimeFormatter.ofPattern("MM.yyyy")
