@@ -32,7 +32,9 @@ import com.metrolist.music.constants.AutoExportForWatchKey
 import com.metrolist.music.constants.DownloadOnWifiOnlyKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.AlbumEntity
+import com.metrolist.music.lyrics.LyricsHelper
 import com.metrolist.music.db.entities.FormatEntity
+import com.metrolist.music.db.entities.LyricsEntity
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.db.entities.SongEntity
 import com.metrolist.music.di.DownloadCache
@@ -83,6 +85,7 @@ constructor(
     @PlayerCache val playerCache: Cache,
     val watchExportManager: WatchExportManager,
     val watchPlaylistSync: WatchPlaylistSync,
+    private val lyricsHelper: LyricsHelper,
 ) {
     private val TAG = "DownloadUtil"
     private val connectivityManager = context.getSystemService<ConnectivityManager>()!!
@@ -102,6 +105,8 @@ constructor(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val downloadPreparations = Semaphore(3)
+    // Few at a time, so downloading a whole playlist does not flood the lyrics providers.
+    private val lyricsPrefetches = Semaphore(2)
 
     val downloads = MutableStateFlow<Map<String, Download>>(emptyMap())
 
@@ -274,6 +279,7 @@ constructor(
                                     removeFromPlayerCache(download.request.id)
                                     database.updateDownloadedInfo(download.request.id, true, LocalDateTime.now())
                                     autoExportForWatch(download.request.id)
+                                    saveLyricsForOffline(download.request.id)
                                 }
                                 Download.STATE_FAILED,
                                 Download.STATE_STOPPED,
@@ -390,6 +396,18 @@ constructor(
                 }
             }
         }.onFailure { Timber.tag(TAG).w(it, "Could not store artwork for offline use") }
+    }
+
+    /** Stores the lyrics with the download, so they show in airplane mode too. */
+    private suspend fun saveLyricsForOffline(songId: String) {
+        if (database.lyrics(songId).first() != null) return
+        val song = database.song(songId).first() ?: return
+        if (song.song.isEpisode) return
+        lyricsPrefetches.withPermit {
+            val result = runCatching { lyricsHelper.getLyrics(song.toMediaMetadata()) }.getOrNull() ?: return
+            if (result.isTransientMiss) return
+            database.query { upsert(LyricsEntity(songId, result.lyrics, result.provider)) }
+        }
     }
 
     private suspend fun autoExportForWatch(songId: String) {
