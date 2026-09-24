@@ -20,11 +20,14 @@ import java.util.concurrent.TimeUnit
  */
 class GitHubAutoEqSearch(private val context: Context) {
 
-    private val entries = mutableListOf<Entry>()
+    // Replaced as a whole, so searches running while the index is rebuilt on the IO thread read a
+    // consistent snapshot instead of a list being cleared under them.
+    @Volatile
+    private var entries: List<Entry> = emptyList()
     private var isIndexed = false
 
     // Cache for name_index.tsv data: Map<source, Map<headphoneName, rig>>
-    private val rigLookupCache = mutableMapOf<String, Map<String, String>>()
+    private val rigLookupCache = java.util.concurrent.ConcurrentHashMap<String, Map<String, String>>()
 
     private val cacheDir = File(context.filesDir, "autoeq_cache")
     private val treeFile = File(cacheDir, "tree.json")
@@ -102,8 +105,7 @@ class GitHubAutoEqSearch(private val context: Context) {
                 }
             }
 
-            entries.clear()
-            entries.addAll(newEntries)
+            entries = newEntries.toList()
             isIndexed = true
             Timber.tag(TAG).d("Indexed ${entries.size} entries from GitHub tree")
             true
