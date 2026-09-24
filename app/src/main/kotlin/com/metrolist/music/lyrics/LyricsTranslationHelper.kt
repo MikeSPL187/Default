@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Locale
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * A helper class that provides AI-powered translation for lyrics.
@@ -46,8 +45,16 @@ object LyricsTranslationHelper {
     private var translationJob: kotlinx.coroutines.Job? = null
     private var isCompositionActive = true
 
-    // Cache translations in memory to avoid redundant API calls during a session
-    private val translationCache = ConcurrentHashMap<String, List<String>>()
+    // Recent translations, to avoid redundant API calls during a session. Bounded because this
+    // object lives as long as the process and each entry holds a whole song's lines.
+    private val translationCache: MutableMap<String, List<String>> =
+        java.util.Collections.synchronizedMap(
+            object : LinkedHashMap<String, List<String>>(16, 0.75f, true) {
+                override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, List<String>>): Boolean =
+                    size > TRANSLATION_CACHE_SIZE
+            },
+        )
+    private const val TRANSLATION_CACHE_SIZE = 50
 
     // Map of language codes to full names for better AI understanding
     private val LanguageCodeToName = mapOf(

@@ -572,7 +572,8 @@ class MusicService :
     )
 
     // Flag to bypass cache when quality changes - forces fresh stream fetch
-    private val bypassCacheForQualityChange = mutableSetOf<String>()
+    // Written on the main thread, read by the data source resolver on the loader thread.
+    private val bypassCacheForQualityChange = Collections.synchronizedSet(mutableSetOf<String>())
 
     private var currentMediaIdRetryCount = mutableMapOf<String, Int>()
     private val MAX_RETRY_PER_SONG = 3
