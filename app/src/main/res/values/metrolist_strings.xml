@@ -1091,4 +1091,10 @@
     <!-- Smart shuffle -->
     <string name="smart_shuffle">Smart shuffle</string>
     <string name="smart_shuffle_pick">Suggestion</string>
+
+    <!-- Watch space limit -->
+    <string name="watch_storage_limit">Watch space limit</string>
+    <string name="watch_storage_used_unlimited">%1$s used, no limit</string>
+    <string name="watch_storage_used_of">%1$s of %2$s used</string>
+    <string name="watch_storage_limit_reached">Limit reached: sync and auto-export skip new songs</string>
 </resources>

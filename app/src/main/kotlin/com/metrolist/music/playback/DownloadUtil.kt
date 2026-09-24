@@ -413,7 +413,8 @@ constructor(
     private suspend fun autoExportForWatch(songId: String) {
         if (!context.dataStore.get(AutoExportForWatchKey, false)) return
         if (watchExportManager.states.value[songId] is WatchExportState.Exported) return
-        database.song(songId).first()?.let(watchExportManager::exportInBackground)
+        val song = database.song(songId).first() ?: return
+        if (watchExportManager.fitsWatchLimit(song)) watchExportManager.exportInBackground(song)
     }
 
     fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }.distinctUntilChanged()

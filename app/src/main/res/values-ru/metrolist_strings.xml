@@ -984,4 +984,10 @@
     <!-- Smart shuffle -->
     <string name="smart_shuffle">Умное перемешивание</string>
     <string name="smart_shuffle_pick">Рекомендация</string>
+
+    <!-- Watch space limit -->
+    <string name="watch_storage_limit">Лимит места для часов</string>
+    <string name="watch_storage_used_unlimited">Занято %1$s, без лимита</string>
+    <string name="watch_storage_used_of">Занято %1$s из %2$s</string>
+    <string name="watch_storage_limit_reached">Лимит достигнут: синхронизация и автоэкспорт пропускают новые треки</string>
 </resources>

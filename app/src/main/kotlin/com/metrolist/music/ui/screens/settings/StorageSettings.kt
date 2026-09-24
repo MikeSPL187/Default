@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.screens.settings
 
+import com.metrolist.music.constants.WatchStorageLimitMbKey
 import androidx.compose.runtime.mutableFloatStateOf
 import com.metrolist.music.utils.safeDataStoreEdit
 import com.metrolist.music.playback.smartDownloads
@@ -118,6 +119,14 @@ fun StorageSettings(
     val downloadUtil = LocalDownloadUtil.current
     val watchSyncedPlaylistIds by downloadUtil.watchPlaylistSync.syncedPlaylistIds
         .collectAsStateWithLifecycle(initialValue = emptySet())
+    val watchExportedBytes by downloadUtil.watchExportManager.exportedBytes.collectAsStateWithLifecycle()
+    val watchLimitReached by downloadUtil.watchExportManager.limitReached.collectAsStateWithLifecycle()
+    val (watchStorageLimitMb, onWatchStorageLimitMbChange) = rememberPreference(WatchStorageLimitMbKey, defaultValue = 0)
+    val watchLimitOptions = remember { listOf(0, 512, 1024, 2048, 4096, 8192, 16384) }
+    var watchLimitIndex by remember(watchStorageLimitMb) {
+        mutableFloatStateOf(watchLimitOptions.indexOf(watchStorageLimitMb).coerceAtLeast(0).toFloat())
+    }
+    val watchLimitDraftMb = watchLimitOptions[watchLimitIndex.roundToInt()]
     val watchExportBatch by downloadUtil.watchExportManager.batchState.collectAsStateWithLifecycle()
     val requestExportAllForWatch = rememberSharedStorageAction { exportAllForWatchDialog = true }
     val (autoExportForWatch, onAutoExportForWatchChange) = rememberPreference(
@@ -502,6 +511,39 @@ fun StorageSettings(
                         },
                         onClick = {
                             if (autoExportForWatch) onAutoExportForWatchChange(false) else enableAutoExportForWatch()
+                        },
+                    ),
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.storage),
+                        title = { Text(stringResource(R.string.watch_storage_limit)) },
+                        description = {
+                            Column {
+                                val used = Formatter.formatShortFileSize(context, watchExportedBytes)
+                                Text(
+                                    if (watchLimitDraftMb <= 0) {
+                                        stringResource(R.string.watch_storage_used_unlimited, used)
+                                    } else {
+                                        stringResource(
+                                            R.string.watch_storage_used_of,
+                                            used,
+                                            Formatter.formatShortFileSize(context, watchLimitDraftMb * 1024L * 1024L),
+                                        )
+                                    },
+                                )
+                                if (watchLimitReached && watchStorageLimitMb > 0) {
+                                    Text(
+                                        stringResource(R.string.watch_storage_limit_reached),
+                                        color = MaterialTheme.colorScheme.error,
+                                    )
+                                }
+                                Slider(
+                                    value = watchLimitIndex,
+                                    onValueChange = { watchLimitIndex = it },
+                                    onValueChangeFinished = { onWatchStorageLimitMbChange(watchLimitDraftMb) },
+                                    valueRange = 0f..watchLimitOptions.lastIndex.toFloat(),
+                                    steps = watchLimitOptions.size - 2,
+                                )
+                            }
                         },
                     ),
                     Material3SettingsItem(
