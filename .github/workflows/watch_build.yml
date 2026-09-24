@@ -147,14 +147,16 @@ jobs:
             exit 0
           fi
           version=$(sed -n 's/^ *versionName = "\(.*\)"/\1/p' app/build.gradle.kts)
-          tag="v$version"
-          apk="MetrolistWatch-$version.apk"
+          build="$version-b$GITHUB_RUN_NUMBER"
+          apk="MetrolistWatch-$build.apk"
           cp "$signed" "$apk"
-          # Recreate the release so its tag always points at the newest build of this version.
-          gh release delete "$tag" --cleanup-tag --yes || true
-          gh release create "$tag" "$apk" --target "$GITHUB_SHA" --latest \
-            --title "Metrolist Watch $version" \
-            --notes "Сборка из коммита $GITHUB_SHA. Установите $apk на телефон."
+          changes=$(git log -1 --format=%s "$GITHUB_SHA")
+          gh release create "v$build" "$apk" --target "$GITHUB_SHA" --latest \
+            --title "Metrolist Watch $build" \
+            --notes "Сборка $GITHUB_RUN_NUMBER из коммита $GITHUB_SHA: $changes. Установите $apk на телефон."
+          # Keep the five newest builds so there is always something to roll back to.
+          gh release list --limit 100 --json tagName,createdAt --jq 'sort_by(.createdAt) | reverse | .[5:] | .[].tagName' |
+            while read -r old; do gh release delete "$old" --cleanup-tag --yes; done
 
   lint:
     name: Lint report
