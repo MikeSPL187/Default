@@ -1508,6 +1508,8 @@ class MusicService :
             }
 
             AudioManager.AUDIOFOCUS_LOSS -> {
+                // Abandon first: abandonAudioFocus() does nothing once hasAudioFocus is false.
+                abandonAudioFocus()
                 hasAudioFocus = false
                 audioFocusVolumeMultiplier.value = 1f
                 wasPlayingBeforeAudioFocusLoss = player.isPlaying
@@ -1515,7 +1517,6 @@ class MusicService :
                     audioFocusPausedAtMs = SystemClock.elapsedRealtime()
                     player.pause()
                 }
-                abandonAudioFocus()
                 lastAudioFocusState = focusChange
             }
 
@@ -1555,6 +1556,13 @@ class MusicService :
         audioFocusRequest?.let { request ->
             val result = audioManager.requestAudioFocus(request)
             hasAudioFocus = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+            if (result == AudioManager.AUDIOFOCUS_REQUEST_DELAYED && castConnectionHandler?.isCasting?.value != true) {
+                // Focus comes later (e.g. after a phone call): don't play over it meanwhile.
+                // AUDIOFOCUS_GAIN resumes playback through wasPlayingBeforeAudioFocusLoss.
+                wasPlayingBeforeAudioFocusLoss = true
+                audioFocusPausedAtMs = SystemClock.elapsedRealtime()
+                player.pause()
+            }
             return hasAudioFocus
         }
         return false
