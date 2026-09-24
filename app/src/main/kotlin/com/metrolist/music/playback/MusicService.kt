@@ -1078,7 +1078,8 @@ class MusicService :
                                 Timber.tag("DiscordSvc").i("RPC toggle: initializing")
                                 DiscordRpcManager.init(this@MusicService)
                             }
-                            DiscordRpcManager.reconnectWithToken(DiscordRpcManager.getAccessToken()!!)
+                            // The token may have been removed (logout) since it was checked.
+                            DiscordRpcManager.getAccessToken()?.let(DiscordRpcManager::reconnectWithToken)
                         }
                     } else {
                         Timber.tag("DiscordSvc").w("RPC toggle: enabled but no token and not ready")
