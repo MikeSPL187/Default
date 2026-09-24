@@ -16,9 +16,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -260,7 +261,10 @@ fun PlaylistImportScreen(
         }
 
         TopAppBar(
-            title = { Text(stringResource(R.string.playlist_import_title)) },
+            // One playlist is on screen once it is loaded; the form itself takes any number.
+            title = {
+                Text(stringResource(if (state.playlist != null) R.string.playlist_import_title_single else R.string.playlist_import_title))
+            },
             navigationIcon = {
                 IconButton(
                     onClick = navController::navigateUp,
@@ -585,7 +589,6 @@ private fun ProgressHeader(
     }
 }
 
-@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun FilterRow(
     state: ImportState,
@@ -593,8 +596,12 @@ private fun FilterRow(
     filter: TrackFilter,
     onFilter: (TrackFilter) -> Unit,
 ) {
-    Column(Modifier.padding(horizontal = 16.dp)) {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column {
+        // One line that scrolls, so a long count in another language never wraps a chip below.
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+        ) {
             FilterChip(
                 selected = filter == TrackFilter.ALL,
                 onClick = { onFilter(TrackFilter.ALL) },
@@ -617,7 +624,7 @@ private fun FilterRow(
             stringResource(R.string.playlist_import_replace_hint),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
         )
     }
 }

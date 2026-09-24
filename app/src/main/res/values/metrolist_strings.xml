@@ -1182,6 +1182,7 @@
 
     <!-- Playlist transfer from Yandex Music and Spotify -->
     <string name="playlist_import_title">Transfer playlists</string>
+    <string name="playlist_import_title_single">Transfer playlist</string>
     <string name="playlist_import_entry_description">From Yandex Music or Spotify, by link</string>
     <string name="playlist_import_intro">Paste a link to a playlist or album, and each track will be found on YouTube Music and saved to your library.</string>
     <string name="playlist_import_by_link">By link</string>

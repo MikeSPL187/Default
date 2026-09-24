@@ -1075,6 +1075,7 @@
 
     <!-- Playlist transfer from Yandex Music and Spotify -->
     <string name="playlist_import_title">Перенос плейлистов</string>
+    <string name="playlist_import_title_single">Перенос плейлиста</string>
     <string name="playlist_import_entry_description">Из Яндекс Музыки или Spotify по ссылке</string>
     <string name="playlist_import_intro">Вставьте ссылку на плейлист или альбом, и каждый трек найдётся в YouTube Music и сохранится в вашу медиатеку.</string>
     <string name="playlist_import_by_link">По ссылке</string>
