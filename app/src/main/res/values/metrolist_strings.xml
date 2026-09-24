@@ -1232,4 +1232,20 @@
         <item quantity="one">Transfer %d track</item>
         <item quantity="other">Transfer %d tracks</item>
     </plurals>
+
+    <!-- Offline mode -->
+    <string name="offline_title_no_network">No connection</string>
+    <string name="offline_title_downloaded_only">Downloads only</string>
+    <string name="offline_subtitle">Your downloaded music is ready to play</string>
+    <string name="offline_reconnect_note">Everything updates by itself when the connection is back.</string>
+    <string name="offline_turn_off">Turn off</string>
+    <string name="offline_shuffle">Shuffle</string>
+    <string name="offline_play">Play</string>
+    <string name="offline_recent">Recently played</string>
+    <string name="offline_playlists">Playlists</string>
+    <string name="offline_albums">Albums</string>
+    <string name="offline_all_downloads">All downloads</string>
+    <string name="offline_empty_title">No downloaded music yet</string>
+    <string name="offline_empty_text">Download songs, albums and playlists to listen without a connection.</string>
+    <string name="downloaded_only_setting_desc">Play only music on the device, never streaming. Saves mobile data.</string>
 </resources>

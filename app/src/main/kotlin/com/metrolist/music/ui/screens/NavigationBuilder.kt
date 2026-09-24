@@ -68,6 +68,8 @@ import com.metrolist.music.ui.screens.wrapped.wrappedPeriodFromRoute
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import java.time.LocalDate
+import com.metrolist.music.offline.LocalOfflineMode
+import com.metrolist.music.offline.OfflineHomeScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.navigationBuilder(
@@ -78,7 +80,11 @@ fun NavGraphBuilder.navigationBuilder(
     snackbarHostState: SnackbarHostState,
 ) {
     composable(Screens.Home.route) {
-        HomeScreen(snackbarHostState = snackbarHostState)
+        if (LocalOfflineMode.current.active) {
+            OfflineHomeScreen()
+        } else {
+            HomeScreen(snackbarHostState = snackbarHostState)
+        }
     }
 
     composable(Screens.Search.route) { backStackEntry ->

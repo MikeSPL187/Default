@@ -1103,6 +1103,38 @@ interface DatabaseDao {
     )
     fun albumsDownloadedByCreateDateAsc(): Flow<List<Album>>
 
+    /** Downloaded songs, the most recently played first; never played ones follow, newest download first. */
+    @Transaction
+    @Query(
+        """
+        SELECT song.* FROM song
+        LEFT JOIN (SELECT songId, MAX(timestamp) AS lastPlayed FROM event GROUP BY songId) played ON played.songId = song.id
+        WHERE song.isDownloaded = 1 AND (song.isEpisode = 0 OR song.isEpisode IS NULL)
+        ORDER BY played.lastPlayed IS NULL, played.lastPlayed DESC, song.dateDownload DESC
+        LIMIT :limit
+    """
+    )
+    fun recentlyPlayedDownloadedSongs(limit: Int): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE liked AND isDownloaded = 1 ORDER BY likedDate DESC, rowId DESC")
+    fun likedDownloadedSongs(): Flow<List<Song>>
+
+    /** Playlists with at least one downloaded song, with only those counted. */
+    @Transaction
+    @Query(
+        """
+        SELECT playlist.*,
+               (SELECT COUNT(*) FROM playlist_song_map psm JOIN song ON song.id = psm.songId
+                WHERE psm.playlistId = playlist.id AND song.isDownloaded = 1) AS songCount
+        FROM playlist
+        WHERE EXISTS(SELECT 1 FROM playlist_song_map psm JOIN song ON song.id = psm.songId
+                     WHERE psm.playlistId = playlist.id AND song.isDownloaded = 1)
+        ORDER BY lastUpdateTime DESC
+    """
+    )
+    fun playlistsWithDownloads(): Flow<List<Playlist>>
+
     /** Albums with at least one downloaded song, i.e. albums that can be played offline. */
     fun albumsDownloaded(
         sortType: AlbumSortType,

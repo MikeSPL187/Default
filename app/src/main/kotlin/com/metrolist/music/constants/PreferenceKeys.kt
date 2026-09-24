@@ -168,6 +168,9 @@ val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
 val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")
 val EnableSongCacheKey = booleanPreferencesKey("enableSongCache")
 
+/** Play only what is on the device, never streaming, even with a connection. */
+val DownloadedOnlyKey = booleanPreferencesKey("downloadedOnly")
+
 val PauseListenHistoryKey = booleanPreferencesKey("pauseListenHistory")
 val PauseSearchHistoryKey = booleanPreferencesKey("pauseSearchHistory")
 val DisableScreenshotKey = booleanPreferencesKey("disableScreenshot")

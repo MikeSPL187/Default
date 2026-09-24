@@ -143,6 +143,7 @@ import com.metrolist.music.discord.DiscordActivityBuilder
 import com.metrolist.music.discord.DiscordTemplateRenderer
 import com.metrolist.music.discord.PresenceStatus
 import com.metrolist.music.constants.EnableLastFMScrobblingKey
+import com.metrolist.music.constants.DownloadedOnlyKey
 import com.metrolist.music.constants.EnableSongCacheKey
 import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.constants.HideVideoSongsKey
@@ -348,6 +349,9 @@ class MusicService :
     lateinit var connectivityObserver: NetworkConnectivityObserver
     val waitingForNetworkConnection = MutableStateFlow(false)
     private val isNetworkConnected = MutableStateFlow(false)
+
+    /** The user chose to play only what is on the device; nothing is streamed then. */
+    private val downloadedOnly = MutableStateFlow(false)
     val currentStreamClient = MutableStateFlow<String?>(null)
 
     private lateinit var audioQuality: com.metrolist.music.constants.AudioQuality
@@ -822,6 +826,10 @@ class MusicService :
                     }
                 }
             }
+        }
+
+        scope.launch {
+            dataStore.data.map { it[DownloadedOnlyKey] ?: false }.distinctUntilChanged().collect { downloadedOnly.value = it }
         }
 
         scope.launch {
@@ -3311,6 +3319,20 @@ class MusicService :
             return
         }
 
+        // A song that is not on the device while only downloads may play: not a failure, just
+        // move on to the next song that is, like the player does without a connection.
+        if (generateSequence<Throwable>(error) { it.cause }.any { it is DownloadedOnlyException }) {
+            val next = nextOfflinePlayableIndex()
+            if (next != null) {
+                player.seekTo(next, 0)
+                player.prepare()
+                player.play()
+            } else {
+                player.pause()
+            }
+            return
+        }
+
         val mediaId = player.currentMediaItem?.mediaId
         val failedStreamClient = mediaId?.let(songUrlCache::clientName)
         Timber
@@ -4138,7 +4160,7 @@ class MusicService :
                     return@Factory dataSpec
                 }
 
-                songUrlCache[mediaId]?.let { cachedStream ->
+                songUrlCache[mediaId]?.takeUnless { downloadedOnly.value }?.let { cachedStream ->
                     recoverSongDeduped(mediaId)
                     currentStreamClient.value = cachedStream.clientName
                     return@Factory dataSpec.withResolvedStream(cachedStream)
@@ -4146,6 +4168,9 @@ class MusicService :
             } else {
                 Timber.tag(TAG).i("BYPASSING CACHE for $mediaId due to quality change")
             }
+
+            // Past this point the song would be streamed, which the user turned off.
+            if (downloadedOnly.value) throw DownloadedOnlyException(mediaId)
 
             val cacheGeneration = songUrlCache.generation(mediaId)
             Timber.tag(TAG).i("FETCHING STREAM: $mediaId | quality=$audioQuality")
@@ -5431,3 +5456,6 @@ private const val LONG_TRACK_SECONDS = 20 * 60
 
 private val com.metrolist.music.models.MediaMetadata.remembersPosition: Boolean
     get() = isEpisode || duration >= LONG_TRACK_SECONDS
+
+/** Raised instead of streaming a song that is not on the device while only downloads may play. */
+private class DownloadedOnlyException(mediaId: String) : java.io.IOException("Not downloaded: $mediaId")

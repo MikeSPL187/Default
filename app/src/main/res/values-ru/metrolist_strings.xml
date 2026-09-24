@@ -1129,4 +1129,20 @@
         <item quantity="many">Перенести %d треков</item>
         <item quantity="other">Перенести %d трека</item>
     </plurals>
+
+    <!-- Offline mode -->
+    <string name="offline_title_no_network">Нет подключения</string>
+    <string name="offline_title_downloaded_only">Только скачанное</string>
+    <string name="offline_subtitle">Скачанная музыка готова к прослушиванию</string>
+    <string name="offline_reconnect_note">Когда связь вернётся, всё обновится само.</string>
+    <string name="offline_turn_off">Выключить</string>
+    <string name="offline_shuffle">Перемешать</string>
+    <string name="offline_play">Слушать</string>
+    <string name="offline_recent">Недавно слушали</string>
+    <string name="offline_playlists">Плейлисты</string>
+    <string name="offline_albums">Альбомы</string>
+    <string name="offline_all_downloads">Все скачанные</string>
+    <string name="offline_empty_title">Скачанной музыки пока нет</string>
+    <string name="offline_empty_text">Скачивайте треки, альбомы и плейлисты, чтобы слушать их без интернета.</string>
+    <string name="downloaded_only_setting_desc">Играть только музыку на устройстве, без загрузки из сети. Экономит трафик.</string>
 </resources>

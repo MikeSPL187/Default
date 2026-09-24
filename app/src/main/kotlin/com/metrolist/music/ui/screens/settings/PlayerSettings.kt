@@ -49,6 +49,7 @@ import com.metrolist.music.constants.AutoLoadMoreKey
 import com.metrolist.music.constants.AutoRadioQueueKey
 import com.metrolist.music.constants.AutoSkipNextOnErrorKey
 import com.metrolist.music.constants.AutoplayKey
+import com.metrolist.music.constants.DownloadedOnlyKey
 import com.metrolist.music.constants.PreloadNextSongKey
 import com.metrolist.music.constants.DisableLoadMoreWhenRepeatAllKey
 import com.metrolist.music.constants.EnableGoogleCastKey
@@ -183,6 +184,7 @@ fun PlayerSettings(
         AutoSkipNextOnErrorKey,
         defaultValue = false
     )
+    val (downloadedOnly, onDownloadedOnlyChange) = rememberPreference(DownloadedOnlyKey, defaultValue = false)
     val (autoplay, onAutoplayChange) = rememberPreference(
         AutoplayKey,
         defaultValue = true
@@ -1023,6 +1025,25 @@ fun PlayerSettings(
                         )
                     },
                     onClick = { onAutoSkipNextOnErrorChange(!autoSkipNextOnError) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.offline),
+                    title = { Text(stringResource(R.string.offline_title_downloaded_only)) },
+                    description = { Text(stringResource(R.string.downloaded_only_setting_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = downloadedOnly,
+                            onCheckedChange = onDownloadedOnlyChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(id = if (downloadedOnly) R.drawable.check else R.drawable.close),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onDownloadedOnlyChange(!downloadedOnly) }
                 )
             )
         )

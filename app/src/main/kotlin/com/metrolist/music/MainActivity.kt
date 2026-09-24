@@ -198,6 +198,10 @@ import com.metrolist.music.ui.screens.settings.ChangelogScreen
 import com.metrolist.music.ui.screens.settings.DarkMode
 import com.metrolist.music.ui.screens.settings.NavigationTab
 import com.metrolist.music.ui.screens.wrapped.WRAPPED_ROUTE
+import com.metrolist.music.offline.LocalOfflineMode
+import com.metrolist.music.offline.OfflineMode
+import com.metrolist.music.utils.NetworkConnectivityObserver
+import com.metrolist.music.constants.DownloadedOnlyKey
 import com.metrolist.music.ui.theme.ColorSaver
 import com.metrolist.music.ui.theme.DefaultThemeColor
 import com.metrolist.music.ui.theme.MetrolistTheme
@@ -221,6 +225,7 @@ import com.metrolist.music.widget.PlaylistWidgetReceiver
 import com.valentinilk.shimmer.LocalShimmerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -260,6 +265,9 @@ class MainActivity : FragmentActivity() {
 
     @Inject
     lateinit var syncUtils: SyncUtils
+
+    @Inject
+    lateinit var networkObserver: NetworkConnectivityObserver
 
     @Inject
     lateinit var listenTogetherManager: com.metrolist.music.listentogether.ListenTogetherManager
@@ -1057,8 +1065,19 @@ class MainActivity : FragmentActivity() {
                 val artistNameAliases by ArtistNameAliases.aliases.collectAsStateWithLifecycle()
                 val cropAlbumArt by rememberPreference(CropAlbumArtKey, false)
                 val swipeToSong by rememberPreference(SwipeToSongKey, false)
+                // A connection lost only for a moment, as when Wi-Fi hands over to mobile data,
+                // must not flip the app into offline mode and back.
+                var noNetwork by remember { mutableStateOf(!networkObserver.networkStatus.value) }
+                LaunchedEffect(Unit) {
+                    networkObserver.networkStatus.collectLatest { connected ->
+                        if (!connected) delay(NETWORK_LOSS_GRACE_MS)
+                        noNetwork = !connected
+                    }
+                }
+                val downloadedOnly by rememberPreference(DownloadedOnlyKey, false)
 
                 CompositionLocalProvider(
+                    LocalOfflineMode provides OfflineMode(noNetwork = noNetwork, downloadedOnly = downloadedOnly),
                     LocalDatabase provides database,
                     LocalNavController provides navController,
                     LocalContentColor provides if (pureBlack) Color.White else contentColorFor(MaterialTheme.colorScheme.surface),
@@ -1756,3 +1775,6 @@ val LocalIsPlayerExpanded = compositionLocalOf { false }
 /** Read once here so list rows and thumbnails don't each subscribe to DataStore. */
 val LocalCropAlbumArt = compositionLocalOf { false }
 val LocalSwipeToSong = compositionLocalOf { false }
+
+/** How long the connection may be gone before the app switches to offline mode. */
+private const val NETWORK_LOSS_GRACE_MS = 3_000L

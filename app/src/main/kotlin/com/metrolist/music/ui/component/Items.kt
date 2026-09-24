@@ -102,6 +102,7 @@ import com.metrolist.music.LocalArtistNameAliases
 import com.metrolist.music.LocalCropAlbumArt
 import com.metrolist.music.LocalSwipeToSong
 import com.metrolist.music.LocalDownloadUtil
+import com.metrolist.music.offline.LocalOfflineMode
 import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
@@ -516,6 +517,8 @@ fun SongListItem(
 ) {
     val artistNameAliases = LocalArtistNameAliases.current
     val swipeEnabled = LocalSwipeToSong.current
+    // Without a connection (or with downloads only) a song that is not on the device cannot play.
+    val unavailable = LocalOfflineMode.current.active && !song.isDownloaded
 
     val content: @Composable () -> Unit = {
          ListItem(
@@ -560,7 +563,7 @@ fun SongListItem(
                  )
              },
              trailingContent = trailingContent,
-             modifier = modifier,
+             modifier = modifier.alpha(if (unavailable) 0.4f else 1f),
              isSelected = isSelected,
              isActive = isActive
          )
