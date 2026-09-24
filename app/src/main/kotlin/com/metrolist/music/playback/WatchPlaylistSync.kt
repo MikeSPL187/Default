@@ -7,7 +7,6 @@ import android.net.NetworkCapabilities
 import androidx.core.content.edit
 import androidx.core.content.getSystemService
 import com.metrolist.music.constants.DownloadOnWifiOnlyKey
-import com.metrolist.music.constants.WatchStorageLimitMbKey
 import com.metrolist.music.constants.WatchSyncPlaylistIdsKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.Song
@@ -60,8 +59,6 @@ constructor(
         if (!started.compareAndSet(false, true)) return
         applicationScope.launch(Dispatchers.IO) {
             val wifiOnly = context.dataStore.data.map { it[DownloadOnWifiOnlyKey] ?: false }.distinctUntilChanged()
-            // A higher space limit lets a paused sync continue.
-            val storageLimit = context.dataStore.data.map { it[WatchStorageLimitMbKey] ?: 0 }.distinctUntilChanged()
             syncedPlaylistIds
                 .flatMapLatest { ids ->
                     if (ids.isEmpty()) {
@@ -75,7 +72,6 @@ constructor(
                 .combine(combine(wifiOnly, unmeteredNetwork()) { onlyWifi, unmetered -> !onlyWifi || unmetered }) { songs, mayUseNetwork ->
                     songs to mayUseNetwork
                 }
-                .combine(storageLimit) { songsAndNetwork, _ -> songsAndNetwork }
                 // Playlist edits arrive in bursts; wait for them to settle before touching files.
                 .debounce(SETTLE_DELAY_MS)
                 .collectLatest { (songs, mayUseNetwork) -> sync(songs, mayUseNetwork) }
@@ -108,7 +104,6 @@ constructor(
             .filter { it.id in toExport }
             .filter { mayUseNetwork || watchExportManager.canExportOffline(it) }
             .forEach { song ->
-                if (!watchExportManager.fitsWatchLimit(song)) return
                 // Claimed before exporting: a newer sync may cancel this one while the export
                 // itself still finishes, and the file must stay removable later.
                 setSyncOwned(song.id, owned = true)

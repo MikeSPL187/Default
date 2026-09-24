@@ -156,8 +156,6 @@ val NotRecommendedArtistIdsKey = stringSetPreferencesKey("notRecommendedArtistId
 val WatchSyncPlaylistIdsKey = stringSetPreferencesKey("watchSyncPlaylistIds")
 val SmartDownloadsKey = booleanPreferencesKey("smartDownloads")
 val SmartDownloadsCountKey = intPreferencesKey("smartDownloadsCount")
-/** Space the automatic watch exports may take, in MB; 0 means no limit. */
-val WatchStorageLimitMbKey = intPreferencesKey("watchStorageLimitMb")
 val PreferSyncedLyricsKey = booleanPreferencesKey("preferSyncedLyrics")
 val StopMusicOnTaskClearKey = booleanPreferencesKey("stopMusicOnTaskClear")
 val ShufflePlaylistFirstKey = booleanPreferencesKey("shufflePlaylistFirst")

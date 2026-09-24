@@ -5,9 +5,6 @@
 
 package com.metrolist.music.playback
 
-import com.metrolist.music.utils.read
-import com.metrolist.music.utils.dataStore
-import com.metrolist.music.constants.WatchStorageLimitMbKey
 import androidx.core.content.edit
 import android.Manifest
 import android.content.ContentValues
@@ -109,7 +106,6 @@ data class WatchExportedFile(
     val uri: Uri,
     val displayName: String,
     val usedOfflineDownload: Boolean,
-    val sizeBytes: Long,
 )
 
 class WatchExportException(
@@ -165,11 +161,6 @@ constructor(
             exportedIds().associateWith { WatchExportState.Exported(null) },
         )
     val states: StateFlow<Map<String, WatchExportState>> = _states.asStateFlow()
-
-    private val _exportedBytes = MutableStateFlow(computeExportedBytes())
-
-    /** Space taken by exported files; files exported before sizes were recorded count as zero. */
-    val exportedBytes: StateFlow<Long> = _exportedBytes.asStateFlow()
 
     private val _batchState = MutableStateFlow(WatchExportBatchState())
     val batchState: StateFlow<WatchExportBatchState> = _batchState.asStateFlow()
@@ -258,38 +249,10 @@ constructor(
 
     fun forgetExport(songId: String) {
         synchronized(preferences) {
-            preferences.edit {
-                putStringSet(EXPORTED_IDS_KEY, exportedIds() - songId)
-                remove(SIZE_KEY_PREFIX + songId)
-            }
+            preferences.edit { putStringSet(EXPORTED_IDS_KEY, exportedIds() - songId) }
         }
-        _exportedBytes.value = computeExportedBytes()
         updateState(songId, WatchExportState.NotExported)
     }
-
-    private val _limitReached = MutableStateFlow(false)
-
-    /** True when an automatic export was skipped because the watch space limit is full. */
-    val limitReached: StateFlow<Boolean> = _limitReached.asStateFlow()
-
-    /** Whether an automatic export of [song] still fits in the watch space limit set by the user. */
-    suspend fun fitsWatchLimit(song: Song): Boolean {
-        val limitMb = context.dataStore.read(WatchStorageLimitMbKey, 0)
-        val fits = limitMb <= 0 || exportedBytes.value + estimatedExportBytes(song) <= limitMb * 1024L * 1024L
-        _limitReached.value = !fits
-        return fits
-    }
-
-    /** Expected size of [song]'s export, used to stay under the watch space limit. */
-    fun estimatedExportBytes(song: Song): Long {
-        val format = song.format
-        if (format != null && isWatchCompatible(format.mimeType, format.codecs) && format.contentLength > 0) {
-            return format.contentLength
-        }
-        return song.song.duration.coerceAtLeast(0) * AAC_BYTES_PER_SECOND
-    }
-
-    private fun computeExportedBytes(): Long = exportedIds().sumOf { preferences.getLong(SIZE_KEY_PREFIX + it, 0L) }
 
     private fun taskFor(song: Song, notifyUser: Boolean): ActiveExport? =
         synchronized(taskLock) {
@@ -334,12 +297,8 @@ constructor(
             val file = exportFromDownload(song) ?: exportFreshAac(song)
             markExported(songId)
             synchronized(preferences) {
-                preferences.edit {
-                    putString(DISPLAY_NAME_KEY_PREFIX + songId, file.displayName)
-                    putLong(SIZE_KEY_PREFIX + songId, file.sizeBytes)
-                }
+                preferences.edit { putString(DISPLAY_NAME_KEY_PREFIX + songId, file.displayName) }
             }
-            _exportedBytes.value = computeExportedBytes()
             updateState(songId, WatchExportState.Exported(file.displayName))
             Result.success(file)
         } catch (error: CancellationException) {
@@ -566,13 +525,9 @@ constructor(
                 put(MediaStore.MediaColumns.IS_PENDING, 1)
             }
         val uri = resolver.insert(collection, values) ?: throw storageError()
-        var writtenBytes = 0L
         try {
             val output = resolver.openOutputStream(uri, "w") ?: throw storageError()
-            CountingOutputStream(output).use {
-                writer(it)
-                writtenBytes = it.count
-            }
+            output.use(writer)
             val published = ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }
             if (resolver.update(uri, published, null, null) <= 0) throw storageError()
         } catch (error: Throwable) {
@@ -581,7 +536,7 @@ constructor(
         }
         // Only drop the old copy once the replacement is fully written.
         previousCopies.filter { it != uri }.forEach { resolver.delete(it, null, null) }
-        return WatchExportedFile(uri, displayName, usedOfflineDownload, writtenBytes)
+        return WatchExportedFile(uri, displayName, usedOfflineDownload)
     }
 
     private fun publishToLegacyStorage(
@@ -602,11 +557,10 @@ constructor(
         val pending = File(directory, ".$displayName.pending")
         try {
             FileOutputStream(pending, false).use(writer)
-            val writtenBytes = pending.length()
             if (target.exists() && !target.delete()) throw storageError()
             if (!pending.renameTo(target)) throw storageError()
             MediaScannerConnection.scanFile(context, arrayOf(target.absolutePath), arrayOf(MIME_TYPE), null)
-            return WatchExportedFile(Uri.fromFile(target), displayName, usedOfflineDownload, writtenBytes)
+            return WatchExportedFile(Uri.fromFile(target), displayName, usedOfflineDownload)
         } finally {
             pending.delete()
         }
@@ -678,10 +632,6 @@ constructor(
         const val PREFERENCES_NAME = "watch_export_status"
         const val EXPORTED_IDS_KEY = "exported_song_ids"
         const val DISPLAY_NAME_KEY_PREFIX = "display_name_"
-        const val SIZE_KEY_PREFIX = "size_"
-
-        /** 128 kbit/s, the usual YouTube AAC stream. */
-        const val AAC_BYTES_PER_SECOND = 16_000L
         const val EXPORT_DIRECTORY = "Metrolist Watch"
         const val TEMP_DIRECTORY = "watch_exports"
         const val MIME_TYPE = "audio/mp4"
@@ -719,22 +669,5 @@ private fun isPlayableM4a(file: File): Boolean {
         false
     } finally {
         extractor.release()
-    }
-}
-
-private class CountingOutputStream(
-    private val target: OutputStream,
-) : java.io.FilterOutputStream(target) {
-    var count = 0L
-        private set
-
-    override fun write(b: Int) {
-        target.write(b)
-        count++
-    }
-
-    override fun write(b: ByteArray, off: Int, len: Int) {
-        target.write(b, off, len)
-        count += len
     }
 }
