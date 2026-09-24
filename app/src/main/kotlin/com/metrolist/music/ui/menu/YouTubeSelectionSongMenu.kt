@@ -123,7 +123,7 @@ fun YouTubeSelectionSongMenu(
     AddToPlaylistDialogOnline(
         isVisible = showChoosePlaylistDialog,
         songs =
-            remember {
+            remember(songSelection) {
                 songSelection
                     .map { song ->
                         // Convert SongItem to Song entity
