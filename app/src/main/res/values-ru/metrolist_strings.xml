@@ -1088,17 +1088,12 @@
     <string name="playlist_import_name_label">Название плейлиста</string>
     <string name="playlist_import_default_name">Перенесённый плейлист</string>
     <string name="playlist_import_continue">Продолжить</string>
-    <string name="playlist_import_start">Перенести</string>
-    <string name="playlist_import_back">Назад</string>
     <string name="playlist_import_source_yandex">Яндекс Музыка</string>
     <string name="playlist_import_source_spotify">Spotify</string>
     <string name="playlist_import_source_text">Ваш список</string>
     <string name="playlist_import_searching">Ищем треки в YouTube Music…</string>
-    <string name="playlist_import_progress">Найдено %1$d из %2$d</string>
     <string name="playlist_import_background_note">Можно уйти с экрана, перенос продолжится.</string>
     <string name="playlist_import_done">Перенесено %1$d из %2$d</string>
-    <string name="playlist_import_not_found_note">Треки с крестиком не нашлись в YouTube Music.</string>
-    <string name="playlist_import_open">Открыть плейлист</string>
     <string name="playlist_import_again">Перенести ещё</string>
     <string name="playlist_import_truncated">Без входа в аккаунт Spotify показывает только первые 100 треков. Чтобы перенести весь плейлист, выгрузите его в CSV через Exportify и импортируйте файл в разделе «Резервное копирование».</string>
     <string name="playlist_import_error_link">Это не ссылка на плейлист или альбом Яндекс Музыки или Spotify.</string>
@@ -1111,5 +1106,26 @@
         <item quantity="few">%d трека</item>
         <item quantity="many">%d треков</item>
         <item quantity="other">%d трека</item>
+    </plurals>
+
+    <!-- Playlist transfer screen -->
+    <string name="playlist_import_rename_hint">Нажмите на название, чтобы переименовать</string>
+    <string name="playlist_import_progress_short">%1$d из %2$d</string>
+    <string name="playlist_import_done_where">Плейлист «%s» в медиатеке</string>
+    <string name="playlist_import_play">Слушать</string>
+    <string name="playlist_import_open_short">Открыть</string>
+    <string name="playlist_import_filter_all">Все %d</string>
+    <string name="playlist_import_filter_found">Найдены %d</string>
+    <string name="playlist_import_filter_missing">Не найдены %d</string>
+    <string name="playlist_import_find_manually">Найти вручную</string>
+    <string name="playlist_import_pick_title">Выберите трек</string>
+    <string name="playlist_import_search_hint">Поиск в YouTube Music</string>
+    <string name="playlist_import_no_results">Ничего не найдено</string>
+    <string name="playlist_import_replace_hint">Нажмите на трек, чтобы заменить найденный вариант</string>
+    <plurals name="playlist_import_start_tracks">
+        <item quantity="one">Перенести %d трек</item>
+        <item quantity="few">Перенести %d трека</item>
+        <item quantity="many">Перенести %d треков</item>
+        <item quantity="other">Перенести %d трека</item>
     </plurals>
 </resources>

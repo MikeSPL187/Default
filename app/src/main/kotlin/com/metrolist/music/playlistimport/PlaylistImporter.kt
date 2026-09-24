@@ -31,9 +31,13 @@ data class ImportState(
     val phase: Phase = Phase.INPUT,
     val playlist: ImportedPlaylist? = null,
     val statuses: List<TrackStatus> = emptyList(),
+    /** The YouTube Music song chosen for each track, by position; null while pending or not found. */
+    val matches: List<SongItem?> = emptyList(),
     val error: ImportError? = null,
     /** The playlist created in the library once the import finished. */
     val playlistId: String? = null,
+    /** The name typed over the original one, used when the transfer starts. */
+    val pendingTitle: String? = null,
 ) {
     enum class Phase { INPUT, LOADING, PREVIEW, IMPORTING, DONE }
 
@@ -101,17 +105,29 @@ class PlaylistImporter
                 phase = ImportState.Phase.PREVIEW,
                 playlist = playlist,
                 statuses = List(playlist.tracks.size) { TrackStatus.PENDING },
+                matches = List(playlist.tracks.size) { null },
             )
 
+        /** Names the playlist to be created; an empty name keeps the one it had. */
+        fun rename(title: String) {
+            _state.update { current ->
+                if (current.phase != ImportState.Phase.PREVIEW) return@update current
+                current.copy(pendingTitle = title)
+            }
+        }
+
         /** Finds every track on YouTube Music and saves those found as a new library playlist. */
-        fun start(title: String) {
-            val playlist = _state.value.playlist ?: return
-            if (_state.value.phase != ImportState.Phase.PREVIEW) return
-            val named = playlist.copy(title = title.trim().ifEmpty { playlist.title })
+        fun start() {
+            val current = _state.value
+            val playlist = current.playlist ?: return
+            if (current.phase != ImportState.Phase.PREVIEW) return
+            val named = playlist.copy(title = current.pendingTitle?.trim()?.ifEmpty { null } ?: playlist.title)
             _state.update { it.copy(phase = ImportState.Phase.IMPORTING, playlist = named) }
             job =
                 scope.launch {
-                    val songs = resolveAll(named)
+                    resolveAll(named)
+                    // The state holds the matches, including any the user picked by hand meanwhile.
+                    val songs = _state.value.matches
                     // A cancel landing while saving must not leave a half-filled playlist behind.
                     val playlistId = withContext(NonCancellable) { save(named, songs) }
                     _state.update { it.copy(phase = ImportState.Phase.DONE, playlistId = playlistId) }
@@ -132,7 +148,7 @@ class PlaylistImporter
             _state.value = ImportState()
         }
 
-        private suspend fun resolveAll(playlist: ImportedPlaylist): List<SongItem?> =
+        private suspend fun resolveAll(playlist: ImportedPlaylist) =
             coroutineScope {
                 val semaphore = Semaphore(PARALLEL_SEARCHES)
                 val allowSwap = playlist.source == ImportSource.TEXT
@@ -151,12 +167,7 @@ class PlaylistImporter
                             _state.update { current ->
                                 // A result landing after a cancel belongs to no import any more.
                                 if (current.phase != ImportState.Phase.IMPORTING) return@update current
-                                current.copy(
-                                    statuses =
-                                        current.statuses.toMutableList().also {
-                                            if (index < it.size) it[index] = if (song != null) TrackStatus.FOUND else TrackStatus.NOT_FOUND
-                                        },
-                                )
+                                current.withMatch(index, song)
                             }
                             song
                         }
@@ -164,21 +175,58 @@ class PlaylistImporter
                 }.awaitAll()
             }
 
+        private fun ImportState.withMatch(
+            index: Int,
+            song: SongItem?,
+        ): ImportState {
+            if (index !in statuses.indices) return this
+            return copy(
+                statuses = statuses.toMutableList().also { it[index] = if (song != null) TrackStatus.FOUND else TrackStatus.NOT_FOUND },
+                matches = matches.toMutableList().also { it[index] = song },
+            )
+        }
+
+        /**
+         * Puts the song picked by hand in place of track [index]'s match. After the import the saved
+         * playlist is rewritten too, so it keeps the original order.
+         */
+        fun replace(
+            index: Int,
+            song: SongItem,
+        ) {
+            val updated = _state.value.withMatch(index, song)
+            _state.value = updated
+            val playlistId = updated.playlistId ?: return
+            if (updated.phase != ImportState.Phase.DONE) return
+            scope.launch {
+                withContext(NonCancellable) { fill(playlistId, updated.matches) }
+            }
+        }
+
         private suspend fun save(
             playlist: ImportedPlaylist,
             songs: List<SongItem?>,
         ): String {
+            val entity = PlaylistEntity(name = playlist.title, thumbnailUrl = playlist.coverUrl)
+            database.insert(entity)
+            fill(entity.id, songs)
+            return entity.id
+        }
+
+        /** Makes the playlist hold exactly the found songs, in the order of the original. */
+        private suspend fun fill(
+            playlistId: String,
+            songs: List<SongItem?>,
+        ) {
             val found = songs.filterNotNull().distinctBy { it.id }
             found.forEach { song ->
                 runCatching { database.insert(song.toMediaMetadata()) }
                     .onFailure { Timber.tag("PlaylistImport").w(it, "Could not store ${song.id}") }
             }
-            val entity = PlaylistEntity(name = playlist.title, thumbnailUrl = playlist.coverUrl)
-            database.insert(entity)
-            database.playlist(entity.id).first()?.let { created ->
-                database.addSongsToPlaylist(created, found.map { it.id to null })
+            database.clearPlaylist(playlistId)
+            database.playlist(playlistId).first()?.let { playlist ->
+                database.addSongsToPlaylist(playlist, found.map { it.id to null })
             }
-            return entity.id
         }
 
         private companion object {

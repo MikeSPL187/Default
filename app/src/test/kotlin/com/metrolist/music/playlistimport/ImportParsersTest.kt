@@ -38,7 +38,7 @@ class ImportParsersTest {
               "tracks":[
                 {"id":1,"track":{"id":"1","title":"Песня","version":"Remix","durationMs":215000,
                   "artists":[{"name":"Би-2"},{"name":"Oxxxymiron"}],"albums":[{"title":"Альбом"}]}},
-                {"id":2,"track":{"id":"2","title":"Second","artists":[]}},
+                {"id":2,"track":{"id":"2","title":"Second","artists":[],"coverUri":"avatars.yandex.net/t/%%"}},
                 {"id":3}
               ]}}
             """.trimIndent()
@@ -49,6 +49,7 @@ class ImportParsersTest {
         assertEquals("https://avatars.yandex.net/get-music-content/1/abc/400x400", playlist.coverUrl)
         assertEquals(ImportedTrack("Песня (Remix)", listOf("Би-2", "Oxxxymiron"), 215, "Альбом"), playlist.tracks[0])
         assertEquals("Second", playlist.tracks[1].title)
+        assertEquals("https://avatars.yandex.net/t/200x200", playlist.tracks[1].coverUrl)
         assertEquals(listOf("3"), missing)
     }
 

@@ -94,6 +94,10 @@ object PlaylistImportService {
     private suspend fun search(query: String, filter: YouTube.SearchFilter): List<SongItem> =
         YouTube.search(query, filter).getOrNull()?.items.orEmpty().filterIsInstance<SongItem>().take(6)
 
+    /** Songs for a query typed by hand, when the automatic match was wrong or missing. */
+    suspend fun searchSongs(query: String): List<SongItem> =
+        YouTube.search(query, YouTube.SearchFilter.FILTER_SONG).getOrNull()?.items.orEmpty().filterIsInstance<SongItem>()
+
     /**
      * The YouTube Music song for [track], or null when nothing is close enough. Songs are searched
      * first; only if none fits are music videos tried, since some releases exist only as those.

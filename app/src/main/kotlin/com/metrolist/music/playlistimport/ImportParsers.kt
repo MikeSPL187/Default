@@ -54,12 +54,16 @@ internal fun parseYandexTrack(track: JsonObject): ImportedTrack? {
         artists = artists,
         durationSec = (track["durationMs"] as? JsonPrimitive)?.longOrNull?.let { (it / 1000).toInt() },
         album = track["albums"].arr?.firstOrNull()?.obj?.get("title").str,
+        coverUrl = yandexCover(track["coverUri"].str ?: track["albums"].arr?.firstOrNull()?.obj?.get("coverUri").str, size = "200x200"),
     )
 }
 
 /** A Yandex cover template ("avatars.yandex.net/.../%%") made into a real image address. */
-internal fun yandexCover(template: String?): String? =
-    template?.replace("%%", "400x400")?.let { if (it.startsWith("http")) it else "https://$it" }
+internal fun yandexCover(
+    template: String?,
+    size: String = "400x400",
+): String? =
+    template?.replace("%%", size)?.let { if (it.startsWith("http")) it else "https://$it" }
 
 /**
  * A Yandex playlist (`/users/…/playlists/…` or `/playlist/<uuid>`). Entries may carry the full

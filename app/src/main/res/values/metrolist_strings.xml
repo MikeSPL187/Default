@@ -1195,17 +1195,12 @@
     <string name="playlist_import_name_label">Playlist name</string>
     <string name="playlist_import_default_name">Imported playlist</string>
     <string name="playlist_import_continue">Continue</string>
-    <string name="playlist_import_start">Transfer</string>
-    <string name="playlist_import_back">Back</string>
     <string name="playlist_import_source_yandex">Yandex Music</string>
     <string name="playlist_import_source_spotify">Spotify</string>
     <string name="playlist_import_source_text">Your list</string>
     <string name="playlist_import_searching">Looking up tracks on YouTube Music…</string>
-    <string name="playlist_import_progress">Found %1$d of %2$d</string>
     <string name="playlist_import_background_note">You can leave this screen, the transfer keeps going.</string>
     <string name="playlist_import_done">Transferred %1$d of %2$d</string>
-    <string name="playlist_import_not_found_note">Tracks marked with a cross were not found on YouTube Music.</string>
-    <string name="playlist_import_open">Open playlist</string>
     <string name="playlist_import_again">Transfer another</string>
     <string name="playlist_import_truncated">Without an account Spotify shows only the first 100 tracks. For the whole playlist, export it to CSV with Exportify and import the file in Backup and restore.</string>
     <string name="playlist_import_error_link">This isn\'t a link to a Yandex Music or Spotify playlist or album.</string>
@@ -1216,5 +1211,24 @@
     <plurals name="playlist_import_track_count">
         <item quantity="one">%d track</item>
         <item quantity="other">%d tracks</item>
+    </plurals>
+
+    <!-- Playlist transfer screen -->
+    <string name="playlist_import_rename_hint">Tap the name to rename</string>
+    <string name="playlist_import_progress_short">%1$d of %2$d</string>
+    <string name="playlist_import_done_where">Playlist “%s” is in your library</string>
+    <string name="playlist_import_play">Play</string>
+    <string name="playlist_import_open_short">Open</string>
+    <string name="playlist_import_filter_all">All %d</string>
+    <string name="playlist_import_filter_found">Found %d</string>
+    <string name="playlist_import_filter_missing">Not found %d</string>
+    <string name="playlist_import_find_manually">Find manually</string>
+    <string name="playlist_import_pick_title">Choose the song</string>
+    <string name="playlist_import_search_hint">Search YouTube Music</string>
+    <string name="playlist_import_no_results">Nothing found</string>
+    <string name="playlist_import_replace_hint">Tap a track to change what was found</string>
+    <plurals name="playlist_import_start_tracks">
+        <item quantity="one">Transfer %d track</item>
+        <item quantity="other">Transfer %d tracks</item>
     </plurals>
 </resources>

@@ -6,6 +6,7 @@ data class ImportedTrack(
     val artists: List<String>,
     val durationSec: Int? = null,
     val album: String? = null,
+    val coverUrl: String? = null,
 )
 
 enum class ImportSource { YANDEX_MUSIC, SPOTIFY, TEXT }
