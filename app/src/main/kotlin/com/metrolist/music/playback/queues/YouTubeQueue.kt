@@ -10,7 +10,9 @@ import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.WatchEndpoint
 import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.models.MediaMetadata
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 class YouTubeQueue(
@@ -18,7 +20,6 @@ class YouTubeQueue(
     override val preloadItem: MediaMetadata? = null,
 ) : Queue {
     private var continuation: String? = null
-    private var retryCount = 0
     private val maxRetries = 3
 
     private class EmptyRadioQueueException : IllegalStateException()
@@ -59,7 +60,6 @@ class YouTubeQueue(
 
                     endpoint = nextResult.endpoint
                     continuation = nextResult.continuation
-                    retryCount = 0
                     return@withContext Queue.Status(
                         title = nextResult.title,
                         items = items.map { it.toMediaItem() },
@@ -87,26 +87,29 @@ class YouTubeQueue(
         return withContext(IO) {
             var lastException: Throwable? = null
 
-            for (attempt in 0..maxRetries) {
+            // Captured once: a null continuation would fetch the first page again.
+            val pageContinuation = continuation ?: return@withContext emptyList()
+            repeat(maxRetries) { attempt ->
                 try {
-                    val nextResult = YouTube.next(endpoint, continuation).getOrThrow()
+                    val nextResult = YouTube.next(endpoint, pageContinuation).getOrThrow()
                     endpoint = nextResult.endpoint
                     continuation = nextResult.continuation
-                    retryCount = 0
                     return@withContext nextResult.items.map { it.toMediaItem() }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     lastException = e
-                    retryCount++
-                    if (retryCount >= maxRetries) {
-                        continuation = null // Stop trying to load more
-                    }
+                    if (attempt < maxRetries - 1) delay(RETRY_DELAY_MS * (attempt + 1))
                 }
             }
+            continuation = null // Stop trying to load more
             throw lastException ?: Exception("Failed to get next page")
         }
     }
 
     companion object {
+        private const val RETRY_DELAY_MS = 1_000L
+
         /**
          * Creates a radio queue based on a song.
          * Explicitly requests the RDAMVM playlist to trigger automotive/radio mixing.

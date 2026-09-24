@@ -117,9 +117,18 @@ constructor(
                 ),
         ) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
-            val length = if (dataSpec.length >= 0) dataSpec.length else 1
+            // Downloads ask for the whole song, so a cached prefix from playback is not enough:
+            // an unresolved spec would fail at the first uncached byte.
+            val length =
+                if (dataSpec.length >= 0) {
+                    dataSpec.length
+                } else {
+                    ContentMetadata.getContentLength(playerCache.getContentMetadata(mediaId))
+                        .takeIf { it > 0 }
+                        ?.let { it - dataSpec.position }
+                }
 
-            if (playerCache.isCached(mediaId, dataSpec.position, length)) {
+            if (length != null && length > 0 && playerCache.isCached(mediaId, dataSpec.position, length)) {
                 return@Factory dataSpec
             }
 

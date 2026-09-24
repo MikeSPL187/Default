@@ -31,7 +31,7 @@ class YouTubeAlbumRadio(
         val albumSongs = YouTube.albumSongs(playlistId).getOrThrow()
         albumSongCount = albumSongs.size
         Queue.Status(
-            title = albumSongs.first().album?.name.orEmpty(),
+            title = albumSongs.firstOrNull()?.album?.name.orEmpty(),
             items = albumSongs.map { it.toMediaItem() },
             mediaItemIndex = 0
         )
@@ -44,7 +44,7 @@ class YouTubeAlbumRadio(
         continuation = nextResult.continuation
         if (!firstTimeLoaded) {
             firstTimeLoaded = true
-            nextResult.items.subList(albumSongCount, nextResult.items.size).map { it.toMediaItem() }
+            nextResult.items.drop(albumSongCount).map { it.toMediaItem() }
         } else {
             nextResult.items.map { it.toMediaItem() }
         }

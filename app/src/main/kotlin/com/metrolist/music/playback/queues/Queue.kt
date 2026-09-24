@@ -25,22 +25,26 @@ interface Queue {
         val position: Long = 0L,
     ) {
         fun filterExplicit(enabled: Boolean = true) =
-            if (enabled) {
-                copy(
-                    items = items.filterExplicit(),
-                )
-            } else {
-                this
-            }
+            if (enabled) removeWhere { it.metadata?.explicit == true } else this
 
         fun filterVideoSongs(disableVideos: Boolean = false) =
-            if (disableVideos) {
-                copy(
-                    items = items.filterVideoSongs(true),
-                )
-            } else {
-                this
-            }
+            if (disableVideos) removeWhere { it.metadata?.isVideoSong == true } else this
+
+        /**
+         * Keeps [mediaItemIndex] on the picked song. If the picked song itself is removed,
+         * playback starts from the start of the next remaining song.
+         */
+        internal fun removeWhere(predicate: (MediaItem) -> Boolean): Status {
+            val kept = items.filterNot(predicate)
+            if (kept.size == items.size) return this
+            val pickedRemoved = items.getOrNull(mediaItemIndex)?.let(predicate) == true
+            val keptBefore = items.take(mediaItemIndex.coerceAtLeast(0)).count { !predicate(it) }
+            return copy(
+                items = kept,
+                mediaItemIndex = keptBefore.coerceAtMost((kept.size - 1).coerceAtLeast(0)),
+                position = if (pickedRemoved) 0L else position,
+            )
+        }
     }
 }
 

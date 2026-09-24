@@ -1942,6 +1942,8 @@ class MusicService :
                         .filterVideoSongs(cachedHideVideoSongs)
                         .let { if (queue is YouTubeQueue) it.filterNotRecommended(notRecommended()) else it }
                 }
+            // Another queue was started while this one loaded.
+            if (currentQueue !== queue) return@launch
             if (queue.preloadItem != null && player.playbackState == STATE_IDLE) return@launch
             if (initialStatus.title != null) {
                 queueTitle = initialStatus.title
@@ -1950,13 +1952,17 @@ class MusicService :
             // Track original queue size for shuffle playlist first feature
             originalQueueSize = initialStatus.items.size
             if (queue.preloadItem != null) {
+                val pickedIndex = initialStatus.mediaItemIndex
+                // The preloaded song is already playing; skip it only if the filters kept it.
+                val afterStart =
+                    if (initialStatus.items.getOrNull(pickedIndex)?.mediaId == queue.preloadItem?.id) pickedIndex + 1 else pickedIndex
                 player.addMediaItems(
                     0,
-                    initialStatus.items.subList(0, initialStatus.mediaItemIndex),
+                    initialStatus.items.subList(0, pickedIndex),
                 )
                 player.addMediaItems(
                     initialStatus.items.subList(
-                        initialStatus.mediaItemIndex + 1,
+                        afterStart.coerceAtMost(initialStatus.items.size),
                         initialStatus.items.size,
                     ),
                 )
@@ -1997,10 +2003,16 @@ class MusicService :
 
         val currentMediaMetadata = player.currentMetadata ?: return
 
-        val currentIndex = player.currentMediaItemIndex
         val currentMediaId = currentMediaMetadata.id
+        val queueAtStart = currentQueue
 
         scope.launch(SilentHandler) {
+            // The radio is fetched over the network; the user may have skipped or changed the queue meanwhile.
+            fun radioAnchorIndex(): Int? =
+                player.currentMediaItemIndex.takeIf {
+                    currentQueue === queueAtStart && player.currentMediaItem?.mediaId == currentMediaId
+                }
+
             // Use simple videoId to let YouTube personalize recommendations
             val radioQueue =
                 YouTubeQueue(
@@ -2029,6 +2041,7 @@ class MusicService :
                         item.mediaId != currentMediaId
                     }
 
+                val currentIndex = radioAnchorIndex() ?: return@launch
                 if (radioItems.isNotEmpty()) {
                     val itemCount = player.mediaItemCount
 
@@ -2064,6 +2077,7 @@ class MusicService :
                                     .filterVideoSongs(cachedHideVideoSongs)
                                     .filterNotRecommended(notRecommended())
 
+                            val currentIndex = radioAnchorIndex() ?: return@launch
                             if (radioItems.isNotEmpty()) {
                                 val itemCount = player.mediaItemCount
                                 if (itemCount > currentIndex + 1) {
@@ -2363,11 +2377,7 @@ class MusicService :
             }
         }
 
-        player.addMediaItems(items)
-        if (player.shuffleModeEnabled) {
-            val shufflePlaylistFirst = cachedShufflePlaylistFirst
-            applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
-        }
+        appendKeepingShuffleOrder(items)
         player.prepare()
     }
 
@@ -2826,10 +2836,7 @@ class MusicService :
                             .let { if (currentQueue.isRecommendation()) it.filterNotRecommended(notRecommended()) else it }
                     }
                 if (player.playbackState != STATE_IDLE && mediaItems.isNotEmpty()) {
-                    player.addMediaItems(mediaItems)
-                    if (player.shuffleModeEnabled) {
-                        applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, cachedShufflePlaylistFirst)
-                    }
+                    appendKeepingShuffleOrder(mediaItems)
                 }
             }
         }
@@ -3095,6 +3102,22 @@ class MusicService :
         if (cachedPersistentQueue) {
             saveQueueToDisk(onlyIfChanged = true)
         }
+    }
+
+    /**
+     * Appends [items] to the end of the queue. In shuffle mode the existing order is kept and the new
+     * songs are mixed into the upcoming part, instead of reshuffling songs that were already played.
+     */
+    private fun appendKeepingShuffleOrder(items: List<MediaItem>) {
+        val previousOrder = currentShuffleOrder()
+        player.addMediaItems(items)
+        if (!player.shuffleModeEnabled) return
+        if (previousOrder == null || cachedShufflePlaylistFirst) {
+            applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, cachedShufflePlaylistFirst)
+            return
+        }
+        val order = extendShuffleOrder(previousOrder.asList(), player.currentMediaItemIndex, player.mediaItemCount)
+        player.setShuffleOrder(DefaultShuffleOrder(order, System.currentTimeMillis()))
     }
 
     /**
@@ -5154,6 +5177,8 @@ class MusicService :
             }
         if (targetIndex == C.INDEX_UNSET) return
 
+        // The secondary player takes over the same queue, so it keeps the same shuffle order.
+        val shuffleOrder = currentShuffleOrder()
         secondaryPlayer = createExoPlayer()
         val secPlayer = secondaryPlayer!!
         secPlayer.addListener(secondaryPlayerListener)
@@ -5188,8 +5213,11 @@ class MusicService :
         performCrossfadeSwap()
 
         if (shuffleModeEnabled) {
-            val shufflePlaylistFirst = cachedShufflePlaylistFirst
-            applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
+            if (shuffleOrder != null && shuffleOrder.size == player.mediaItemCount) {
+                player.setShuffleOrder(DefaultShuffleOrder(shuffleOrder, System.currentTimeMillis()))
+            } else {
+                applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, cachedShufflePlaylistFirst)
+            }
         }
     }
 
