@@ -237,17 +237,18 @@ fun LibraryMixScreen(
     val songs = viewModel.songs.collectAsStateWithLifecycle()
     val playlist = viewModel.playlists.collectAsStateWithLifecycle()
 
-    var allItems = albums.value + artist.value + playlist.value
     val locale = LocalLocale.current.platformLocale
     val collator = remember(locale) {
         Collator.getInstance(locale).apply {
             strength = Collator.PRIMARY
         }
     }
-    allItems =
+    // Re-sorted only when the lists or the sort order change, not on every recomposition.
+    val allItems = remember(albums.value, artist.value, playlist.value, sortType, sortDescending, collator) {
+        val items = albums.value + artist.value + playlist.value
         when (sortType) {
             MixSortType.CREATE_DATE -> {
-                allItems.sortedBy { item ->
+                items.sortedBy { item ->
                     when (item) {
                         is Album -> item.album.bookmarkedAt
                         is Artist -> item.artist.bookmarkedAt
@@ -258,7 +259,7 @@ fun LibraryMixScreen(
             }
 
             MixSortType.NAME -> {
-                allItems.sortedWith(
+                items.sortedWith(
                     compareBy(collator) { item ->
                         when (item) {
                             is Album -> item.album.title
@@ -271,7 +272,7 @@ fun LibraryMixScreen(
             }
 
             MixSortType.LAST_UPDATED -> {
-                allItems.sortedBy { item ->
+                items.sortedBy { item ->
                     when (item) {
                         is Album -> item.album.lastUpdateTime
                         is Artist -> item.artist.lastUpdateTime
@@ -281,6 +282,7 @@ fun LibraryMixScreen(
                 }
             }
         }.reversed(sortDescending)
+    }
 
     val searchableItems = if (normalizedQuery.isBlank()) allItems else allItems + songs.value
 
