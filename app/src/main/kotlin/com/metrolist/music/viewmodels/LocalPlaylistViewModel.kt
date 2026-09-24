@@ -98,16 +98,14 @@ constructor(
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     init {
-        viewModelScope.launch {
-            val sortedSongs =
-                playlistSongs.first().sortedWith(compareBy({ it.map.position }, { it.map.id }))
-            database.transaction {
-                sortedSongs.forEachIndexed { index, playlistSong ->
-                    if (playlistSong.map.position != index) {
-                        update(playlistSong.map.copy(position = index))
-                    }
+        // Make positions consecutive so drag-and-drop moves work. This reads every row of the
+        // playlist: the displayed list starts empty and may be filtered (search, hidden videos).
+        database.transaction {
+            playlistSongMaps(playlistId, from = 0)
+                .sortedWith(compareBy({ it.position }, { it.id }))
+                .forEachIndexed { index, map ->
+                    if (map.position != index) update(map.copy(position = index))
                 }
-            }
         }
 
         viewModelScope.launch {
