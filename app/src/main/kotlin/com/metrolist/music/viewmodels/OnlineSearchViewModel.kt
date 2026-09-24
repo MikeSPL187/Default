@@ -37,6 +37,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -194,7 +195,9 @@ constructor(
 
     init {
         viewModelScope.launch {
-            filter.collect { filter ->
+            // collectLatest: switching tabs cancels the load of the tab the user left instead of
+            // queueing behind it. A cancelled tab has no page yet and loads again when reopened.
+            filter.collectLatest { filter ->
                 if (filter == null) loadSummaryPage() else loadFilteredPage(filter)
             }
         }
