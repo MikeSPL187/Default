@@ -46,6 +46,8 @@ jobs:
         env:
           PULL_REQUEST: "false"
           GITHUB_EVENT_NAME: ${{ github.event_name }}
+          # Shown in the app (Settings > About) as 13.7.0-watch.3+b<number>, matching the release name.
+          METROLIST_BUILD_COMMIT: b${{ github.run_number }}
 
       # Signing is optional: add KEYSTORE (base64), KEY_ALIAS, KEYSTORE_PASSWORD and KEY_PASSWORD
       # repository secrets with the key of the installed build to get an APK that updates in place.

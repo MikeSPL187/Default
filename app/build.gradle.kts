@@ -13,7 +13,8 @@ val appNameOverride = System.getenv("METROLIST_APP_NAME")?.takeIf { it.isNotBlan
 val buildCommit =
     System.getenv("METROLIST_BUILD_COMMIT")
         ?.trim()
-        ?.takeIf { it.matches(Regex("[0-9a-fA-F]{7,40}")) }
+        // A commit hash, or a CI build number such as "b59".
+        ?.takeIf { it.matches(Regex("[0-9a-fA-F]{7,40}|b\\d{1,9}")) }
         ?.take(7)
         ?.lowercase()
 val debugKeystorePathOverride = System.getenv("METROLIST_DEBUG_KEYSTORE_PATH")?.takeIf { it.isNotBlank() }
