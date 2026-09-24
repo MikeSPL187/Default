@@ -512,6 +512,7 @@ interface DatabaseDao {
                      ORDER BY SUM(playTime) DESC
                      LIMIT :limit OFFSET :offset)
         ON song.id = songId
+        ORDER BY timeListened DESC
     """,
     )
     fun mostPlayedSongs(
@@ -575,6 +576,7 @@ interface DatabaseDao {
                       LIMIT :limit
                       OFFSET :offset)
                      ON artist.id = artistId
+        ORDER BY totalPlayTime DESC
     """,
     )
     fun mostPlayedArtists(
@@ -747,28 +749,18 @@ interface DatabaseDao {
     @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     @Query(
         """
-        SELECT DISTINCT artist.*,
-               (SELECT COUNT(1)
-                FROM song_artist_map
-                         JOIN event ON song_artist_map.songId = event.songId
-                WHERE artistId = artist.id) AS songCount
+        SELECT artist.*,
+               IFNULL(artistTotalPlayTime.songCount, 0) AS songCount
         FROM artist
-                 LEFT JOIN(SELECT artistId, SUM(songTotalPlayTime) AS totalPlayTime
-                      FROM song_artist_map
-                               JOIN (SELECT songId, SUM(playTime) AS songTotalPlayTime
-                                     FROM event
-                                     GROUP BY songId) AS e
-                                    ON song_artist_map.songId = e.songId
-                      GROUP BY artistId
-                      ORDER BY totalPlayTime DESC) AS artistTotalPlayTime
-                     ON artist.id = artistId
-                     OR artist.bookmarkedAt IS NOT NULL
-                     ORDER BY
-                      CASE
-                        WHEN artistTotalPlayTime.artistId IS NULL THEN 1
-                        ELSE 0
-                      END,
-                      artistTotalPlayTime.totalPlayTime DESC
+                 LEFT JOIN (SELECT song_artist_map.artistId,
+                                   SUM(event.playTime) AS totalPlayTime,
+                                   COUNT(1) AS songCount
+                            FROM song_artist_map
+                                     JOIN event ON song_artist_map.songId = event.songId
+                            GROUP BY song_artist_map.artistId) AS artistTotalPlayTime
+                           ON artist.id = artistTotalPlayTime.artistId
+        ORDER BY artistTotalPlayTime.artistId IS NULL,
+                 artistTotalPlayTime.totalPlayTime DESC
     """,
     )
     fun allArtistsByPlayTime(): Flow<List<Artist>>
