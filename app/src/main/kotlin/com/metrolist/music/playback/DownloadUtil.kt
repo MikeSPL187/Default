@@ -50,6 +50,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.SupervisorJob
@@ -419,7 +420,7 @@ constructor(
      * @param viaService false adds the request straight to the in-process [downloadManager]. Background
      * jobs need this, because Android refuses to start the download service from the background.
      */
-    fun download(mediaMetadata: MediaMetadata, viaService: Boolean = true) {
+    fun download(mediaMetadata: MediaMetadata, viaService: Boolean = true): Job =
         scope.launch {
             downloadPreparations.withPermit {
                 if (!shouldPrepareDownload(downloads.value[mediaMetadata.id]?.state)) return@withPermit
@@ -475,7 +476,6 @@ constructor(
                 downloadArtworkUrls(mediaMetadata.thumbnailUrl, albumArtwork).forEach(::storeOfflineArtwork)
             }
         }
-    }
 
     fun download(songId: String) {
         scope.launch {

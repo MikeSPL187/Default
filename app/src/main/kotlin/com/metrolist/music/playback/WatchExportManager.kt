@@ -536,7 +536,18 @@ constructor(
         }
         // Only drop the old copy once the replacement is fully written.
         previousCopies.filter { it != uri }.forEach { resolver.delete(it, null, null) }
-        return WatchExportedFile(uri, displayName, usedOfflineDownload)
+        // While the old copy existed MediaStore saved the new one as "Name (1).m4a"; take the name back
+        // and record whatever name the file really has, so later removal finds it.
+        val finalName =
+            runCatching {
+                if (previousCopies.isNotEmpty()) {
+                    resolver.update(uri, ContentValues().apply { put(MediaStore.MediaColumns.DISPLAY_NAME, displayName) }, null, null)
+                }
+                resolver.query(uri, arrayOf(MediaStore.MediaColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) cursor.getString(0) else null
+                }
+            }.getOrNull() ?: displayName
+        return WatchExportedFile(uri, finalName, usedOfflineDownload)
     }
 
     private fun publishToLegacyStorage(

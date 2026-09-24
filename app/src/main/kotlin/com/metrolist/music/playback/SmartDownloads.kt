@@ -23,11 +23,14 @@ import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -100,20 +103,31 @@ constructor(
         if (!enabled) return@withContext
 
         val toDownload = plan.toDownload.toHashSet()
-        wanted
-            .filter { it.id in toDownload }
-            .forEach { song ->
-                if (song.id in plan.toClaim) setOwned(song.id, owned = true)
-                downloadUtil.download(song.toMediaMetadata(), viaService)
-            }
+        val preparations =
+            wanted
+                .filter { it.id in toDownload }
+                .map { song ->
+                    if (song.id in plan.toClaim) setOwned(song.id, owned = true)
+                    downloadUtil.download(song.toMediaMetadata(), viaService)
+                }
+        // The background job must not finish before the requests reach the download manager.
+        if (!viaService) preparations.joinAll()
     }
 
-    /** Waits until none of this feature's downloads are still queued or running. */
+    /**
+     * Waits until none of this feature's downloads are still queued or running. The download list is
+     * updated asynchronously after a request is added, so it is only trusted after [SETTLE_MS].
+     */
     suspend fun awaitDownloads() {
-        downloadUtil.downloads.first { downloads ->
-            ownedIds().none { id ->
-                downloads[id]?.state.let { it == Download.STATE_QUEUED || it == Download.STATE_DOWNLOADING || it == Download.STATE_RESTARTING }
-            }
+        val start = System.currentTimeMillis()
+        while (true) {
+            val downloads = downloadUtil.downloads.value
+            val active =
+                ownedIds().any { id ->
+                    downloads[id]?.state.let { it == Download.STATE_QUEUED || it == Download.STATE_DOWNLOADING || it == Download.STATE_RESTARTING }
+                }
+            if (!active && System.currentTimeMillis() - start >= SETTLE_MS) return
+            delay(POLL_MS)
         }
     }
 
@@ -143,6 +157,8 @@ constructor(
         private const val OWNED_IDS_KEY = "owned_song_ids"
         private const val MOST_PLAYED_DAYS = 90L
         private const val QUICK_PICKS_COUNT = 15
+        private const val SETTLE_MS = 15_000L
+        private const val POLL_MS = 5_000L
     }
 }
 
@@ -197,11 +213,16 @@ class SmartDownloadsJobService : JobService() {
     override fun onStartJob(params: JobParameters): Boolean {
         work =
             scope.launch {
-                runCatching {
+                try {
                     smartDownloads.refresh(viaService = false)
                     // Keep the job, and with it the process, alive while the downloads run.
                     withTimeoutOrNull(MAX_RUN_MS) { smartDownloads.awaitDownloads() }
-                }.onFailure { Timber.tag("SmartDownloads").w(it, "Smart downloads refresh failed") }
+                } catch (e: CancellationException) {
+                    // Stopped by the system: onStopJob already answered, so jobFinished must not be called.
+                    throw e
+                } catch (e: Exception) {
+                    Timber.tag("SmartDownloads").w(e, "Smart downloads refresh failed")
+                }
                 jobFinished(params, false)
             }
         return true
