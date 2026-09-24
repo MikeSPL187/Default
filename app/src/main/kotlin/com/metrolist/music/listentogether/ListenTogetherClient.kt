@@ -535,8 +535,10 @@ class ListenTogetherClient
             try {
                 scope.launch {
                     context.safeDataStoreEdit { preferences ->
-                        if (sessionToken != null) {
-                            preferences[ListenTogetherSessionTokenKey] = sessionToken!!
+                        // Read once: the token is cleared from other threads when the room is left.
+                        val token = sessionToken
+                        if (token != null) {
+                            preferences[ListenTogetherSessionTokenKey] = token
                             preferences[ListenTogetherRoomCodeKey] = storedRoomCode ?: ""
                             preferences[ListenTogetherUserIdKey] = _userId.value ?: ""
                             preferences[ListenTogetherIsHostKey] = wasHost
@@ -710,9 +712,10 @@ class ListenTogetherClient
                             evaluateBackgroundDisconnectPolicy("socket_open")
 
                             // Try to reconnect to previous session if we have a valid token
-                            if (sessionToken != null && storedRoomCode != null) {
+                            val token = sessionToken
+                            if (token != null && storedRoomCode != null) {
                                 log(LogLevel.INFO, "Attempting to reconnect to previous session", "Room: $storedRoomCode")
-                                sendMessage(MessageTypes.RECONNECT, ReconnectPayload(sessionToken!!))
+                                sendMessage(MessageTypes.RECONNECT, ReconnectPayload(token))
                             } else {
                                 // Execute any pending action
                                 executePendingAction()
@@ -1212,9 +1215,9 @@ class ListenTogetherClient
                     MessageTypes.USER_JOINED -> {
                         val payload = codec.decodePayload(msgType, payloadBytes) as? UserJoinedPayload ?: return
                         _roomState.value =
-                            _roomState.value?.copy(
-                                users = _roomState.value!!.users + UserInfo(payload.userId, payload.username, false),
-                            )
+                            _roomState.value?.let { state -> state.copy(
+                                users = state.users + UserInfo(payload.userId, payload.username, false),
+                            ) }
                         _pendingJoinRequests.value = _pendingJoinRequests.value.filter { it.userId != payload.userId }
 
                         // Dismiss notification if it exists
@@ -1229,9 +1232,9 @@ class ListenTogetherClient
                     MessageTypes.USER_LEFT -> {
                         val payload = codec.decodePayload(msgType, payloadBytes) as? UserLeftPayload ?: return
                         _roomState.value =
-                            _roomState.value?.copy(
-                                users = _roomState.value!!.users.filter { it.userId != payload.userId },
-                            )
+                            _roomState.value?.let { state -> state.copy(
+                                users = state.users.filter { it.userId != payload.userId },
+                            ) }
                         log(LogLevel.INFO, "User left", payload.username)
                         emitEvent(ListenTogetherEvent.UserLeft(payload.userId, payload.username))
                     }
@@ -1239,13 +1242,13 @@ class ListenTogetherClient
                     MessageTypes.HOST_CHANGED -> {
                         val payload = codec.decodePayload(msgType, payloadBytes) as? HostChangedPayload ?: return
                         _roomState.value =
-                            _roomState.value?.copy(
+                            _roomState.value?.let { state -> state.copy(
                                 hostId = payload.newHostId,
                                 users =
-                                    _roomState.value!!.users.map {
+                                    state.users.map {
                                         it.copy(isHost = it.userId == payload.newHostId)
                                     },
-                            )
+                            ) }
                         if (payload.newHostId == _userId.value) {
                             _role.value = RoomRole.HOST
                         } else if (_role.value == RoomRole.HOST) {
@@ -1280,43 +1283,43 @@ class ListenTogetherClient
                         when (payload.action) {
                             PlaybackActions.PLAY -> {
                                 _roomState.value =
-                                    _roomState.value?.copy(
+                                    _roomState.value?.let { state -> state.copy(
                                         isPlaying = true,
-                                        position = payload.positionOrNull ?: _roomState.value!!.position,
-                                        lastUpdate = payload.serverTimeOrNull ?: _roomState.value!!.lastUpdate,
-                                        revision = maxOf(_roomState.value!!.revision, payload.revision),
-                                    )
+                                        position = payload.positionOrNull ?: state.position,
+                                        lastUpdate = payload.serverTimeOrNull ?: state.lastUpdate,
+                                        revision = maxOf(state.revision, payload.revision),
+                                    ) }
                             }
 
                             PlaybackActions.PAUSE -> {
                                 _roomState.value =
-                                    _roomState.value?.copy(
+                                    _roomState.value?.let { state -> state.copy(
                                         isPlaying = false,
-                                        position = payload.positionOrNull ?: _roomState.value!!.position,
-                                        lastUpdate = payload.serverTimeOrNull ?: _roomState.value!!.lastUpdate,
-                                        revision = maxOf(_roomState.value!!.revision, payload.revision),
-                                    )
+                                        position = payload.positionOrNull ?: state.position,
+                                        lastUpdate = payload.serverTimeOrNull ?: state.lastUpdate,
+                                        revision = maxOf(state.revision, payload.revision),
+                                    ) }
                             }
 
                             PlaybackActions.SEEK -> {
                                 _roomState.value =
-                                    _roomState.value?.copy(
-                                        position = payload.positionOrNull ?: _roomState.value!!.position,
-                                        lastUpdate = payload.serverTimeOrNull ?: _roomState.value!!.lastUpdate,
-                                        revision = maxOf(_roomState.value!!.revision, payload.revision),
-                                    )
+                                    _roomState.value?.let { state -> state.copy(
+                                        position = payload.positionOrNull ?: state.position,
+                                        lastUpdate = payload.serverTimeOrNull ?: state.lastUpdate,
+                                        revision = maxOf(state.revision, payload.revision),
+                                    ) }
                             }
 
                             PlaybackActions.CHANGE_TRACK -> {
                                 _roomState.value =
-                                    _roomState.value?.copy(
+                                    _roomState.value?.let { state -> state.copy(
                                         currentTrack = payload.trackInfoOrNull,
                                         isPlaying = false,
                                         position = 0,
-                                        lastUpdate = payload.serverTimeOrNull ?: _roomState.value!!.lastUpdate,
-                                        queue = if (payload.revision > 0L) payload.queue.orEmpty() else _roomState.value!!.queue,
-                                        revision = maxOf(_roomState.value!!.revision, payload.revision),
-                                    )
+                                        lastUpdate = payload.serverTimeOrNull ?: state.lastUpdate,
+                                        queue = if (payload.revision > 0L) payload.queue.orEmpty() else state.queue,
+                                        revision = maxOf(state.revision, payload.revision),
+                                    ) }
                             }
 
                             PlaybackActions.QUEUE_ADD -> {
@@ -1368,9 +1371,9 @@ class ListenTogetherClient
                         }
 
                         _roomState.value =
-                            _roomState.value?.copy(
-                                revision = maxOf(_roomState.value!!.revision, payload.revision),
-                            )
+                            _roomState.value?.let { state -> state.copy(
+                                revision = maxOf(state.revision, payload.revision),
+                            ) }
 
                         emitEvent(ListenTogetherEvent.PlaybackSync(payload))
                     }
@@ -1396,15 +1399,15 @@ class ListenTogetherClient
                             return
                         }
                         _roomState.value =
-                            _roomState.value?.copy(
+                            _roomState.value?.let { state -> state.copy(
                                 currentTrack = payload.currentTrackOrNull,
                                 isPlaying = payload.isPlaying,
                                 position = payload.position,
                                 lastUpdate = payload.lastUpdate,
                                 volume = payload.volume,
-                                queue = payload.queue ?: _roomState.value!!.queue,
-                                revision = maxOf(_roomState.value!!.revision, payload.revision),
-                            )
+                                queue = payload.queue ?: state.queue,
+                                revision = maxOf(state.revision, payload.revision),
+                            ) }
                         log(LogLevel.INFO, "Sync state received", "Playing: ${payload.isPlaying}, Position: ${payload.position}")
                         emitEvent(ListenTogetherEvent.SyncStateReceived(payload))
                     }
@@ -1557,12 +1560,12 @@ class ListenTogetherClient
                         val payload = codec.decodePayload(msgType, payloadBytes) as? UserReconnectedPayload ?: return
                         // Mark user as connected in the room state
                         _roomState.value =
-                            _roomState.value?.copy(
+                            _roomState.value?.let { state -> state.copy(
                                 users =
-                                    _roomState.value!!.users.map { user ->
+                                    state.users.map { user ->
                                         if (user.userId == payload.userId) user.copy(isConnected = true) else user
                                     },
-                            )
+                            ) }
                         log(LogLevel.INFO, "User reconnected", payload.username)
                         emitEvent(ListenTogetherEvent.UserReconnected(payload.userId, payload.username))
                     }
@@ -1571,12 +1574,12 @@ class ListenTogetherClient
                         val payload = codec.decodePayload(msgType, payloadBytes) as? UserDisconnectedPayload ?: return
                         // Mark user as disconnected in the room state
                         _roomState.value =
-                            _roomState.value?.copy(
+                            _roomState.value?.let { state -> state.copy(
                                 users =
-                                    _roomState.value!!.users.map { user ->
+                                    state.users.map { user ->
                                         if (user.userId == payload.userId) user.copy(isConnected = false) else user
                                     },
-                            )
+                            ) }
                         log(LogLevel.INFO, "User temporarily disconnected", payload.username)
                         emitEvent(ListenTogetherEvent.UserDisconnected(payload.userId, payload.username))
                     }
