@@ -644,7 +644,7 @@ private fun PodcastEpisodePlaylistMenu(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val syncUtils = LocalSyncUtils.current
-    val isPinned by database.speedDialDao.isPinned(podcast.id).collectAsStateWithLifecycle(initialValue = false)
+    val isPinned by remember(podcast.id) { database.speedDialDao.isPinned(podcast.id) }.collectAsStateWithLifecycle(initialValue = false)
 
     val playlistId = podcast.id.removePrefix("MPSP")
     val shareUrl = "https://music.youtube.com/playlist?list=$playlistId"

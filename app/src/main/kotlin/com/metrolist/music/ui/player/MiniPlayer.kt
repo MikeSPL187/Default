@@ -1091,7 +1091,7 @@ private fun FavoriteButton(
 ) {
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val librarySong by database.song(songId).collectAsStateWithLifecycle(initialValue = null)
+    val librarySong by remember(songId) { database.song(songId) }.collectAsStateWithLifecycle(initialValue = null)
     // For episodes, show saved state (inLibrary); for songs, show liked state
     val isEpisode = librarySong?.song?.isEpisode == true
     val isLiked = if (isEpisode) librarySong?.song?.inLibrary != null else librarySong?.song?.liked == true

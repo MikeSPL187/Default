@@ -500,10 +500,10 @@ fun SongListItem(
             Icon.Library()
         }
         if (showDownloadIcon) {
-            val download by LocalDownloadUtil.current.getDownload(song.id)
+            val download by LocalDownloadUtil.current.let { util -> remember(song.id, util) { util.getDownload(song.id) } }
                 .collectAsStateWithLifecycle(initialValue = null)
             Icon.Download(download?.state)
-            val watchExport by LocalDownloadUtil.current.getWatchExportState(song.id)
+            val watchExport by LocalDownloadUtil.current.let { util -> remember(song.id, util) { util.getWatchExportState(song.id) } }
                 .collectAsStateWithLifecycle(initialValue = WatchExportState.NotExported)
             Icon.WatchExport(watchExport)
         }
@@ -593,9 +593,9 @@ fun SongGridItem(
             Icon.Library()
         }
         if (showDownloadIcon) {
-            val download by LocalDownloadUtil.current.getDownload(song.id).collectAsStateWithLifecycle(initialValue = null)
+            val download by LocalDownloadUtil.current.let { util -> remember(song.id, util) { util.getDownload(song.id) } }.collectAsStateWithLifecycle(initialValue = null)
             Icon.Download(download?.state)
-            val watchExport by LocalDownloadUtil.current.getWatchExportState(song.id)
+            val watchExport by LocalDownloadUtil.current.let { util -> remember(song.id, util) { util.getWatchExportState(song.id) } }
                 .collectAsStateWithLifecycle(initialValue = WatchExportState.NotExported)
             Icon.WatchExport(watchExport)
         }
@@ -1153,7 +1153,7 @@ fun YouTubeListItem(
         //     Icon.Library()
         // }
         if (item is SongItem) {
-            val download by LocalDownloadUtil.current.getDownload(item.id).collectAsStateWithLifecycle(null)
+            val download by LocalDownloadUtil.current.let { util -> remember(item.id, util) { util.getDownload(item.id) } }.collectAsStateWithLifecycle(null)
             Icon.Download(download?.state)
         }
     },
@@ -1258,7 +1258,7 @@ fun YouTubeGridItem(
         if (item.explicit) Icon.Explicit()
         // if (item is SongItem && song?.song?.inLibrary != null) Icon.Library()
         if (item is SongItem) {
-            val download by LocalDownloadUtil.current.getDownload(item.id).collectAsStateWithLifecycle(null)
+            val download by LocalDownloadUtil.current.let { util -> remember(item.id, util) { util.getDownload(item.id) } }.collectAsStateWithLifecycle(null)
             Icon.Download(download?.state)
         }
     },

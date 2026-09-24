@@ -104,13 +104,13 @@ fun YouTubeSongMenu(
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val downloadUtil = LocalDownloadUtil.current
-    val librarySong by database.song(song.id).collectAsStateWithLifecycle(initialValue = null)
-    val download by downloadUtil.getDownload(song.id).collectAsStateWithLifecycle(initialValue = null)
+    val librarySong by remember(song.id) { database.song(song.id) }.collectAsStateWithLifecycle(initialValue = null)
+    val download by remember(song.id) { downloadUtil.getDownload(song.id) }.collectAsStateWithLifecycle(initialValue = null)
     val coroutineScope = rememberCoroutineScope()
     val notRecommended by rememberNotRecommended()
     val syncUtils = LocalSyncUtils.current
     val listenTogetherManager = LocalListenTogetherManager.current
-    val isPinned by database.speedDialDao.isPinned(song.id).collectAsStateWithLifecycle(initialValue = false)
+    val isPinned by remember(song.id) { database.speedDialDao.isPinned(song.id) }.collectAsStateWithLifecycle(initialValue = false)
     val artistNameAliases = LocalArtistNameAliases.current
     val artists = remember(song.artists, artistNameAliases) {
         song.artists.mapNotNull {

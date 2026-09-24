@@ -152,7 +152,7 @@ fun AlbumMenu(
         label = "",
     )
 
-    val isPinned by database.speedDialDao.isPinned(album.id).collectAsStateWithLifecycle(initialValue = false)
+    val isPinned by remember(album.id) { database.speedDialDao.isPinned(album.id) }.collectAsStateWithLifecycle(initialValue = false)
 
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)

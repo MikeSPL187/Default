@@ -119,15 +119,15 @@ fun SongMenu(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val songState = database.song(originalSong.id).collectAsStateWithLifecycle(initialValue = originalSong)
+    val songState = remember(originalSong.id) { database.song(originalSong.id) }.collectAsStateWithLifecycle(initialValue = originalSong)
     val song = songState.value ?: originalSong
     val notRecommended by rememberNotRecommended()
     val downloadUtil = LocalDownloadUtil.current
-    val download by downloadUtil
-        .getDownload(originalSong.id)
+    val download by remember(originalSong.id) { downloadUtil
+        .getDownload(originalSong.id) }
         .collectAsStateWithLifecycle(initialValue = null)
-    val watchExportState by downloadUtil
-        .getWatchExportState(originalSong.id)
+    val watchExportState by remember(originalSong.id) { downloadUtil
+        .getWatchExportState(originalSong.id) }
         .collectAsStateWithLifecycle(initialValue = WatchExportState.NotExported)
     val exportForWatch = rememberSharedStorageAction { downloadUtil.watchExportManager.export(song) }
     val coroutineScope = rememberCoroutineScope()
@@ -144,7 +144,7 @@ fun SongMenu(
         label = "",
     )
 
-    val isPinned by database.speedDialDao.isPinned(song.id).collectAsStateWithLifecycle(initialValue = false)
+    val isPinned by remember(song.id) { database.speedDialDao.isPinned(song.id) }.collectAsStateWithLifecycle(initialValue = false)
 
     // Podcast subscription state for episodes
     val podcastEntity by produceState<PodcastEntity?>(initialValue = null, song) {

@@ -135,16 +135,16 @@ fun PlayerMenu(
 
     val varispeedMode by rememberPreference(VarispeedKey, defaultValue = false)
 
-    val librarySong by database.song(mediaMetadata.id).collectAsStateWithLifecycle(initialValue = null)
+    val librarySong by remember(mediaMetadata.id) { database.song(mediaMetadata.id) }.collectAsStateWithLifecycle(initialValue = null)
     val coroutineScope = rememberCoroutineScope()
     val notRecommended by rememberNotRecommended()
     val downloadUtil = LocalDownloadUtil.current
 
-    val download by downloadUtil
-        .getDownload(mediaMetadata.id)
+    val download by remember(mediaMetadata.id) { downloadUtil
+        .getDownload(mediaMetadata.id) }
         .collectAsStateWithLifecycle(initialValue = null)
 
-    val isPinned by database.speedDialDao.isPinned(mediaMetadata.id).collectAsStateWithLifecycle(initialValue = false)
+    val isPinned by remember(mediaMetadata.id) { database.speedDialDao.isPinned(mediaMetadata.id) }.collectAsStateWithLifecycle(initialValue = false)
 
     val artists =
         remember(mediaMetadata.artists) {

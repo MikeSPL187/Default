@@ -173,7 +173,7 @@ fun PlaylistMenu(
         )
     }
 
-    val isPinned by database.speedDialDao.isPinned(playlist.id).collectAsStateWithLifecycle(initialValue = false)
+    val isPinned by remember(playlist.id) { database.speedDialDao.isPinned(playlist.id) }.collectAsStateWithLifecycle(initialValue = false)
 
     var showExportDialog by remember { mutableStateOf(false) }
     val downloads by downloadUtil.downloads.collectAsStateWithLifecycle()

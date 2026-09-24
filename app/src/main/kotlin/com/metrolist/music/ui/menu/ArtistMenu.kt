@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.menu
 
+import androidx.compose.runtime.remember
 import android.content.Intent
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.PaddingValues
@@ -62,7 +63,7 @@ fun ArtistMenu(
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
     val artistState = database.artist(originalArtist.id).collectAsStateWithLifecycle(initialValue = originalArtist)
     val artist = artistState.value ?: originalArtist
-    val isPinned by database.speedDialDao.isPinned(artist.id).collectAsStateWithLifecycle(initialValue = false)
+    val isPinned by remember(artist.id) { database.speedDialDao.isPinned(artist.id) }.collectAsStateWithLifecycle(initialValue = false)
     val notRecommended by rememberNotRecommended()
 
     ArtistListItem(

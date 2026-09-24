@@ -1586,10 +1586,10 @@ fun HomeScreen(
                                                                 }
                                                             } else if (itemIndex < pageItems.size) {
                                                                 val item = pageItems[itemIndex]
-                                                                val isPinned by database.speedDialDao
+                                                                val isPinned by remember(item.id,) { database.speedDialDao
                                                                     .isPinned(
                                                                         item.id,
-                                                                    ).collectAsStateWithLifecycle(initialValue = false)
+                                                                    ) }.collectAsStateWithLifecycle(initialValue = false)
 
                                                                 Box(
                                                                     modifier =
@@ -1817,8 +1817,8 @@ fun HomeScreen(
                                                 key = { "home_quickpick_${it.id}" },
                                             ) { originalSong ->
                                             // fetch song from database to keep updated
-                                            val song by database
-                                                .song(originalSong.id)
+                                            val song by remember(originalSong.id) { database
+                                                .song(originalSong.id) }
                                                 .collectAsStateWithLifecycle(initialValue = originalSong)
 
                                             SongListItem(
@@ -2140,8 +2140,8 @@ fun HomeScreen(
                                                 items = daylistSongs.distinctBy { it.id },
                                                 key = { "home_daylist_${it.id}" },
                                             ) { originalSong ->
-                                            val song by database
-                                                .song(originalSong.id)
+                                            val song by remember(originalSong.id) { database
+                                                .song(originalSong.id) }
                                                 .collectAsStateWithLifecycle(initialValue = originalSong)
 
                                             SongListItem(
@@ -2254,8 +2254,8 @@ fun HomeScreen(
                                                 items = forgottenFavorites.distinctBy { it.id },
                                                 key = { "home_forgotten_${it.id}" },
                                             ) { originalSong ->
-                                            val song by database
-                                                .song(originalSong.id)
+                                            val song by remember(originalSong.id) { database
+                                                .song(originalSong.id) }
                                                 .collectAsStateWithLifecycle(initialValue = originalSong)
 
                                             SongListItem(

@@ -581,8 +581,8 @@ fun BottomSheetPlayer(
             }
         }
 
-    val download by LocalDownloadUtil.current
-        .getDownload(mediaMetadata?.id ?: "")
+    val download by LocalDownloadUtil.current.let { util -> remember(mediaMetadata?.id ?: "", util) { util
+        .getDownload(mediaMetadata?.id ?: "") } }
         .collectAsStateWithLifecycle(initialValue = null)
 
     val sleepTimerEnabled =

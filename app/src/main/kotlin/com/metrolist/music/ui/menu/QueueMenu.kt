@@ -96,8 +96,8 @@ fun QueueMenu(
     val syncUtils = LocalSyncUtils.current
 
     val downloadUtil = LocalDownloadUtil.current
-    val librarySong by database.song(mediaMetadata.id).collectAsStateWithLifecycle(initialValue = null)
-    val download by downloadUtil.getDownload(mediaMetadata.id)
+    val librarySong by remember(mediaMetadata.id) { database.song(mediaMetadata.id) }.collectAsStateWithLifecycle(initialValue = null)
+    val download by remember(mediaMetadata.id) { downloadUtil.getDownload(mediaMetadata.id) }
         .collectAsStateWithLifecycle(initialValue = null)
 
     var refetchIconDegree by remember { mutableFloatStateOf(0f) }
