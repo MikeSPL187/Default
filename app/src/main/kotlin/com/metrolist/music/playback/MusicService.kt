@@ -2191,13 +2191,15 @@ class MusicService :
         playQueue(queue)
         player.shuffleModeEnabled = false
         smartShuffleJob?.cancel()
+        // playQueue drops hidden explicit/video songs, so the queue can end up shorter than the playlist.
+        val expectedCount = shuffled.filterExplicit(cachedHideExplicit).filterVideoSongs(cachedHideVideoSongs).size
         smartShuffleJob =
             scope.launch(SilentHandler) {
                 val picks = withContext(Dispatchers.IO) { smartShuffleRecommendations(shuffled) }
                 withTimeoutOrNull(SMART_SHUFFLE_QUEUE_WAIT_MS) {
-                    while (currentQueue === queue && player.mediaItemCount < shuffled.size) delay(200)
+                    while (currentQueue === queue && player.mediaItemCount < expectedCount) delay(200)
                 }
-                if (currentQueue !== queue || picks.isEmpty() || player.mediaItemCount < shuffled.size) return@launch
+                if (currentQueue !== queue || picks.isEmpty() || player.mediaItemCount < expectedCount) return@launch
                 var insertAt = player.currentMediaItemIndex + 1 + SMART_SHUFFLE_EVERY
                 for (pick in picks) {
                     if (insertAt > player.mediaItemCount) break
@@ -2253,9 +2255,10 @@ class MusicService :
         item: MediaItem,
         position: Int,
     ) {
+        // The list may have changed since the UI read the position.
         automixItems.value =
             automixItems.value.toMutableList().apply {
-                removeAt(position)
+                if (position in indices) removeAt(position) else remove(item)
             }
         addToQueue(listOf(item))
     }
@@ -2266,7 +2269,7 @@ class MusicService :
     ) {
         automixItems.value =
             automixItems.value.toMutableList().apply {
-                removeAt(position)
+                if (position in indices) removeAt(position) else remove(item)
             }
         playNext(listOf(item))
     }
