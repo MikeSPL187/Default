@@ -253,10 +253,11 @@ fun YouTubeSongMenu(
                             librarySong.let { librarySong ->
                                 val s: SongEntity
                                 if (librarySong == null) {
-                                    insert(song.toMediaMetadata(), SongEntity::toggleLike)
-                                    s = song.toMediaMetadata().toSongEntity().let(SongEntity::toggleLike)
+                                    // YouTube is updated once, through the ordered sync queue below.
+                                    insert(song.toMediaMetadata()) { it.toggleLike(syncToYouTube = false) }
+                                    s = song.toMediaMetadata().toSongEntity().toggleLike(syncToYouTube = false)
                                 } else {
-                                    s = librarySong.song.toggleLike()
+                                    s = librarySong.song.toggleLike(syncToYouTube = false)
                                     update(s)
                                 }
                                 syncUtils.likeSong(s)

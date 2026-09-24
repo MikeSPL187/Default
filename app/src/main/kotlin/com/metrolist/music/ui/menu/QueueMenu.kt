@@ -226,8 +226,8 @@ fun QueueMenu(
                                     }
                                 }
                             } else {
-                                // Regular song: toggle like
-                                val s = songEntity.toggleLike()
+                                // Regular song: toggle like; YouTube is updated through the ordered sync queue
+                                val s = songEntity.toggleLike(syncToYouTube = false)
                                 database.query {
                                     update(s)
                                 }

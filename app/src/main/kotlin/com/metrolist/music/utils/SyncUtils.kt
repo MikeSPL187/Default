@@ -209,6 +209,9 @@ class SyncUtils @Inject constructor(
             Timber.d("Skipping duplicate sync operation: $operation")
             return
         }
+        // Queue synchronously when there is room, so operations keep the order they were made in
+        // (a like followed by an unlike must reach YouTube in that order).
+        if (syncChannel.trySend(operation).isSuccess) return
         syncScope.launch {
             try {
                 syncChannel.send(operation)
