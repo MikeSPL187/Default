@@ -1000,4 +1000,73 @@
 
     <!-- CSV import -->
     <string name="csv_preview_failed">Не удалось открыть предпросмотр CSV-файла</string>
+
+    <!-- Wrapped for any period -->
+    <string name="wrapped_period_last_7_days">за последние 7 дней</string>
+    <string name="wrapped_period_month">за %s</string>
+    <string name="wrapped_period_year">за %d год</string>
+    <string name="wrapped_period_all_time">за всё время</string>
+    <string name="wrapped_period_custom">с %1$s по %2$s</string>
+    <string name="wrapped_top_songs_title_period">Ваши топ-треки %s</string>
+    <string name="wrapped_top_artists_title_period">Ваши топ-исполнители %s</string>
+    <string name="wrapped_top_artist_title_period">Ваш главный исполнитель %s</string>
+    <string name="wrapped_intro_subtitle_period">пришло время узнать, что вы слушали %s…</string>
+    <string name="wrapped_ready_subtitle_year">Время узнать, что вам понравилось в %d году…</string>
+    <string name="wrapped_recap">Ваши итоги</string>
+    <string name="wrapped_recap_description">Лучшие треки, исполнители и альбомы за любой период</string>
+    <string name="wrapped_last_7_days">Последние 7 дней</string>
+    <string name="wrapped_all_time">За всё время</string>
+    <string name="wrapped_pick_dates">Выбрать даты…</string>
+    <string name="wrapped_no_listening">За этот период пока нет прослушиваний</string>
+    <string name="wrapped_recap_empty">Послушайте музыку, и здесь появятся ваши итоги</string>
+
+    <!-- Wrapped listening time messages, from the lightest listeners to the heaviest; %s is a number of minutes -->
+    <string name="wrapped_message_0_0_tease">Надеемся, вы не расстроитесь…</string>
+    <string name="wrapped_message_0_0_reveal">Это **%s**. Только разогреваетесь?</string>
+    <string name="wrapped_message_0_1_tease">Пробуете воду?</string>
+    <string name="wrapped_message_0_1_reveal">**%s** — короткое погружение в музыкальный океан.</string>
+    <string name="wrapped_message_0_2_tease">Много дел в последнее время?</string>
+    <string name="wrapped_message_0_2_reveal">**%s** — коротко и по делу.</string>
+    <string name="wrapped_message_0_3_tease">Говорят, молчание — золото…</string>
+    <string name="wrapped_message_0_3_reveal">Но вы выбрали музыку. Итого — **%s**.</string>
+    <string name="wrapped_message_1_0_tease">Понемногу каждый день…</string>
+    <string name="wrapped_message_1_0_reveal">…а в сумме — **%s**.</string>
+    <string name="wrapped_message_1_1_tease">У вас есть жизнь и вне музыки.</string>
+    <string name="wrapped_message_1_1_reveal">**%s** — здоровый баланс. Уважаем.</string>
+    <string name="wrapped_message_1_2_tease">Не слишком тихо, не слишком громко.</string>
+    <string name="wrapped_message_1_2_reveal">Ровно столько, сколько нужно: **%s**.</string>
+    <string name="wrapped_message_1_3_tease">Небольшая остановка в пути.</string>
+    <string name="wrapped_message_1_3_reveal">Спасибо, что заглядывали. Итого — **%s**.</string>
+    <string name="wrapped_message_2_0_tease">Музыка — определённо ваше.</string>
+    <string name="wrapped_message_2_0_reveal">**%s** — достойный саундтрек.</string>
+    <string name="wrapped_message_2_1_tease">Мы часто вас здесь видели.</string>
+    <string name="wrapped_message_2_1_reveal">**%s** хорошего настроения.</string>
+    <string name="wrapped_message_2_2_tease">Похоже, дорога у вас нескучная.</string>
+    <string name="wrapped_message_2_2_reveal">**%s** мелодий.</string>
+    <string name="wrapped_message_2_3_tease">Стабильно. Надёжно. Ритмично.</string>
+    <string name="wrapped_message_2_3_reveal">Вы знаете, что любите. Итого — **%s**.</string>
+    <string name="wrapped_message_3_0_tease">Вы вообще снимаете наушники?</string>
+    <string name="wrapped_message_3_0_reveal">**%s** — музыка для вас как воздух.</string>
+    <string name="wrapped_message_3_1_tease">Батарея просит пощады.</string>
+    <string name="wrapped_message_3_1_reveal">Зато ваши уши оценили: **%s**.</string>
+    <string name="wrapped_message_3_2_tease">Замечена энергия главного героя.</string>
+    <string name="wrapped_message_3_2_reveal">Ваша жизнь — кино, и его хронометраж — **%s**.</string>
+    <string name="wrapped_message_3_3_tease">Прогулки, работа, сон…</string>
+    <string name="wrapped_message_3_3_reveal">И всё это время играла музыка: **%s**.</string>
+    <string name="wrapped_message_4_0_tease">С вами… всё в порядке?</string>
+    <string name="wrapped_message_4_0_reveal">Вы практически жили здесь: **%s**.</string>
+    <string name="wrapped_message_4_1_tease">Мы переживаем за ваши барабанные перепонки.</string>
+    <string name="wrapped_message_4_1_reveal">Высший уровень. **%s** — это легенда.</string>
+    <string name="wrapped_message_4_2_tease">Тишина вас пугает, да?</string>
+    <string name="wrapped_message_4_2_reveal">Стена звука: **%s**.</string>
+    <string name="wrapped_message_4_3_tease">Сертифицированный стресс-тестер.</string>
+    <string name="wrapped_message_4_3_reveal">Серверы работали на вас: **%s**.</string>
+    <string name="wrapped_message_fallback_tease">Кажется, мы сбились со счёта!</string>
+    <string name="wrapped_message_fallback_reveal">Но музыки точно было: **%s**.</string>
+
+    <!-- Wrapped for a single day -->
+    <string name="wrapped_period_day">за %s</string>
+
+    <!-- Wrapped card dismissal hint -->
+    <string name="wrapped_find_in_stats">Итоги за любой период всегда есть в разделе «Статистика»</string>
 </resources>

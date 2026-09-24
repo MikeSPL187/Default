@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -123,6 +124,15 @@ class PlayStatsQueriesTest {
         val related = dao.getRelatedSongs("seed").first()
 
         assertEquals(setOf("a", "c"), related.map { it.id }.toSet())
+    }
+
+    @Test
+    fun `first listen is the earliest play, not the first one stored`() = runBlocking {
+        assertNull(dao.firstListenTime())
+        play("a", 10, at = NOW.minusDays(1))
+        play("b", 10, at = NOW.minusDays(30))
+
+        assertEquals(NOW.minusDays(30), dao.firstListenTime())
     }
 
     private companion object {

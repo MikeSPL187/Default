@@ -41,7 +41,7 @@ import com.metrolist.music.R
 import com.metrolist.music.db.entities.Artist
 
 @Composable
-fun WrappedTopArtistScreen(topArtist: Artist?, isVisible: Boolean) {
+fun WrappedTopArtistScreen(title: String, topArtist: Artist?, isVisible: Boolean) {
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(isVisible) {
         if (isVisible) {
@@ -61,7 +61,7 @@ fun WrappedTopArtistScreen(topArtist: Artist?, isVisible: Boolean) {
             enter = fadeIn(animationSpec = tween(1000, delayMillis = 200)) + slideInVertically(animationSpec = tween(1000, delayMillis = 200))
         ) {
             Text(
-                text = stringResource(id = R.string.wrapped_top_artist_title),
+                text = title,
                 style = MaterialTheme.typography.headlineSmall,
                 color = Color.White,
                 textAlign = TextAlign.Center

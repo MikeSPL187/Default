@@ -6,21 +6,16 @@
 package com.metrolist.music.ui.screens.wrapped
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import com.metrolist.innertube.YouTube
-import com.metrolist.innertube.models.AccountInfo
+import androidx.annotation.DrawableRes
 import com.metrolist.music.constants.ArtistSongSortType
 import com.metrolist.music.db.DatabaseDao
-import com.metrolist.music.db.entities.Artist
 import com.metrolist.music.db.entities.PlaylistEntity
-import com.metrolist.music.db.entities.SongWithStats
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -29,9 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import java.io.FileOutputStream
 import java.time.LocalDateTime
-import java.util.Calendar
 import java.util.UUID
 
 sealed class PlaylistCreationState {
@@ -42,36 +35,39 @@ sealed class PlaylistCreationState {
 
 class WrappedManager(
     private val databaseDao: DatabaseDao,
-    private val context: Context
+    private val context: Context,
+    val period: WrappedPeriod,
 ) {
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
-    private val _state = MutableStateFlow(WrappedState())
+    /** Fixed when the recap opens so every page and the saved playlist cover the same stretch. */
+    val now: LocalDateTime = LocalDateTime.now()
+    private val range = period.range(now)
+
+    private val _state = MutableStateFlow(WrappedState(bigLabel = period.bigLabel(now, firstListen = null)))
     val state = _state.asStateFlow()
 
-    fun createPlaylist(imageResName: String) {
+    fun createPlaylist(@DrawableRes cover: Int, playlistName: String) {
         if (_state.value.playlistCreationState != PlaylistCreationState.Idle) return
 
         _state.update { it.copy(playlistCreationState = PlaylistCreationState.Creating) }
         scope.launch {
             try {
-                withContext(Dispatchers.IO) {
-                    val fromTimestamp = LocalDateTime.of(WrappedConstants.YEAR, 1, 1, 0, 0, 0)
-                    val toTimestamp = LocalDateTime.of(WrappedConstants.YEAR, 12, 31, 23, 59, 59)
-                    val allSongs = databaseDao.mostPlayedSongsStats(fromTimestamp, toTimeStamp = toTimestamp, limit = -1).first()
+                // Leaving the recap must not stop the save halfway and leave an empty playlist behind.
+                withContext(Dispatchers.IO + NonCancellable) {
+                    val allSongs = databaseDao.mostPlayedSongsStats(range.from, toTimeStamp = range.to, limit = -1).first()
 
                     val playlistId = UUID.randomUUID().toString()
 
-                    val drawableId = context.resources.getIdentifier(imageResName, "drawable", context.packageName)
-                    val bitmap = BitmapFactory.decodeResource(context.resources, drawableId)
-                    val file = File(context.cacheDir, "$playlistId.png")
-                    FileOutputStream(file).use {
-                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
+                    // Kept in app storage, not the cache, so the system never takes the cover away.
+                    val file = File(File(context.filesDir, "playlist_covers").apply { mkdirs() }, "$playlistId.png")
+                    context.resources.openRawResource(cover).use { input ->
+                        file.outputStream().use { input.copyTo(it) }
                     }
 
                     val newPlaylist = PlaylistEntity(
                         id = playlistId,
-                        name = WrappedConstants.PLAYLIST_NAME,
+                        name = playlistName,
                         thumbnailUrl = file.toURI().toString(),
                         bookmarkedAt = LocalDateTime.now(),
                         isEditable = true
@@ -132,16 +128,14 @@ class WrappedManager(
 
             // Artist Part: Top artist's song with specific rule
             val topArtist = topArtists.firstOrNull()
-            val fromTimestamp = LocalDateTime.of(WrappedConstants.YEAR, 1, 1, 0, 0, 0)
-            val toTimestamp = LocalDateTime.of(WrappedConstants.YEAR, 12, 31, 23, 59, 59)
 
             val artistSong = topArtist?.let { artist ->
                 val artistTopSongs = databaseDao.artistSongs(
                     artistId = artist.id,
                     sortType = ArtistSongSortType.PLAY_TIME,
                     descending = true,
-                    fromTimeStamp = fromTimestamp,
-                    toTimeStamp = toTimestamp
+                    fromTimeStamp = range.from,
+                    toTimeStamp = range.to
                 ).first()
                 if (artistTopSongs.isNotEmpty()) {
                     val artistTopSong = artistTopSongs.first()
@@ -174,49 +168,32 @@ class WrappedManager(
 
     suspend fun prepare() {
         if (_state.value.isDataReady) return
-        Timber.tag("WrappedManager").d("Starting Wrapped data preparation")
+        Timber.tag("WrappedManager").d("Starting Wrapped data preparation for $period")
 
-        val fromTimestamp = LocalDateTime.of(WrappedConstants.YEAR, 1, 1, 0, 0, 0)
-        val toTimestamp = LocalDateTime.of(WrappedConstants.YEAR, 12, 31, 23, 59, 59)
-
+        val (from, to) = range
         withContext(Dispatchers.IO) {
-            val accountInfoDeferred = async { YouTube.accountInfo().getOrNull() }
-            val topSongsDeferred = async { databaseDao.mostPlayedSongsStats(fromTimestamp, toTimeStamp = toTimestamp, limit = 30).first() }
-            val topArtistsDeferred = async { databaseDao.mostPlayedArtists(fromTimestamp, toTimeStamp = toTimestamp, limit = 5).first() }
-            val topAlbumsDeferred = async { databaseDao.mostPlayedAlbums(fromTimestamp, toTimeStamp = toTimestamp, limit = 5).first() }
-            val uniqueSongCountDeferred = async { databaseDao.getUniqueSongCountInRange(fromTimestamp, toTimestamp).first() }
-            val uniqueArtistCountDeferred = async { databaseDao.getUniqueArtistCountInRange(fromTimestamp, toTimestamp).first() }
-            val uniqueAlbumCountDeferred = async { databaseDao.getUniqueAlbumCountInRange(fromTimestamp, toTimestamp).first() }
-            val totalPlayTimeMsDeferred = async { databaseDao.getTotalPlayTimeInRange(fromTimestamp, toTimestamp).first() ?: 0L }
+            val topSongs = async { databaseDao.mostPlayedSongsStats(from, toTimeStamp = to, limit = 30).first() }
+            val topArtists = async { databaseDao.mostPlayedArtists(from, toTimeStamp = to, limit = 5).first() }
+            val topAlbums = async { databaseDao.mostPlayedAlbums(from, toTimeStamp = to, limit = 5).first() }
+            val uniqueSongCount = async { databaseDao.getUniqueSongCountInRange(from, to).first() }
+            val uniqueArtistCount = async { databaseDao.getUniqueArtistCountInRange(from, to).first() }
+            val uniqueAlbumCount = async { databaseDao.getUniqueAlbumCountInRange(from, to).first() }
+            val totalPlayTimeMs = async { databaseDao.getTotalPlayTimeInRange(from, to).first() ?: 0L }
+            val firstListen = async { databaseDao.firstListenTime() }
 
-            val results = awaitAll(
-                accountInfoDeferred,
-                topSongsDeferred,
-                topArtistsDeferred,
-                topAlbumsDeferred,
-                uniqueSongCountDeferred,
-                uniqueArtistCountDeferred,
-                uniqueAlbumCountDeferred,
-                totalPlayTimeMsDeferred
-            )
-
-            @Suppress("UNCHECKED_CAST")
-            val topSongsResult = results[1] as List<SongWithStats>
-            @Suppress("UNCHECKED_CAST")
-            val topAlbumsResult = results[3] as List<com.metrolist.music.db.entities.Album>
-            @Suppress("UNCHECKED_CAST")
-            val topArtistsResult = results[2] as List<Artist>
+            val albums = topAlbums.await()
             _state.update {
                 it.copy(
-                    accountInfo = results[0] as AccountInfo?,
-                    topSongs = topSongsResult,
-                    topArtists = topArtistsResult,
-                    top5Albums = topAlbumsResult,
-                    topAlbum = topAlbumsResult.firstOrNull(),
-                    uniqueSongCount = results[4] as Int,
-                    uniqueArtistCount = results[5] as Int,
-                    totalAlbums = results[6] as Int,
-                    totalMinutes = (results[7] as Long) / 1000 / 60
+                    topSongs = topSongs.await(),
+                    topArtists = topArtists.await(),
+                    top5Albums = albums,
+                    topAlbum = albums.firstOrNull(),
+                    uniqueSongCount = uniqueSongCount.await(),
+                    uniqueArtistCount = uniqueArtistCount.await(),
+                    totalAlbums = uniqueAlbumCount.await(),
+                    totalMinutes = totalPlayTimeMs.await() / 1000 / 60,
+                    elapsedDays = period.elapsedDays(now, firstListen.await()),
+                    bigLabel = period.bigLabel(now, firstListen.await()),
                 )
             }
         }

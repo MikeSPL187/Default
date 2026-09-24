@@ -42,12 +42,13 @@ import coil3.compose.AsyncImage
 import com.metrolist.music.R
 import com.metrolist.music.db.entities.SongWithStats
 import com.metrolist.music.ui.screens.wrapped.components.AnimatedBackground
+import com.metrolist.music.ui.screens.wrapped.components.WrappedTitle
 import com.metrolist.music.ui.screens.wrapped.components.ShapeType
 import com.metrolist.music.ui.theme.bbh_bartle
 import kotlinx.coroutines.delay
 
 @Composable
-fun WrappedTop5SongsScreen(topSongs: List<SongWithStats>, isVisible: Boolean) {
+fun WrappedTop5SongsScreen(title: String, topSongs: List<SongWithStats>, isVisible: Boolean) {
     var visible by remember { mutableStateOf(false) }
 
     LaunchedEffect(isVisible) {
@@ -70,12 +71,7 @@ fun WrappedTop5SongsScreen(topSongs: List<SongWithStats>, isVisible: Boolean) {
                 visible = visible,
                 enter = fadeIn(animationSpec = tween(1000, delayMillis = 200)) + slideInVertically(animationSpec = tween(1000, delayMillis = 200))
             ) {
-                Text(
-                    text = stringResource(id = R.string.wrapped_top_5_songs_title),
-                    fontSize = 48.sp,
-                    color = Color.White,
-                    textAlign = TextAlign.Center
-                )
+                WrappedTitle(text = title)
             }
 
             Spacer(modifier = Modifier.height(32.dp))

@@ -36,7 +36,7 @@ import com.metrolist.music.constants.InnerTubeCookieKey
 import com.metrolist.music.constants.QuickPicks
 import com.metrolist.music.constants.QuickPicksKey
 import com.metrolist.music.constants.ShowWrappedCardKey
-import com.metrolist.music.constants.WrappedSeenKey
+import com.metrolist.music.constants.WrappedSeenYearKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.Album
 import com.metrolist.music.db.entities.LocalItem
@@ -46,8 +46,10 @@ import com.metrolist.music.extensions.filterExplicit
 import com.metrolist.music.extensions.filterVideoSongs
 import com.metrolist.music.extensions.toEnum
 import com.metrolist.music.models.SimilarRecommendation
-import com.metrolist.music.ui.screens.wrapped.WrappedAudioService
-import com.metrolist.music.ui.screens.wrapped.WrappedManager
+import com.metrolist.music.ui.screens.wrapped.WRAPPED_MIN_PLAY_TIME_MS
+import com.metrolist.music.ui.screens.wrapped.WrappedPeriod
+import com.metrolist.music.ui.screens.wrapped.range
+import com.metrolist.music.ui.screens.wrapped.wrappedSeasonYear
 import com.metrolist.music.utils.NetworkConnectivityObserver
 import com.metrolist.music.utils.SyncUtils
 import com.metrolist.music.utils.dataStore
@@ -63,6 +65,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -98,8 +101,6 @@ class HomeViewModel @Inject constructor(
     @ApplicationContext val context: Context,
     val database: MusicDatabase,
     val syncUtils: SyncUtils,
-    val wrappedManager: WrappedManager,
-    private val wrappedAudioService: WrappedAudioService,
     private val networkConnectivity: NetworkConnectivityObserver,
 ) : ViewModel() {
     val isRefreshing = MutableStateFlow(false)
@@ -258,25 +259,33 @@ class HomeViewModel @Inject constructor(
     val accountName = MutableStateFlow("Guest")
     val accountImageUrl = MutableStateFlow<String?>(null)
 
-	val showWrappedCard: StateFlow<Boolean> = context.dataStore.data.map { prefs ->
-        val showWrappedPref = prefs[ShowWrappedCardKey] ?: false
-        val seen = prefs[WrappedSeenKey] ?: false
-        val isBeforeDate = LocalDate.now().isBefore(LocalDate.of(2026, 2, 1))
+    /**
+     * The year whose recap the home card offers: only in December and January, only after at least
+     * a minute of listening that year, and until it is seen unless the card is kept in settings.
+     */
+    val wrappedCardYear: StateFlow<Int?> =
+        context.dataStore.data
+            .map { prefs ->
+                val year = wrappedSeasonYear(LocalDate.now()) ?: return@map null
+                val keepShowing = prefs[ShowWrappedCardKey] ?: false
+                year.takeIf { keepShowing || prefs[WrappedSeenYearKey] != year }
+            }.distinctUntilChanged()
+            .map { year ->
+                year?.takeIf {
+                    val range = WrappedPeriod.InYear(it).range(LocalDateTime.now())
+                    (database.getTotalPlayTimeInRange(range.from, range.to).first() ?: 0L) >= WRAPPED_MIN_PLAY_TIME_MS
+                }
+            }.flowOn(Dispatchers.IO)
+            .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-        isBeforeDate && (!seen || showWrappedPref)
-    }.stateIn(viewModelScope, SharingStarted.Lazily, false)
-
-    val wrappedSeen: StateFlow<Boolean> = context.dataStore.data.map { prefs ->
-        prefs[WrappedSeenKey] ?: false
-    }.stateIn(viewModelScope, SharingStarted.Lazily, false)
-
-    fun markWrappedAsSeen() {
+    fun markWrappedAsSeen(year: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             context.safeDataStoreEdit {
-                it[WrappedSeenKey] = true
+                it[WrappedSeenYearKey] = year
             }
         }
     }
+
     private suspend fun getDailyDiscover() {
         val hideVideoSongs = context.dataStore.read(HideVideoSongsKey, false)
         val likedSongs = database.likedSongsByCreateDateAsc().first()
@@ -745,10 +754,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    override fun onCleared() {
-        wrappedManager.dispose()
-    }
-
     init {
         // Run sync in separate coroutine with cooldown to avoid blocking UI
         viewModelScope.launch(Dispatchers.IO) {
@@ -763,25 +768,6 @@ class HomeViewModel @Inject constructor(
                 } else if (wasOffline) {
                     wasOffline = false
                     refresh()
-                }
-            }
-        }
-
-        // Prepare wrapped data in background
-        viewModelScope.launch(Dispatchers.IO) {
-            showWrappedCard.collect { shouldShow ->
-                if (shouldShow && !wrappedManager.state.value.isDataReady) {
-                    try {
-                        wrappedManager.prepare()
-                        val state = wrappedManager.state.first { it.isDataReady }
-                        val trackMap = state.trackMap
-                        if (trackMap.isNotEmpty()) {
-                            val firstTrackId = trackMap.entries.first().value
-                            wrappedAudioService.prepareTrack(firstTrackId)
-                        }
-                    } catch (e: Exception) {
-                        reportException(e)
-                    }
                 }
             }
         }

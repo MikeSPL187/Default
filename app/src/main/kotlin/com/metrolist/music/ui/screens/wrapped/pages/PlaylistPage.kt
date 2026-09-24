@@ -23,12 +23,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -39,7 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.metrolist.music.R
 import com.metrolist.music.ui.screens.wrapped.LocalWrappedManager
 import com.metrolist.music.ui.screens.wrapped.PlaylistCreationState
-import com.metrolist.music.ui.screens.wrapped.WrappedConstants
+import com.metrolist.music.ui.screens.wrapped.playlistName
 import com.metrolist.music.ui.screens.wrapped.components.AnimatedBackground
 import com.metrolist.music.ui.screens.wrapped.components.AutoResizingText
 import com.metrolist.music.ui.screens.wrapped.components.ShapeType
@@ -53,13 +55,11 @@ fun PlaylistPage() {
     val state by manager.state.collectAsStateWithLifecycle()
     val playlistCreationState = state.playlistCreationState
 
-    val (playlistImageRes, playlistImageName) = remember {
-        if (Random.nextBoolean()) {
-            Pair(R.drawable.wrapped_playlistv1, "wrapped_playlistv1")
-        } else {
-            Pair(R.drawable.wrapped_playlistv2, "wrapped_playlistv2")
-        }
+    val context = LocalContext.current
+    val playlistImageRes = rememberSaveable {
+        if (Random.nextBoolean()) R.drawable.wrapped_playlistv1 else R.drawable.wrapped_playlistv2
     }
+    val playlistName = remember(manager) { manager.period.playlistName(context, manager.now) }
 
     var startAnimation by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
@@ -102,18 +102,19 @@ fun PlaylistPage() {
             )
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = stringResource(R.string.wrapped_playlist_title, WrappedConstants.YEAR),
+                text = playlistName,
                 style = TextStyle(
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = Color.White,
+                    textAlign = TextAlign.Center
                 )
             )
             Spacer(modifier = Modifier.height(48.dp))
             Button(
                 onClick = {
                     if (playlistCreationState == PlaylistCreationState.Idle) {
-                        manager.createPlaylist(playlistImageName)
+                        manager.createPlaylist(playlistImageRes, playlistName)
                     }
                 },
                 shape = CircleShape,

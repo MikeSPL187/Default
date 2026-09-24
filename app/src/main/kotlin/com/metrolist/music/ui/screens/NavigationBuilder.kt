@@ -61,9 +61,13 @@ import com.metrolist.music.ui.screens.settings.integrations.IntegrationScreen
 import com.metrolist.music.ui.screens.settings.integrations.LastFMSettings
 import com.metrolist.music.ui.screens.settings.integrations.ListenTogetherSettings
 
+import com.metrolist.music.ui.screens.wrapped.WRAPPED_ROUTE
+import com.metrolist.music.ui.screens.wrapped.WrappedPeriod
 import com.metrolist.music.ui.screens.wrapped.WrappedScreen
+import com.metrolist.music.ui.screens.wrapped.wrappedPeriodFromRoute
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.navigationBuilder(
@@ -419,8 +423,22 @@ fun NavGraphBuilder.navigationBuilder(
         )
     }
 
-    composable("wrapped") {
-        WrappedScreen()
+    composable(
+        route = "$WRAPPED_ROUTE?period={period}",
+        arguments =
+            listOf(
+                navArgument("period") {
+                    type = NavType.StringType
+                    nullable = true
+                },
+            ),
+    ) { backStackEntry ->
+        val period =
+            remember(backStackEntry) {
+                wrappedPeriodFromRoute(backStackEntry.arguments?.getString("period"))
+                    ?: WrappedPeriod.InYear(LocalDate.now().year)
+            }
+        WrappedScreen(period)
     }
 
     composable("equalizer") {

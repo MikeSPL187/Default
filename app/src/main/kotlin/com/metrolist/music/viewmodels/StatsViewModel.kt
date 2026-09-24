@@ -21,6 +21,11 @@ import com.metrolist.music.constants.statToPeriod
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.PlaylistEntity
 import com.metrolist.music.ui.screens.OptionStats
+import com.metrolist.music.ui.screens.wrapped.WRAPPED_MIN_PLAY_TIME_MS
+import com.metrolist.music.ui.screens.wrapped.WrappedPeriod
+import com.metrolist.music.ui.screens.wrapped.WrappedRecapOptions
+import com.metrolist.music.ui.screens.wrapped.range
+import com.metrolist.music.ui.screens.wrapped.wrappedPeriodChoices
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.safeDataStoreEdit
 import com.metrolist.music.utils.reportException
@@ -39,6 +44,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
@@ -154,6 +160,24 @@ constructor(
             .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val selectedArtists = mutableStateListOf<Artist>() // Current artist selection
+
+    suspend fun recapOptions(): WrappedRecapOptions =
+        withContext(Dispatchers.IO) {
+            val now = LocalDateTime.now()
+            val firstListen = database.firstListenTime()?.toLocalDate()
+            val choices =
+                wrappedPeriodChoices(now.toLocalDate(), firstListen)
+                    .map { it to playTimeMs(it, now) }
+                    .filter { (_, playTime) -> playTime >= WRAPPED_MIN_PLAY_TIME_MS }
+            WrappedRecapOptions(choices, firstListen)
+        }
+
+    suspend fun recapPlayTimeMs(period: WrappedPeriod): Long = withContext(Dispatchers.IO) { playTimeMs(period, LocalDateTime.now()) }
+
+    private suspend fun playTimeMs(period: WrappedPeriod, now: LocalDateTime): Long {
+        val (from, to) = period.range(now)
+        return database.getTotalPlayTimeInRange(from, to).first() ?: 0L
+    }
 
     val filteredSongs = combine(
         mostPlayedSongsStats, // Unfiltered songs

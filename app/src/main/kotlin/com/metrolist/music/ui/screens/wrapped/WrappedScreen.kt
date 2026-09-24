@@ -25,7 +25,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
@@ -33,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -89,10 +89,10 @@ sealed class WrappedScreenType {
 }
 
 @Composable
-fun WrappedScreen() {
-    val navController = LocalNavController.current
+fun WrappedScreen(period: WrappedPeriod) {
     val context = LocalContext.current
-    val manager = remember { provideWrappedManager(context) }
+    val manager = remember(period) { provideWrappedManager(context, period) }
+    DisposableEffect(manager) { onDispose { manager.dispose() } }
 
     CompositionLocalProvider(LocalWrappedManager provides manager) {
         WrappedScreenContent()
@@ -109,18 +109,8 @@ fun WrappedScreenContent() {
     }
     BackHandler(onBack = onClose)
 
-    val messagePairSaver =
-        Saver<MessagePair, List<Any>>(
-            save = { listOf(it.range.first, it.range.last, it.tease, it.reveal) },
-            restore = {
-                MessagePair(
-                    range = (it[0] as Long)..(it[1] as Long),
-                    tease = it[2] as String,
-                    reveal = it[3] as String,
-                )
-            },
-        )
     val view = LocalView.current
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val manager = LocalWrappedManager.current
     val audioService = remember { WrappedAudioService(view.context) }
@@ -176,12 +166,14 @@ fun WrappedScreenContent() {
     val pagerState = rememberPagerState(pageCount = { screens.size })
     val state by manager.state.collectAsStateWithLifecycle()
     val isMuted by audioService.isMuted.collectAsStateWithLifecycle()
-    val messagePair =
-        rememberSaveable(state.totalMinutes, saver = messagePairSaver) {
-            WrappedRepository.getMessage(state.totalMinutes)
-        }
+    val messageTier = WrappedRepository.tier(state.totalMinutes, state.elapsedDays)
+    val messageIndex = rememberSaveable(messageTier) { WrappedRepository.randomIndex(messageTier) }
+    val message = WrappedRepository.message(messageTier, messageIndex)
+    val minutesText = pluralStringResource(R.plurals.minute, state.totalMinutes.toInt(), state.totalMinutes)
+    val messagePair = MessagePair(tease = stringResource(message.tease), reveal = stringResource(message.reveal, minutesText))
+    val periodPhrase = remember(manager) { manager.period.phrase(context, manager.now.toLocalDate()) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(manager) {
         manager.prepare()
     }
 
@@ -223,7 +215,10 @@ fun WrappedScreenContent() {
         ) { page ->
             when (screens[page]) {
                 is WrappedScreenType.Welcome -> {
-                    WrappedIntro { scope.launch { pagerState.animateScrollToPage(page = 1) } }
+                    WrappedIntro(
+                        label = state.bigLabel,
+                        subtitle = stringResource(R.string.wrapped_intro_subtitle_period, periodPhrase),
+                    ) { scope.launch { pagerState.animateScrollToPage(page = 1) } }
                 }
 
                 is WrappedScreenType.MinutesTease -> {
@@ -258,6 +253,7 @@ fun WrappedScreenContent() {
 
                 is WrappedScreenType.Top5Songs -> {
                     WrappedTop5SongsScreen(
+                        title = stringResource(R.string.wrapped_top_songs_title_period, periodPhrase),
                         topSongs = state.topSongs.take(5),
                         isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.Top5Songs),
                     )
@@ -293,6 +289,7 @@ fun WrappedScreenContent() {
 
                 is WrappedScreenType.TopArtistReveal -> {
                     WrappedTopArtistScreen(
+                        title = stringResource(R.string.wrapped_top_artist_title_period, periodPhrase),
                         topArtist = state.topArtists.firstOrNull(),
                         isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TopArtistReveal),
                     )
@@ -300,6 +297,7 @@ fun WrappedScreenContent() {
 
                 is WrappedScreenType.Top5Artists -> {
                     WrappedTop5ArtistsScreen(
+                        title = stringResource(R.string.wrapped_top_artists_title_period, periodPhrase),
                         topArtists = state.topArtists,
                         isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.Top5Artists),
                     )

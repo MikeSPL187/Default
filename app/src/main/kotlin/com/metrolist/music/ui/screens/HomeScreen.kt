@@ -46,7 +46,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -157,6 +156,9 @@ import com.metrolist.music.ui.menu.YouTubeAlbumMenu
 import com.metrolist.music.ui.menu.YouTubeArtistMenu
 import com.metrolist.music.ui.menu.YouTubePlaylistMenu
 import com.metrolist.music.ui.menu.YouTubeSongMenu
+import com.metrolist.music.ui.screens.wrapped.WrappedPeriod
+import com.metrolist.music.ui.screens.wrapped.wrappedRoute
+import com.metrolist.music.ui.screens.wrapped.wrappedSeasonYear
 import com.metrolist.music.ui.utils.SnapLayoutInfoProvider
 import com.metrolist.music.ui.utils.resize
 import com.metrolist.music.utils.joinByBullet
@@ -171,6 +173,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import kotlin.math.min
 import kotlin.random.Random
 
@@ -701,9 +704,7 @@ fun HomeScreen(
 
     LaunchedEffect(Unit) { viewModel.loadHomeData() }
 
-    val shouldShowWrappedCard by viewModel.showWrappedCard.collectAsStateWithLifecycle()
-    val wrappedState by viewModel.wrappedManager.state.collectAsStateWithLifecycle()
-    val isWrappedDataReady = wrappedState.isDataReady
+    val wrappedCardYear by viewModel.wrappedCardYear.collectAsStateWithLifecycle()
 
     val isLoggedIn =
         remember(innerTubeCookie) {
@@ -775,12 +776,12 @@ fun HomeScreen(
         }
     }
 
-    val foundInSettings = stringResource(R.string.found_in_settings_content)
+    val findInStats = stringResource(R.string.wrapped_find_in_stats)
     LaunchedEffect(wrappedDismissed) {
         if (wrappedDismissed) {
-            viewModel.markWrappedAsSeen()
+            wrappedCardYear?.let(viewModel::markWrappedAsSeen)
             scope.launch {
-                snackbarHostState.showSnackbar(foundInSettings)
+                snackbarHostState.showSnackbar(findInStats)
             }
             backStackEntry?.savedStateHandle?.set("wrapped_seen", false) // Reset the value
         }
@@ -1389,7 +1390,9 @@ fun HomeScreen(
 
                 if (selectedChip == null) {
                     item(key = "wrapped_card") {
-                        AnimatedVisibility(visible = shouldShowWrappedCard) {
+                        AnimatedVisibility(visible = wrappedCardYear != null) {
+                            // Still needed for the text while the card animates away.
+                            val cardYear = wrappedCardYear ?: wrappedSeasonYear(LocalDate.now()) ?: LocalDate.now().year
                             Card(
                                 modifier =
                                     Modifier
@@ -1406,43 +1409,39 @@ fun HomeScreen(
                                             .fillMaxWidth(),
                                     contentAlignment = Alignment.Center,
                                 ) {
-                                    if (isWrappedDataReady) {
-                                        val bbhFont =
-                                            try {
-                                                FontFamily(Font(R.font.bbh_bartle_regular))
-                                            } catch (e: Exception) {
-                                                FontFamily.Default
-                                            }
-                                        Column(
-                                            modifier = Modifier.padding(16.dp),
-                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                            verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
-                                        ) {
-                                            Text(
-                                                text = stringResource(R.string.wrapped_ready_title),
-                                                style =
-                                                    MaterialTheme.typography.headlineLarge.copy(
-                                                        fontFamily = bbhFont,
-                                                        textAlign = TextAlign.Center,
-                                                    ),
-                                            )
-                                            Spacer(modifier = Modifier.height(8.dp))
-                                            Text(
-                                                text = stringResource(R.string.wrapped_ready_subtitle),
-                                                style =
-                                                    MaterialTheme.typography.bodyLarge.copy(
-                                                        textAlign = TextAlign.Center,
-                                                    ),
-                                            )
-                                            Spacer(modifier = Modifier.height(16.dp))
-                                            Button(onClick = {
-                                                navController.navigate("wrapped")
-                                            }) {
-                                                Text(stringResource(R.string.open))
-                                            }
+                                    val bbhFont =
+                                        try {
+                                            FontFamily(Font(R.font.bbh_bartle_regular))
+                                        } catch (e: Exception) {
+                                            FontFamily.Default
                                         }
-                                    } else {
-                                        ContainedLoadingIndicator()
+                                    Column(
+                                        modifier = Modifier.padding(16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.wrapped_ready_title),
+                                            style =
+                                                MaterialTheme.typography.headlineLarge.copy(
+                                                    fontFamily = bbhFont,
+                                                    textAlign = TextAlign.Center,
+                                                ),
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = stringResource(R.string.wrapped_ready_subtitle_year, cardYear),
+                                            style =
+                                                MaterialTheme.typography.bodyLarge.copy(
+                                                    textAlign = TextAlign.Center,
+                                                ),
+                                        )
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        Button(onClick = {
+                                            navController.navigate(wrappedRoute(WrappedPeriod.InYear(cardYear)))
+                                        }) {
+                                            Text(stringResource(R.string.open))
+                                        }
                                     }
                                 }
                             }

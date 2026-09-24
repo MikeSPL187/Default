@@ -64,7 +64,7 @@ private const val BUTTON_DELAY = 1000
 private val BOTTOM_PADDING = 64.dp
 
 @Composable
-fun WrappedIntro(onNext: () -> Unit) {
+fun WrappedIntro(label: String, subtitle: String, onNext: () -> Unit) {
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         delay(INITIAL_DELAY.toLong())
@@ -96,7 +96,7 @@ fun WrappedIntro(onNext: () -> Unit) {
             label = "intro rotation"
         )
 
-        // Background "2025" text
+        // Background period label, e.g. "2025"
         Box(
             modifier = Modifier
                 .align(Alignment.CenterStart)
@@ -108,7 +108,7 @@ fun WrappedIntro(onNext: () -> Unit) {
         ) {
             BoxWithConstraints {
                 AutoResizingText(
-                    text = stringResource(id = R.string.wrapped_year),
+                    text = label,
                     style = TextStyle.Default.copy(
                         fontFamily = bbhBartle,
                         fontSize = 800.sp, // Increased size
@@ -169,10 +169,11 @@ fun WrappedIntro(onNext: () -> Unit) {
                 enter = fadeIn(animationSpec = tween(FADE_IN_DURATION, delayMillis = SUBTITLE_DELAY)) + slideInVertically(animationSpec = tween(SLIDE_IN_DURATION, delayMillis = SUBTITLE_DELAY))
             ) {
                 Text(
-                    text = stringResource(id = R.string.wrapped_intro_subtitle),
+                    text = subtitle,
                     color = Color.White,
                     fontSize = 16.sp,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 32.dp)
                 )
             }
         }

@@ -1107,4 +1107,73 @@
 
     <!-- CSV import -->
     <string name="csv_preview_failed">Failed to preview CSV file</string>
+
+    <!-- Wrapped for any period -->
+    <string name="wrapped_period_last_7_days">in the last 7 days</string>
+    <string name="wrapped_period_month">in %s</string>
+    <string name="wrapped_period_year">in %d</string>
+    <string name="wrapped_period_all_time">overall</string>
+    <string name="wrapped_period_custom">from %1$s to %2$s</string>
+    <string name="wrapped_top_songs_title_period">Your top songs %s</string>
+    <string name="wrapped_top_artists_title_period">Your top artists %s</string>
+    <string name="wrapped_top_artist_title_period">Your top artist %s is</string>
+    <string name="wrapped_intro_subtitle_period">it\'s time to see what you\'ve been listening to %s…</string>
+    <string name="wrapped_ready_subtitle_year">Time to see what you loved in %d…</string>
+    <string name="wrapped_recap">Your recap</string>
+    <string name="wrapped_recap_description">Top songs, artists and albums for any period</string>
+    <string name="wrapped_last_7_days">Last 7 days</string>
+    <string name="wrapped_all_time">All time</string>
+    <string name="wrapped_pick_dates">Pick dates…</string>
+    <string name="wrapped_no_listening">No listening in this period yet</string>
+    <string name="wrapped_recap_empty">Listen to some music, and your recap will appear here</string>
+
+    <!-- Wrapped listening time messages, from the lightest listeners to the heaviest; %s is a number of minutes -->
+    <string name="wrapped_message_0_0_tease">I really hope you\'re not disappointed…</string>
+    <string name="wrapped_message_0_0_reveal">That\'s **%s**. Just warming up?</string>
+    <string name="wrapped_message_0_1_tease">Testing the waters, are we?</string>
+    <string name="wrapped_message_0_1_reveal">**%s** is a quick dip in the musical ocean.</string>
+    <string name="wrapped_message_0_2_tease">Busy schedule lately?</string>
+    <string name="wrapped_message_0_2_reveal">**%s**: short, sweet, and to the point.</string>
+    <string name="wrapped_message_0_3_tease">Silence is golden, they say…</string>
+    <string name="wrapped_message_0_3_reveal">But you chose **%s** of music.</string>
+    <string name="wrapped_message_1_0_tease">A little music every day…</string>
+    <string name="wrapped_message_1_0_reveal">…adds up to **%s**.</string>
+    <string name="wrapped_message_1_1_tease">You have a life outside of music.</string>
+    <string name="wrapped_message_1_1_reveal">**%s** is a healthy balance. We respect that.</string>
+    <string name="wrapped_message_1_2_tease">Not too quiet, not too loud.</string>
+    <string name="wrapped_message_1_2_reveal">Just the right amount of vibes: **%s**.</string>
+    <string name="wrapped_message_1_3_tease">A casual stop on your journey.</string>
+    <string name="wrapped_message_1_3_reveal">Thanks for dropping by for **%s**.</string>
+    <string name="wrapped_message_2_0_tease">Music is definitely your thing.</string>
+    <string name="wrapped_message_2_0_reveal">**%s** is a solid soundtrack.</string>
+    <string name="wrapped_message_2_1_tease">We saw you here quite a bit.</string>
+    <string name="wrapped_message_2_1_reveal">Setting the mood for **%s**.</string>
+    <string name="wrapped_message_2_2_tease">Your commute must be fun.</string>
+    <string name="wrapped_message_2_2_reveal">**%s** of melodies.</string>
+    <string name="wrapped_message_2_3_tease">Consistent. Reliable. Rhythmic.</string>
+    <string name="wrapped_message_2_3_reveal">You know what you like: **%s**.</string>
+    <string name="wrapped_message_3_0_tease">Do you ever take your headphones off?</string>
+    <string name="wrapped_message_3_0_reveal">**%s** suggests music is your oxygen.</string>
+    <string name="wrapped_message_3_1_tease">Your battery is begging for mercy.</string>
+    <string name="wrapped_message_3_1_reveal">But your ears loved those **%s**.</string>
+    <string name="wrapped_message_3_2_tease">Main character energy detected.</string>
+    <string name="wrapped_message_3_2_reveal">Your life was a movie, and it ran for **%s**.</string>
+    <string name="wrapped_message_3_3_tease">Walking, working, sleeping…</string>
+    <string name="wrapped_message_3_3_reveal">A song was always playing: **%s**.</string>
+    <string name="wrapped_message_4_0_tease">Are you… okay?</string>
+    <string name="wrapped_message_4_0_reveal">You practically lived here for **%s**.</string>
+    <string name="wrapped_message_4_1_tease">We\'re worried about your eardrums.</string>
+    <string name="wrapped_message_4_1_reveal">Top-tier dedication. **%s** is legendary.</string>
+    <string name="wrapped_message_4_2_tease">Silence scares you, doesn\'t it?</string>
+    <string name="wrapped_message_4_2_reveal">A wall of sound: **%s**.</string>
+    <string name="wrapped_message_4_3_tease">Certified stress tester.</string>
+    <string name="wrapped_message_4_3_reveal">You kept the servers busy for **%s**.</string>
+    <string name="wrapped_message_fallback_tease">Looks like we lost count!</string>
+    <string name="wrapped_message_fallback_reveal">But you definitely listened to **%s** of music.</string>
+
+    <!-- Wrapped for a single day -->
+    <string name="wrapped_period_day">on %s</string>
+
+    <!-- Wrapped card dismissal hint -->
+    <string name="wrapped_find_in_stats">Recaps for any period are always in Stats</string>
 </resources>

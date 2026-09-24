@@ -1555,6 +1555,9 @@ interface DatabaseDao {
     @Query("SELECT * FROM event ORDER BY rowId ASC LIMIT 1")
     fun firstEvent(): Flow<EventWithSong?>
 
+    @Query("SELECT MIN(timestamp) FROM event")
+    suspend fun firstListenTime(): LocalDateTime?
+
     @Transaction
     @Query("SELECT * FROM event ORDER BY rowId DESC LIMIT 1")
     fun latestEvent(): Flow<EventWithSong?>

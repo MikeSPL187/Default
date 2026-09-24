@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.screens
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
@@ -89,11 +90,18 @@ import com.metrolist.music.ui.component.TimeTransfer
 import com.metrolist.music.ui.menu.AlbumMenu
 import com.metrolist.music.ui.menu.ArtistMenu
 import com.metrolist.music.ui.menu.SongMenu
+import com.metrolist.music.ui.screens.wrapped.WRAPPED_MIN_PLAY_TIME_MS
+import com.metrolist.music.ui.screens.wrapped.WrappedDateRangeDialog
+import com.metrolist.music.ui.screens.wrapped.WrappedPeriodMenu
+import com.metrolist.music.ui.screens.wrapped.WrappedRecapCard
+import com.metrolist.music.ui.screens.wrapped.wrappedRoute
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.utils.joinByBullet
 import com.metrolist.music.utils.makeTimeString
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.StatsViewModel
+import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -215,6 +223,42 @@ fun StatsScreen(
                 // Clear snapshots for the next open
                 prevOptionOrdinal = null
                 prevIndexChips = null
+            },
+        )
+    }
+
+    var showRecapDates by rememberSaveable { mutableStateOf(false) }
+    var recapFirstListen by rememberSaveable { mutableStateOf<LocalDate?>(null) }
+    val openRecapPicker = {
+        menuState.show {
+            WrappedPeriodMenu(
+                loadOptions = viewModel::recapOptions,
+                onPeriodClick = { period ->
+                    menuState.dismiss()
+                    navController.navigate(wrappedRoute(period))
+                },
+                onPickDatesClick = { firstListen ->
+                    menuState.dismiss()
+                    recapFirstListen = firstListen
+                    showRecapDates = true
+                },
+            )
+        }
+    }
+
+    if (showRecapDates) {
+        WrappedDateRangeDialog(
+            firstListen = recapFirstListen,
+            onDismiss = { showRecapDates = false },
+            onConfirm = { period ->
+                showRecapDates = false
+                coroutineScope.launch {
+                    if (viewModel.recapPlayTimeMs(period) >= WRAPPED_MIN_PLAY_TIME_MS) {
+                        navController.navigate(wrappedRoute(period))
+                    } else {
+                        Toast.makeText(context, R.string.wrapped_no_listening, Toast.LENGTH_SHORT).show()
+                    }
+                }
             },
         )
     }
@@ -389,6 +433,15 @@ fun StatsScreen(
                     currentValue = indexChips,
                     onValueUpdate = { viewModel.indexChips.value = it },
                 )
+            }
+
+            if (firstEvent != null && !isSearching && sArtists.isEmpty()) {
+                item(key = "recap") {
+                    WrappedRecapCard(
+                        onClick = openRecapPicker,
+                        modifier = Modifier.animateItem(),
+                    )
+                }
             }
 
             if (visibleStatsPlaylists.isNotEmpty() && !isSearching && sArtists.isEmpty()) {
