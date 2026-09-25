@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -366,7 +367,7 @@ fun OfflineHomeScreen(viewModel: OfflineHomeViewModel = hiltViewModel()) {
                 modifier =
                     Modifier
                         .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top))
-                        .background(MaterialTheme.colorScheme.surface)
+                        .background(MaterialTheme.colorScheme.background)
                         .padding(vertical = 8.dp),
             )
         }
@@ -391,7 +392,7 @@ private fun FlowHero(
         Box(
             Modifier
                 .matchParentSize()
-                .background(Brush.verticalGradient(0.55f to Color.Transparent, 1f to colors.surface)),
+                .background(Brush.verticalGradient(0.55f to Color.Transparent, 1f to colors.background)),
         )
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -430,7 +431,7 @@ private fun FlowHero(
             if (current != null) {
                 Surface(
                     shape = CircleShape,
-                    color = colors.onSurface.copy(alpha = 0.08f),
+                    color = colors.surfaceContainerHigh.copy(alpha = 0.9f),
                     modifier =
                         Modifier
                             .padding(horizontal = 32.dp)
@@ -712,24 +713,39 @@ private fun LikedCard(
             Button(
                 onClick = onPlay,
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color(0xFF3A1030)),
+                contentPadding = LikedButtonPadding,
                 modifier = Modifier.weight(1f),
             ) {
                 Icon(painterResource(R.drawable.play), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                Text(stringResource(R.string.offline_play), maxLines = 1)
+                Spacer(Modifier.width(6.dp))
+                FittingLabel(stringResource(R.string.offline_play))
             }
             OutlinedButton(
                 onClick = onShuffle,
                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.8f)),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                contentPadding = LikedButtonPadding,
                 modifier = Modifier.weight(1f),
             ) {
                 Icon(painterResource(R.drawable.shuffle), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                Text(stringResource(R.string.offline_shuffle), maxLines = 1)
+                Spacer(Modifier.width(6.dp))
+                FittingLabel(stringResource(R.string.offline_shuffle))
             }
         }
     }
+}
+
+private val LikedButtonPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
+
+/** A button label that shrinks a little rather than being cut off with large system fonts. */
+@Composable
+private fun FittingLabel(text: String) {
+    Text(
+        text = text,
+        maxLines = 1,
+        softWrap = false,
+        autoSize = TextAutoSize.StepBased(minFontSize = 11.sp, maxFontSize = MaterialTheme.typography.labelLarge.fontSize),
+    )
 }
 
 @Composable
