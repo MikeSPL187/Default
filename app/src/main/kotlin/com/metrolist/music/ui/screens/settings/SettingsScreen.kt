@@ -5,6 +5,9 @@
 
 package com.metrolist.music.ui.screens.settings
 
+import com.metrolist.music.update.UpdateState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.getValue
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Build
@@ -47,6 +50,7 @@ fun SettingsScreen(
     latestVersionName: String,
 ) {
     val uriHandler = LocalUriHandler.current
+    val watchUpdate by com.metrolist.music.update.WatchUpdater.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val isAndroid12OrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val hasAndroidAuto = remember {
@@ -209,15 +213,14 @@ fun SettingsScreen(
                         )
                     )
                 }
-                if (BuildConfig.UPDATER_AVAILABLE) {
-                    add(
-                        Material3SettingsItem(
-                            icon = painterResource(R.drawable.update),
-                            title = { Text(stringResource(R.string.updater)) },
-                            onClick = { navController.navigate("settings/updater") }
-                        )
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.update),
+                        title = { Text(stringResource(R.string.updater)) },
+                        showBadge = watchUpdate is UpdateState.Available,
+                        onClick = { navController.navigate("settings/updater") }
                     )
-                }
+                )
                 val showChangelog = com.metrolist.music.LocalChangelogState.current
                 add(
                     Material3SettingsItem(

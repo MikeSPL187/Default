@@ -135,6 +135,7 @@ import com.metrolist.innertube.models.WatchEndpoint
 import com.metrolist.music.constants.AppBarHeight
 import com.metrolist.music.constants.AppLanguageKey
 import com.metrolist.music.constants.CheckForUpdatesKey
+import com.metrolist.music.update.WatchUpdatePrompt
 import com.metrolist.music.constants.CropAlbumArtKey
 import com.metrolist.music.constants.SwipeToSongKey
 import com.metrolist.music.constants.DarkModeKey
@@ -1499,6 +1500,7 @@ class MainActivity : FragmentActivity() {
                     }
 
                     if (!showChangelog.value) {
+                        WatchUpdatePrompt()
                         availableUpdate?.let { update ->
                             val dismissUpdate: () -> Unit = {
                                 availableUpdate = null

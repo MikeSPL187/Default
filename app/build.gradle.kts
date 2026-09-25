@@ -306,6 +306,7 @@ dependencies {
 
     implementation(project(":innertube"))
 
+    implementation(libs.work.runtime)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.content.negotiation)

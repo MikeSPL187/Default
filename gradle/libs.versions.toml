@@ -7,6 +7,7 @@ json = "20260814"
 kotlin = "2.4.20"
 compose = "1.12.1"
 lifecycle = "2.11.0"
+work = "2.10.0"
 material3 = "1.5.0-alpha28"
 appcompat = "1.8.0"
 media3 = "1.10.1" # 1.11.1 hides Android 17 media controls (#4404)
@@ -52,6 +53,7 @@ compose-animation = { module = "androidx.compose.animation:animation", version.r
 compose-reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "composeReorderable" }
 
 viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
 lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycle" }
 
 material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }

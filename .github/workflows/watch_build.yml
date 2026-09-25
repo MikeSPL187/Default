@@ -137,6 +137,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Download APK
         uses: actions/download-artifact@v4
@@ -157,10 +159,21 @@ jobs:
           build="$version-b$GITHUB_RUN_NUMBER"
           apk="MetrolistWatch-$build.apk"
           cp "$signed" "$apk"
-          changes=$(git log -1 --format=%s "$GITHUB_SHA")
+          # "What's new" comes from the "Что нового:" lines of the commits since the last release,
+          # or from their subjects; the app shows the "- " lines of the notes.
+          prev=$(gh release list --limit 1 --json tagName --jq '.[0].tagName // empty')
+          if [ -n "$prev" ] && git rev-parse -q --verify "refs/tags/$prev" > /dev/null; then
+            range="$prev..$GITHUB_SHA"
+          else
+            range="-1 $GITHUB_SHA"
+          fi
+          changes=$(git log --format=%B $range | sed -n 's/^Что нового: *//p')
+          [ -z "$changes" ] && changes=$(git log --format=%s $range | head -10)
+          notes=$(printf 'Что нового:\n%s\n\nСборка %s из коммита %s. Установите %s или обновитесь в приложении: Настройки → Обновления.' \
+            "$(echo "$changes" | sed 's/^/- /')" "$GITHUB_RUN_NUMBER" "${GITHUB_SHA:0:7}" "$apk")
           gh release create "v$build" "$apk" --target "$GITHUB_SHA" --latest \
             --title "Metrolist Watch $build" \
-            --notes "Сборка $GITHUB_RUN_NUMBER из коммита $GITHUB_SHA: $changes. Установите $apk на телефон."
+            --notes "$notes"
           # Keep the five newest builds so there is always something to roll back to.
           gh release list --limit 100 --json tagName,createdAt --jq 'sort_by(.createdAt) | reverse | .[5:] | .[].tagName' |
             while read -r old; do gh release delete "$old" --cleanup-tag --yes; done

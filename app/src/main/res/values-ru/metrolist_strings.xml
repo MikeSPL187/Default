@@ -1216,4 +1216,35 @@
     <string name="home_kind_playlist">Плейлист</string>
     <string name="home_kind_album">Альбом</string>
     <string name="home_kind_artist">Исполнитель</string>
+
+    <!-- In-app updates -->
+    <string name="update_title">Доступно обновление</string>
+    <string name="update_build">Сборка %d</string>
+    <string name="update_ready_title">Вышла сборка %d</string>
+    <string name="update_subtitle">Сборка %1$d · сейчас %2$d · %3$s</string>
+    <string name="update_downloading">Сборка %d · загрузка</string>
+    <string name="update_ready">Сборка %d · готова к установке</string>
+    <string name="update_failed">Не удалось загрузить обновление. Проверьте сеть и попробуйте снова.</string>
+    <string name="update_whats_new">Что нового</string>
+    <string name="update_later">Позже</string>
+    <string name="update_now">Обновить</string>
+    <string name="update_install">Установить</string>
+    <string name="update_retry">Повторить</string>
+    <string name="update_cancel">Отменить</string>
+    <string name="update_music_keeps_playing">Музыка не прервётся — установка займёт секунды</string>
+    <string name="update_progress">%1$s из %2$s</string>
+    <string name="update_eta_seconds">≈ %d с</string>
+    <string name="update_eta_minutes">≈ %d мин</string>
+    <string name="updates_latest">Установлена последняя версия</string>
+    <string name="updates_available">Доступна сборка %d</string>
+    <string name="updates_checked">Проверено %s</string>
+    <string name="updates_never_checked">Ещё не проверялось</string>
+    <string name="updates_auto">Проверять автоматически</string>
+    <string name="updates_auto_desc">При запуске, не чаще раза в 2 часа</string>
+    <string name="updates_notify">Уведомлять о новой сборке</string>
+    <string name="updates_notify_desc">Проверка дважды в день, даже когда приложение закрыто</string>
+    <string name="updates_check_now">Проверить сейчас</string>
+    <string name="updates_history">История сборок</string>
+    <string name="updates_local_build_title">Локальная сборка</string>
+    <string name="updates_local_build">Собрана локально и не обновляется сама</string>
 </resources>

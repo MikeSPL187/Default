@@ -1315,4 +1315,35 @@
     <string name="home_kind_playlist">Playlist</string>
     <string name="home_kind_album">Album</string>
     <string name="home_kind_artist">Artist</string>
+
+    <!-- In-app updates -->
+    <string name="update_title">Update available</string>
+    <string name="update_build">Build %d</string>
+    <string name="update_ready_title">Build %d is out</string>
+    <string name="update_subtitle">Build %1$d · now %2$d · %3$s</string>
+    <string name="update_downloading">Build %d · downloading</string>
+    <string name="update_ready">Build %d · ready to install</string>
+    <string name="update_failed">Couldn\'t download the update. Check the connection and try again.</string>
+    <string name="update_whats_new">What\'s new</string>
+    <string name="update_later">Later</string>
+    <string name="update_now">Update</string>
+    <string name="update_install">Install</string>
+    <string name="update_retry">Try again</string>
+    <string name="update_cancel">Cancel</string>
+    <string name="update_music_keeps_playing">Music keeps playing — installing takes seconds</string>
+    <string name="update_progress">%1$s of %2$s</string>
+    <string name="update_eta_seconds">≈ %d s</string>
+    <string name="update_eta_minutes">≈ %d min</string>
+    <string name="updates_latest">You have the latest build</string>
+    <string name="updates_available">Build %d is available</string>
+    <string name="updates_checked">Checked %s</string>
+    <string name="updates_never_checked">Not checked yet</string>
+    <string name="updates_auto">Check automatically</string>
+    <string name="updates_auto_desc">On launch, at most every 2 hours</string>
+    <string name="updates_notify">Notify about new builds</string>
+    <string name="updates_notify_desc">Checks twice a day, even with the app closed</string>
+    <string name="updates_check_now">Check now</string>
+    <string name="updates_history">Recent builds</string>
+    <string name="updates_local_build_title">Local build</string>
+    <string name="updates_local_build">Built locally, it does not update itself</string>
 </resources>
