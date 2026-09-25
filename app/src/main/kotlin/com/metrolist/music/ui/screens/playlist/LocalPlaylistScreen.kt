@@ -5,6 +5,28 @@
 
 package com.metrolist.music.ui.screens.playlist
 
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.ui.platform.LocalDensity
+import com.metrolist.music.ui.component.PlaylistDownloads
+import com.metrolist.music.ui.component.ArtworkGlow
+import com.metrolist.music.ui.component.DownloadProgressLine
+import com.metrolist.music.ui.component.DownloadProgressCard
+import com.metrolist.music.ui.component.DownloadRingButton
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.clickable
+import com.metrolist.music.ui.component.NavigationTitle
+import com.metrolist.music.models.toMediaMetadata
+import com.metrolist.innertube.models.WatchEndpoint
+import com.metrolist.music.playback.queues.YouTubeQueue
+import com.metrolist.music.ui.component.YouTubeListItem
+import com.metrolist.music.offline.LocalOfflineMode
+import com.metrolist.music.ui.component.accepts
+import com.metrolist.music.ui.component.DownloadFilterChips
+import com.metrolist.music.ui.component.DownloadFilter
+import com.metrolist.music.ui.component.rememberPlaylistDownloads
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -245,8 +267,17 @@ fun LocalPlaylistScreen(
     var downloadState by remember {
         mutableIntStateOf(Download.STATE_STOPPED)
     }
+    val songIds = remember(songs) { songs.map { it.song.id } }
+    val playlistDownloads = rememberPlaylistDownloads(songIds)
+    val downloadMap by downloadUtil.downloads.collectAsStateWithLifecycle()
+    var downloadFilter by rememberSaveable { mutableStateOf(DownloadFilter.ALL) }
+    val suggestions by viewModel.suggestions.collectAsStateWithLifecycle()
+    val online = !LocalOfflineMode.current.active
 
     val editable: Boolean = playlist?.playlist?.isEditable == true
+    LaunchedEffect(online, editable) {
+        if (online && editable) viewModel.loadSuggestions()
+    }
 
     LaunchedEffect(songs) {
         selection.fastForEachReversed { mapId ->
@@ -422,7 +453,7 @@ fun LocalPlaylistScreen(
             lazyListState = lazyListState,
             scrollThresholdPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
         ) { from, to ->
-            if (to.index >= headerItems && from.index >= headerItems) {
+            if (to.index >= headerItems && from.index >= headerItems && to.index - headerItems < mutableSongs.size) {
                 val currentDragInfo = dragInfo
                 dragInfo =
                     if (currentDragInfo == null) {
@@ -471,6 +502,11 @@ fun LocalPlaylistScreen(
         }
     }
 
+    val topBarColor by animateColorAsState(
+        if (showTopBarTitle || isSearching || inSelectMode) MaterialTheme.colorScheme.surface else Color.Transparent,
+        label = "playlist top bar",
+    )
+
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -499,18 +535,25 @@ fun LocalPlaylistScreen(
                                 onshowDeletePlaylistDialog = { showDeletePlaylistDialog = true },
                                 onStartSearch = { isSearching = true },
                                 snackbarHostState = snackbarHostState,
+                                downloads = playlistDownloads,
                                 modifier = Modifier.animateItem(),
                             )
                         }
                     }
 
                     item(key = "controls_row") {
+                        Column(Modifier.animateItem()) {
+                        DownloadFilterChips(
+                            state = playlistDownloads,
+                            filter = downloadFilter,
+                            onFilter = { downloadFilter = it },
+                            modifier = Modifier.padding(bottom = 4.dp),
+                        )
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier =
                                 Modifier
-                                    .padding(start = 16.dp)
-                                    .animateItem(),
+                                    .padding(start = 16.dp),
                         ) {
                             SortHeader(
                                 sortType = sortType,
@@ -540,11 +583,17 @@ fun LocalPlaylistScreen(
                                 }
                             }
                         }
+                        }
                     }
                 }
             }
 
-            val displayedSongs = if (isSearching) filteredSongs else mutableSongs
+            val listed = if (isSearching) filteredSongs else mutableSongs
+            // Filtering by download is only offered while some songs are on the device and some not.
+            val activeFilter =
+                if (playlistDownloads.done == 0 || playlistDownloads.complete) DownloadFilter.ALL else downloadFilter
+            val displayedSongs =
+                if (activeFilter == DownloadFilter.ALL) listed else listed.filter { activeFilter.accepts(downloadMap[it.song.id]?.state) }
 
             itemsIndexed(
                 items = displayedSongs,
@@ -639,7 +688,7 @@ fun LocalPlaylistScreen(
                                         )
                                     }
 
-                                    if (sortType == PlaylistSongSortType.CUSTOM && !locked && !inSelectMode && !isSearching && editable) {
+                                    if (sortType == PlaylistSongSortType.CUSTOM && !locked && !inSelectMode && !isSearching && editable && activeFilter == DownloadFilter.ALL) {
                                         IconButton(
                                             onClick = { },
                                             modifier = Modifier.draggableHandle(),
@@ -716,6 +765,36 @@ fun LocalPlaylistScreen(
                     }
                 }
             }
+
+            if (online && editable && !isSearching && !inSelectMode && suggestions.isNotEmpty()) {
+                item(key = "suggestions_title") {
+                    NavigationTitle(
+                        title = stringResource(R.string.playlist_suggestions),
+                        label = stringResource(R.string.playlist_suggestions_subtitle),
+                        modifier = Modifier.animateItem(),
+                    )
+                }
+                items(suggestions, key = { "suggestion_${it.id}" }) { suggestion ->
+                    YouTubeListItem(
+                        item = suggestion,
+                        isActive = suggestion.id == mediaMetadata?.id,
+                        isPlaying = isPlaying,
+                        trailingContent = {
+                            IconButton(onClick = { viewModel.addSuggestion(suggestion) }) {
+                                Icon(
+                                    painter = painterResource(R.drawable.add),
+                                    contentDescription = stringResource(R.string.playlist_suggestion_add),
+                                )
+                            }
+                        },
+                        modifier =
+                            Modifier
+                                .clickable {
+                                    playerConnection.playQueue(YouTubeQueue(suggestion.endpoint ?: WatchEndpoint(videoId = suggestion.id), suggestion.toMediaMetadata()))
+                                }.animateItem(),
+                    )
+                }
+            }
         }
 
         DraggableScrollbar(
@@ -761,7 +840,21 @@ fun LocalPlaylistScreen(
                                 .focusRequester(focusRequester),
                     )
                 } else if (showTopBarTitle) {
-                    Text(playlist?.playlist?.name.orEmpty())
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        playlist?.thumbnails?.firstOrNull()?.let { thumbnail ->
+                            AsyncImage(
+                                model = thumbnail,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier =
+                                    Modifier
+                                        .padding(end = 12.dp)
+                                        .size(32.dp)
+                                        .clip(RoundedCornerShape(6.dp)),
+                            )
+                        }
+                        Text(playlist?.playlist?.name.orEmpty(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
                 }
             },
             navigationIcon = {
@@ -842,9 +935,36 @@ fun LocalPlaylistScreen(
                             contentDescription = null,
                         )
                     }
+                    if (showTopBarTitle && songs.isNotEmpty()) {
+                        FilledIconButton(
+                            onClick = {
+                                playerConnection.playQueue(
+                                    ListQueue(title = playlist?.playlist?.name, items = songs.map { it.song.toMediaItem() }),
+                                )
+                            },
+                            modifier = Modifier.padding(end = 8.dp),
+                        ) {
+                            Icon(painterResource(R.drawable.play), contentDescription = stringResource(R.string.play))
+                        }
+                    }
                 }
             },
+            // See-through over the header's glow; solid once the list scrolls under it.
+            colors =
+                TopAppBarDefaults.topAppBarColors(
+                    containerColor = topBarColor,
+                    scrolledContainerColor = topBarColor,
+                ),
         )
+        if (showTopBarTitle && !isSearching && !inSelectMode) {
+            DownloadProgressLine(
+                state = playlistDownloads,
+                modifier =
+                    Modifier
+                        .windowInsetsPadding(WindowInsets.statusBars)
+                        .padding(top = 64.dp),
+            )
+        }
 
         SnackbarHost(
             hostState = snackbarHostState,
@@ -866,6 +986,7 @@ fun LocalPlaylistHeader(
     onshowDeletePlaylistDialog: () -> Unit,
     onStartSearch: () -> Unit,
     snackbarHostState: SnackbarHostState,
+    downloads: PlaylistDownloads,
     modifier: Modifier,
 ) {
     val navController = LocalNavController.current
@@ -1013,11 +1134,18 @@ fun LocalPlaylistHeader(
         }
     }
 
+    Box(modifier.fillMaxWidth()) {
+    val density = LocalDensity.current
+    ArtworkGlow(
+        artworkUrl = overrideThumbnail.value ?: playlist.thumbnails.firstOrNull(),
+        modifier = Modifier.matchParentSize(),
+        extendUp = with(density) { LocalPlayerAwareWindowInsets.current.getTop(density).toDp() },
+    )
     Column(
         modifier =
-            modifier
+            Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 20.dp),
+                .padding(top = 8.dp, bottom = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (showEditNoteDialog) {
@@ -1251,13 +1379,8 @@ fun LocalPlaylistHeader(
             }
         val nSongs = pluralStringResource(R.plurals.n_song, songCount, songCount)
         val durationText = if (playlistLength > 0) makeTimeString(playlistLength * 1000L) else null
-        val metadataString = buildString {
-            append(nSongs)
-            if (durationText != null) {
-                append(" ")
-                append(durationText)
-            }
-        }
+        val downloadedText = if (downloads.done > 0) stringResource(R.string.playlist_downloaded_count, downloads.done) else null
+        val metadataString = listOfNotNull(nSongs, durationText, downloadedText).joinToString("  ·  ")
         Text(
             text = metadataString,
             style = MaterialTheme.typography.bodySmall,
@@ -1317,8 +1440,8 @@ fun LocalPlaylistHeader(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+                    .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Surface(
@@ -1397,6 +1520,20 @@ fun LocalPlaylistHeader(
                 }
             }
 
+            DownloadRingButton(
+                state = downloads,
+                onClick = {
+                    when {
+                        downloads.complete -> onShowRemoveDownloadDialog()
+                        downloads.downloading -> if (downloads.paused) downloadUtil.resumeAll() else downloadUtil.pauseAll()
+                        else ->
+                            songs
+                                .filter { downloadUtil.downloads.value[it.song.id]?.state != Download.STATE_COMPLETED }
+                                .forEach { downloadUtil.download(it.song) }
+                    }
+                },
+            )
+
             // Menu Button - Smaller secondary button
             Surface(
                 onClick = {
@@ -1468,6 +1605,13 @@ fun LocalPlaylistHeader(
                 }
             }
         }
+
+        DownloadProgressCard(
+            state = downloads,
+            onPauseToggle = { if (downloads.paused) downloadUtil.resumeAll() else downloadUtil.pauseAll() },
+            modifier = Modifier.padding(top = 16.dp),
+        )
+    }
     }
 }
 

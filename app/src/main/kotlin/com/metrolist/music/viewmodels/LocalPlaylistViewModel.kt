@@ -20,6 +20,10 @@ import com.metrolist.music.db.entities.PlaylistSong
 import com.metrolist.music.extensions.reversed
 import com.metrolist.music.extensions.toEnum
 import com.metrolist.music.utils.dataStore
+import com.metrolist.innertube.models.SongItem
+import com.metrolist.innertube.models.WatchEndpoint
+import com.metrolist.music.models.toMediaMetadata
+import com.metrolist.music.utils.SyncUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -43,7 +47,8 @@ class LocalPlaylistViewModel
 @Inject
 constructor(
     @ApplicationContext context: Context,
-    database: MusicDatabase,
+    private val database: MusicDatabase,
+    private val syncUtils: SyncUtils,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val playlistId = savedStateHandle.get<String>("playlistId")!!
@@ -101,6 +106,38 @@ constructor(
             .flowOn(Dispatchers.Default)
             .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    private val _suggestions = MutableStateFlow<List<SongItem>>(emptyList())
+
+    /** Songs like the ones in this playlist that it does not hold yet. */
+    val suggestions: StateFlow<List<SongItem>> = _suggestions
+    private var suggestionsRequested = false
+
+    /** Looks up songs related to a few of the playlist's own; asked for once, when shown online. */
+    fun loadSuggestions() {
+        if (suggestionsRequested) return
+        suggestionsRequested = true
+        viewModelScope.launch(Dispatchers.IO) {
+            val songs = playlistSongs.first { it.isNotEmpty() }
+            val present = songs.mapTo(HashSet()) { it.song.id }
+            val related =
+                songs.shuffled().take(SUGGESTION_SEEDS).flatMap { seed ->
+                    val endpoint = YouTube.next(WatchEndpoint(videoId = seed.song.id)).getOrNull()?.relatedEndpoint
+                    endpoint?.let { YouTube.related(it).getOrNull()?.songs }.orEmpty()
+                }
+            _suggestions.value = related.distinctBy { it.id }.filter { it.id !in present }.shuffled().take(SUGGESTION_COUNT)
+        }
+    }
+
+    fun addSuggestion(song: SongItem) {
+        _suggestions.value -= song
+        viewModelScope.launch(Dispatchers.IO) {
+            val target = playlist.value ?: return@launch
+            database.insert(song.toMediaMetadata())
+            database.addSongsToPlaylist(target, listOf(song.id to null))
+            target.playlist.browseId?.let { syncUtils.scheduleAddToPlaylist(it, target.id, listOf(song.id)) }
+        }
+    }
+
     init {
         // Make positions consecutive so drag-and-drop moves work. This reads every row of the
         // playlist: the displayed list starts empty and may be filtered (search, hidden videos).
@@ -125,3 +162,6 @@ constructor(
         }
     }
 }
+
+private const val SUGGESTION_SEEDS = 3
+private const val SUGGESTION_COUNT = 6

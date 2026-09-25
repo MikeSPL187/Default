@@ -51,12 +51,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -323,7 +325,64 @@ constructor(
             )
         }
 
+    /** How far each running download has got (0..1), and how fast everything is coming in. */
+    val progress = MutableStateFlow(DownloadProgress())
+
+    /** Whether the user paused all downloads. */
+    val paused = MutableStateFlow(false)
+
+    // The download manager reports only state changes, so while anything is running its progress
+    // is read twice a second; idle, nothing is polled.
+    private fun watchProgress() =
+        scope.launch(Dispatchers.Main) {
+            var lastBytes = emptyMap<String, Long>()
+            var speed = 0.0
+            downloads
+                .map { map -> map.values.any { it.state == Download.STATE_DOWNLOADING || it.state == Download.STATE_QUEUED } }
+                .distinctUntilChanged()
+                .collectLatest { active ->
+                    if (!active) {
+                        lastBytes = emptyMap()
+                        speed = 0.0
+                        progress.value = DownloadProgress()
+                        return@collectLatest
+                    }
+                    while (true) {
+                        val current = downloadManager.currentDownloads.filter { it.state == Download.STATE_DOWNLOADING }
+                        val bytes = current.associate { it.request.id to it.bytesDownloaded }
+                        val finished = downloads.value
+                        val received =
+                            bytes.entries.sumOf { (id, now) -> (now - (lastBytes[id] ?: now)).coerceAtLeast(0) } +
+                                (lastBytes.keys - bytes.keys).sumOf { id ->
+                                    ((finished[id]?.bytesDownloaded ?: 0L) - (lastBytes[id] ?: 0L)).coerceAtLeast(0)
+                                }
+                        lastBytes = bytes
+                        // Smoothed so the shown speed does not jump with every tick.
+                        speed = speed * 0.6 + received / (PROGRESS_TICK_MS / 1000.0) * 0.4
+                        progress.value =
+                            DownloadProgress(
+                                fractions = current.associate { it.request.id to (it.percentDownloaded / 100f).coerceIn(0f, 1f) },
+                                bytes = current.associate { it.request.id to (it.bytesDownloaded to it.contentLength) },
+                                bytesPerSecond = speed.toLong(),
+                            )
+                        delay(PROGRESS_TICK_MS)
+                    }
+                }
+        }
+
+    fun pauseAll() {
+        paused.value = true
+        DownloadService.sendPauseDownloads(context, ExoDownloadService::class.java, false)
+    }
+
+    fun resumeAll() {
+        paused.value = false
+        DownloadService.sendResumeDownloads(context, ExoDownloadService::class.java, false)
+    }
+
     init {
+        paused.value = downloadManager.downloadsPaused
+        watchProgress()
         watchPlaylistSync.start()
         val result = mutableMapOf<String, Download>()
         downloadManager.downloadIndex.getDownloads().use { cursor ->
@@ -554,3 +613,12 @@ internal fun downloadContentLength(
 
 private val PARTIAL_CONTENT_RANGE = Regex("""bytes\s+0-0/(\d+)""", RegexOption.IGNORE_CASE)
 private val UNSATISFIED_CONTENT_RANGE = Regex("""bytes\s+\*/(\d+)""", RegexOption.IGNORE_CASE)
+
+private const val PROGRESS_TICK_MS = 500L
+
+/** A snapshot of the running downloads: each one's share done, bytes (done to total) and the speed. */
+data class DownloadProgress(
+    val fractions: Map<String, Float> = emptyMap(),
+    val bytes: Map<String, Pair<Long, Long>> = emptyMap(),
+    val bytesPerSecond: Long = 0,
+)

@@ -1167,4 +1167,27 @@
     <string name="offline_empty_title">Скачанной музыки пока нет</string>
     <string name="offline_empty_text">Скачивайте треки, альбомы и плейлисты, чтобы слушать их без интернета.</string>
     <string name="downloaded_only_setting_desc">Играть только музыку на устройстве, без загрузки из сети. Экономит трафик.</string>
+
+    <!-- Playlist downloads -->
+    <string name="download_in_progress">Скачивание</string>
+    <string name="download_paused">На паузе</string>
+    <string name="download_count_of">%1$d из %2$d</string>
+    <string name="download_speed">%s/с</string>
+    <string name="download_resume">Продолжить</string>
+    <string name="download_pause">Пауза</string>
+    <string name="download_keeps_going">Можно свернуть — скачивание продолжится</string>
+    <string name="download_eta_soon">Меньше минуты</string>
+    <string name="playlist_filter_all">Все %d</string>
+    <string name="playlist_filter_downloaded">Скачанные %d</string>
+    <string name="playlist_filter_missing">Не скачанные %d</string>
+    <string name="playlist_downloaded_count">%d скачано</string>
+    <string name="playlist_suggestions">Может понравиться</string>
+    <string name="playlist_suggestions_subtitle">Похожие на этот плейлист</string>
+    <string name="playlist_suggestion_add">Добавить в плейлист</string>
+    <plurals name="download_eta_minutes">
+        <item quantity="one">≈ %d мин</item>
+        <item quantity="few">≈ %d мин</item>
+        <item quantity="many">≈ %d мин</item>
+        <item quantity="other">≈ %d мин</item>
+    </plurals>
 </resources>

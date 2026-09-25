@@ -1268,4 +1268,25 @@
     <string name="offline_empty_title">No downloaded music yet</string>
     <string name="offline_empty_text">Download songs, albums and playlists to listen without a connection.</string>
     <string name="downloaded_only_setting_desc">Play only music on the device, never streaming. Saves mobile data.</string>
+
+    <!-- Playlist downloads -->
+    <string name="download_in_progress">Downloading</string>
+    <string name="download_paused">Paused</string>
+    <string name="download_count_of">%1$d of %2$d</string>
+    <string name="download_speed">%s/s</string>
+    <string name="download_resume">Resume</string>
+    <string name="download_pause">Pause</string>
+    <string name="download_keeps_going">You can leave, it keeps going</string>
+    <string name="download_eta_soon">Under a minute</string>
+    <string name="playlist_filter_all">All %d</string>
+    <string name="playlist_filter_downloaded">Downloaded %d</string>
+    <string name="playlist_filter_missing">Not downloaded %d</string>
+    <string name="playlist_downloaded_count">%d downloaded</string>
+    <string name="playlist_suggestions">You might like</string>
+    <string name="playlist_suggestions_subtitle">Similar to this playlist</string>
+    <string name="playlist_suggestion_add">Add to playlist</string>
+    <plurals name="download_eta_minutes">
+        <item quantity="one">≈ %d min</item>
+        <item quantity="other">≈ %d min</item>
+    </plurals>
 </resources>

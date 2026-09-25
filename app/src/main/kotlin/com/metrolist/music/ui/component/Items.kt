@@ -137,6 +137,14 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlin.math.sin
+import kotlin.math.cos
+import kotlin.math.PI
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.Canvas
 import kotlin.jvm.JvmName
 
 const val ActiveBoxAlpha = 0.6f
@@ -503,7 +511,7 @@ fun SongListItem(
         if (showDownloadIcon) {
             val download by LocalDownloadUtil.current.let { util -> remember(song.id, util) { util.getDownload(song.id) } }
                 .collectAsStateWithLifecycle(initialValue = null)
-            Icon.Download(download?.state)
+            Icon.Download(download?.state, song.id)
             val watchExport by LocalDownloadUtil.current.let { util -> remember(song.id, util) { util.getWatchExportState(song.id) } }
                 .collectAsStateWithLifecycle(initialValue = WatchExportState.NotExported)
             Icon.WatchExport(watchExport)
@@ -597,7 +605,7 @@ fun SongGridItem(
         }
         if (showDownloadIcon) {
             val download by LocalDownloadUtil.current.let { util -> remember(song.id, util) { util.getDownload(song.id) } }.collectAsStateWithLifecycle(initialValue = null)
-            Icon.Download(download?.state)
+            Icon.Download(download?.state, song.id)
             val watchExport by LocalDownloadUtil.current.let { util -> remember(song.id, util) { util.getWatchExportState(song.id) } }
                 .collectAsStateWithLifecycle(initialValue = WatchExportState.NotExported)
             Icon.WatchExport(watchExport)
@@ -1157,7 +1165,7 @@ fun YouTubeListItem(
         // }
         if (item is SongItem) {
             val download by LocalDownloadUtil.current.let { util -> remember(item.id, util) { util.getDownload(item.id) } }.collectAsStateWithLifecycle(null)
-            Icon.Download(download?.state)
+            Icon.Download(download?.state, item.id)
         }
     },
 ) {
@@ -1262,7 +1270,7 @@ fun YouTubeGridItem(
         // if (item is SongItem && song?.song?.inLibrary != null) Icon.Library()
         if (item is SongItem) {
             val download by LocalDownloadUtil.current.let { util -> remember(item.id, util) { util.getDownload(item.id) } }.collectAsStateWithLifecycle(null)
-            Icon.Download(download?.state)
+            Icon.Download(download?.state, item.id)
         }
     },
     thumbnailRatio: Float = if (item is SongItem) 16f / 9 else 1f,
@@ -1955,8 +1963,15 @@ object Icon {
         )
     }
 
+    /**
+     * A song's download: a check once it is on the device, a ring filling up while it downloads
+     * (with [songId] known, otherwise a spinner), and a dotted ring while it waits its turn.
+     */
     @Composable
-    fun Download(state: Int?) {
+    fun Download(
+        state: Int?,
+        songId: String? = null,
+    ) {
         when (state) {
             STATE_COMPLETED -> Icon(
                 painter = painterResource(R.drawable.offline),
@@ -1965,15 +1980,55 @@ object Icon {
                     .size(18.dp)
                     .padding(end = 2.dp)
             )
-            STATE_QUEUED, STATE_DOWNLOADING -> CircularProgressIndicator(
-                strokeWidth = 2.dp,
-                modifier = Modifier
-                    .size(16.dp)
-                    .padding(end = 2.dp)
-            )
+            STATE_DOWNLOADING -> {
+                val util = LocalDownloadUtil.current
+                val fraction by remember(songId, util) {
+                    util.progress.map { songId?.let(it.fractions::get) }.distinctUntilChanged()
+                }.collectAsStateWithLifecycle(initialValue = null)
+                val current = fraction
+                if (current == null) {
+                    CircularProgressIndicator(
+                        strokeWidth = 2.dp,
+                        modifier = Modifier
+                            .size(16.dp)
+                            .padding(end = 2.dp)
+                    )
+                } else {
+                    val shown by animateFloatAsState(current, label = "download progress")
+                    CircularProgressIndicator(
+                        progress = { shown },
+                        strokeWidth = 2.dp,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                        gapSize = 0.dp,
+                        modifier = Modifier
+                            .size(16.dp)
+                            .padding(end = 2.dp)
+                    )
+                }
+            }
+            STATE_QUEUED -> {
+                val color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                Canvas(
+                    Modifier
+                        .size(16.dp)
+                        .padding(end = 2.dp, top = 1.dp, bottom = 1.dp, start = 1.dp)
+                ) {
+                    val radius = size.minDimension / 2 - 1.dp.toPx()
+                    repeat(QUEUED_DOTS) { dot ->
+                        val angle = dot * 2 * PI / QUEUED_DOTS
+                        drawCircle(
+                            color = color,
+                            radius = 0.9.dp.toPx(),
+                            center = center + Offset((radius * cos(angle)).toFloat(), (radius * sin(angle)).toFloat()),
+                        )
+                    }
+                }
+            }
             else -> { /* no icon */ }
         }
     }
+
+    private const val QUEUED_DOTS = 10
 
     @Composable
     fun WatchExport(state: WatchExportState) {

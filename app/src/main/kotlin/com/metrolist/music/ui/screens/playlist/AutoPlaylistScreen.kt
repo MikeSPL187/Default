@@ -5,6 +5,15 @@
 
 package com.metrolist.music.ui.screens.playlist
 
+import androidx.compose.ui.platform.LocalDensity
+import com.metrolist.music.ui.component.PlaylistDownloads
+import com.metrolist.music.ui.component.ArtworkGlow
+import com.metrolist.music.ui.component.DownloadProgressCard
+import com.metrolist.music.ui.component.DownloadRingButton
+import com.metrolist.music.ui.component.accepts
+import com.metrolist.music.ui.component.DownloadFilterChips
+import com.metrolist.music.ui.component.DownloadFilter
+import com.metrolist.music.ui.component.rememberPlaylistDownloads
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -457,16 +466,25 @@ fun AutoPlaylistScreen(
         }
     }
 
+    val songIds = remember(songs) { songs?.map { it.id }.orEmpty() }
+    val playlistDownloads = rememberPlaylistDownloads(songIds)
+    val downloadMap by downloadUtil.downloads.collectAsStateWithLifecycle()
+    var downloadFilter by rememberSaveable { mutableStateOf(DownloadFilter.ALL) }
+    // Filtering by download is only offered while some songs are on the device and some not.
+    val activeFilter = if (playlistDownloads.done == 0 || playlistDownloads.complete) DownloadFilter.ALL else downloadFilter
+
     val filteredSongs =
-        remember(songs, query) {
-            if (query.text.isEmpty()) {
-                songs ?: emptyList()
-            } else {
-                songs?.filter { song ->
-                    song.song.title.contains(query.text, true) ||
-                        song.artists.any { it.name.contains(query.text, true) }
-                } ?: emptyList()
-            }
+        remember(songs, query, activeFilter, downloadMap) {
+            val searched =
+                if (query.text.isEmpty()) {
+                    songs ?: emptyList()
+                } else {
+                    songs?.filter { song ->
+                        song.song.title.contains(query.text, true) ||
+                            song.artists.any { it.name.contains(query.text, true) }
+                    } ?: emptyList()
+                }
+            if (activeFilter == DownloadFilter.ALL) searched else searched.filter { activeFilter.accepts(downloadMap[it.id]?.state) }
         }
 
     LaunchedEffect(filteredSongs) {
@@ -530,6 +548,7 @@ fun AutoPlaylistScreen(
                                 songs = songs!!,
                                 likeLength = likeLength,
                                 downloadState = downloadState,
+                                downloads = playlistDownloads,
                                 onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
                                 menuState = menuState,
                                 modifier = Modifier.animateItem(),
@@ -538,6 +557,13 @@ fun AutoPlaylistScreen(
                     }
 
                     item(key = "songs_header") {
+                        Column {
+                        DownloadFilterChips(
+                            state = playlistDownloads,
+                            filter = downloadFilter,
+                            onFilter = { downloadFilter = it },
+                            modifier = Modifier.padding(bottom = 4.dp),
+                        )
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(start = 16.dp),
@@ -557,6 +583,7 @@ fun AutoPlaylistScreen(
                                 },
                                 modifier = Modifier.weight(1f),
                             )
+                        }
                         }
                     }
                 }
@@ -846,6 +873,7 @@ private fun AutoPlaylistHeader(
     songs: List<Song>,
     likeLength: Int,
     downloadState: Int,
+    downloads: PlaylistDownloads,
     onShowRemoveDownloadDialog: () -> Unit,
     menuState: com.metrolist.music.ui.component.MenuState,
     modifier: Modifier = Modifier,
@@ -853,12 +881,19 @@ private fun AutoPlaylistHeader(
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
     val downloadUtil = LocalDownloadUtil.current
+    val density = LocalDensity.current
 
+    Box(modifier.fillMaxWidth()) {
+    ArtworkGlow(
+        artworkUrl = songs.firstOrNull()?.song?.thumbnailUrl,
+        modifier = Modifier.matchParentSize(),
+        extendUp = with(density) { LocalPlayerAwareWindowInsets.current.getTop(density).toDp() },
+    )
     Column(
         modifier =
-            modifier
+            Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 20.dp),
+                .padding(top = 8.dp, bottom = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // Playlist Thumbnail - Large centered with shadow
@@ -901,13 +936,11 @@ private fun AutoPlaylistHeader(
         // Metadata - Song Count • Duration
         Text(
             text =
-                buildString {
-                    append(pluralStringResource(R.plurals.n_song, songs.size, songs.size))
-                    if (likeLength > 0) {
-                        append(" ")
-                        append(makeTimeString(likeLength * 1000L))
-                    }
-                },
+                listOfNotNull(
+                    pluralStringResource(R.plurals.n_song, songs.size, songs.size),
+                    if (likeLength > 0) makeTimeString(likeLength * 1000L) else null,
+                    if (downloads.done > 0 && !downloads.complete) stringResource(R.string.playlist_downloaded_count, downloads.done) else null,
+                ).joinToString("  ·  "),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
         )
@@ -919,8 +952,8 @@ private fun AutoPlaylistHeader(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+                    .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             androidx.compose.material3.Surface(
@@ -999,6 +1032,20 @@ private fun AutoPlaylistHeader(
                 }
             }
 
+            DownloadRingButton(
+                state = downloads,
+                onClick = {
+                    when {
+                        downloads.complete -> onShowRemoveDownloadDialog()
+                        downloads.downloading -> if (downloads.paused) downloadUtil.resumeAll() else downloadUtil.pauseAll()
+                        else ->
+                            songs
+                                .filter { downloadUtil.downloads.value[it.id]?.state != Download.STATE_COMPLETED }
+                                .forEach { downloadUtil.download(it) }
+                    }
+                },
+            )
+
             // Menu Button - Smaller secondary button
             Surface(
                 onClick = {
@@ -1054,6 +1101,13 @@ private fun AutoPlaylistHeader(
                 }
             }
         }
+
+        DownloadProgressCard(
+            state = downloads,
+            onPauseToggle = { if (downloads.paused) downloadUtil.resumeAll() else downloadUtil.pauseAll() },
+            modifier = Modifier.padding(top = 16.dp),
+        )
+    }
     }
 }
 
