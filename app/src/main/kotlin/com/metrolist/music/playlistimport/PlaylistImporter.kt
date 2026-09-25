@@ -22,6 +22,7 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -207,7 +208,7 @@ class PlaylistImporter
             playlist: ImportedPlaylist,
             songs: List<SongItem?>,
         ): String {
-            val entity = PlaylistEntity(name = playlist.title, thumbnailUrl = playlist.coverUrl)
+            val entity = PlaylistEntity(name = playlist.title, thumbnailUrl = playlist.coverUrl, bookmarkedAt = LocalDateTime.now())
             database.insert(entity)
             fill(entity.id, songs)
             return entity.id

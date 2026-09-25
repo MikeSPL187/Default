@@ -60,6 +60,7 @@ import java.net.PasswordAuthentication
 import java.net.Proxy
 import java.util.Locale
 import javax.inject.Inject
+import com.metrolist.music.db.MusicDatabase
 
 @HiltAndroidApp
 class App :
@@ -68,6 +69,9 @@ class App :
     @Inject
     @ApplicationScope
     lateinit var applicationScope: CoroutineScope
+
+    @Inject
+    lateinit var database: MusicDatabase
 
     override fun onCreate() {
         super.onCreate()
@@ -101,6 +105,8 @@ class App :
             cachedCoilCacheSize = dataStore.data.map { it[MaxImageCacheSizeKey] ?: 512 }.first()
         }
 
+        applicationScope.launch(Dispatchers.IO) { restoreHiddenPlaylists() }
+
         // تهيئة إعدادات التطبيق عند الإقلاع
         applicationScope.launch {
             // Apply settings, including proxy configuration, before building extraction transport.
@@ -118,6 +124,17 @@ class App :
             }
 
             observeSettingsChanges()
+        }
+    }
+
+    private suspend fun restoreHiddenPlaylists() {
+        if (dataStore.data.first()[HiddenPlaylistsRestoredKey] == true) return
+        try {
+            val restored = database.showHiddenLocalPlaylists()
+            Timber.i("Restored %d hidden playlists to the library", restored)
+            safeDataStoreEdit { it[HiddenPlaylistsRestoredKey] = true }
+        } catch (e: Exception) {
+            Timber.e(e, "Could not restore hidden playlists")
         }
     }
 

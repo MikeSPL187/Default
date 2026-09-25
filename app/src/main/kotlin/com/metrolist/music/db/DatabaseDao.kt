@@ -1135,6 +1135,19 @@ interface DatabaseDao {
     )
     fun playlistsWithDownloads(): Flow<List<Playlist>>
 
+    /**
+     * Puts back in the library the local playlists that were saved without a library date by the
+     * playlist transfer and the file import, and so never showed up there.
+     */
+    @Query(
+        """
+        UPDATE playlist SET bookmarkedAt = COALESCE(createdAt, lastUpdateTime, CAST(strftime('%s', 'now') AS INTEGER) * 1000)
+        WHERE bookmarkedAt IS NULL AND browseId IS NULL AND isEditable = 1
+          AND EXISTS(SELECT 1 FROM playlist_song_map WHERE playlistId = playlist.id)
+    """
+    )
+    suspend fun showHiddenLocalPlaylists(): Int
+
     /** Albums with at least one downloaded song, i.e. albums that can be played offline. */
     fun albumsDownloaded(
         sortType: AlbumSortType,
