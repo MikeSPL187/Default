@@ -38,6 +38,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import timber.log.Timber
 import java.text.Collator
 import java.util.Locale
 import javax.inject.Inject
@@ -112,20 +116,38 @@ constructor(
     val suggestions: StateFlow<List<SongItem>> = _suggestions
     private var suggestionsRequested = false
 
-    /** Looks up songs related to a few of the playlist's own; asked for once, when shown online. */
+    /**
+     * Looks up songs like a few of the playlist's own: each one's related page, and its radio in
+     * case that page is empty. Asked for once when shown online; tried again later if it found nothing.
+     */
     fun loadSuggestions() {
         if (suggestionsRequested) return
         suggestionsRequested = true
         viewModelScope.launch(Dispatchers.IO) {
             val songs = playlistSongs.first { it.isNotEmpty() }
             val present = songs.mapTo(HashSet()) { it.song.id }
-            val related =
-                songs.shuffled().take(SUGGESTION_SEEDS).flatMap { seed ->
-                    val endpoint = YouTube.next(WatchEndpoint(videoId = seed.song.id)).getOrNull()?.relatedEndpoint
-                    endpoint?.let { YouTube.related(it).getOrNull()?.songs }.orEmpty()
+            val perSeed =
+                coroutineScope {
+                    songs.shuffled().take(SUGGESTION_SEEDS).map { seed -> async { similarTo(seed.song.id) } }.awaitAll()
                 }
-            _suggestions.value = related.distinctBy { it.id }.filter { it.id !in present }.shuffled().take(SUGGESTION_COUNT)
+            // Taken in turns from each seed, so the picks are not all like one song.
+            val mixed =
+                (0 until (perSeed.maxOfOrNull { it.size } ?: 0))
+                    .flatMap { index -> perSeed.mapNotNull { it.getOrNull(index) } }
+                    .distinctBy { it.id }
+                    .filter { it.id !in present }
+            _suggestions.value = mixed.take(SUGGESTION_COUNT)
+            if (mixed.isEmpty()) suggestionsRequested = false
         }
+    }
+
+    private suspend fun similarTo(songId: String): List<SongItem> {
+        val radio =
+            YouTube.next(WatchEndpoint(videoId = songId, playlistId = "RDAMVM$songId"))
+                .onFailure { Timber.tag("PlaylistSuggestions").w(it, "No radio for $songId") }
+                .getOrNull()
+        val related = radio?.relatedEndpoint?.let { YouTube.related(it).getOrNull()?.songs }.orEmpty()
+        return related + radio?.items.orEmpty().filter { it.id != songId }
     }
 
     fun addSuggestion(song: SongItem) {

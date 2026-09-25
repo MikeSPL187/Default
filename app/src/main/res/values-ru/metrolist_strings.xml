@@ -1188,6 +1188,8 @@
     <string name="duration_hours_minutes">%1$d ч %2$d мин</string>
     <string name="duration_hours">%d ч</string>
     <string name="duration_minutes">%d мин</string>
+    <string name="playlist_sort_custom">Свой порядок</string>
+    <string name="playlist_edit_order">Изменить порядок</string>
     <plurals name="download_eta_minutes">
         <item quantity="one">≈ %d мин</item>
         <item quantity="few">≈ %d мин</item>

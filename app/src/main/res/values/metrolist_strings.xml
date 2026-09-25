@@ -1289,6 +1289,8 @@
     <string name="duration_hours_minutes">%1$d h %2$d min</string>
     <string name="duration_hours">%d h</string>
     <string name="duration_minutes">%d min</string>
+    <string name="playlist_sort_custom">Custom order</string>
+    <string name="playlist_edit_order">Edit order</string>
     <plurals name="download_eta_minutes">
         <item quantity="one">≈ %d min</item>
         <item quantity="other">≈ %d min</item>

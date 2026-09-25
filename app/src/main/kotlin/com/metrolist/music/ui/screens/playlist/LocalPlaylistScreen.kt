@@ -5,6 +5,9 @@
 
 package com.metrolist.music.ui.screens.playlist
 
+import com.metrolist.music.ui.component.PlayPauseIcon
+import androidx.compose.material3.FilledTonalIconToggleButton
+import com.metrolist.music.ui.component.SortPill
 import com.metrolist.music.ui.component.PlaylistStats
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.animation.animateColorAsState
@@ -154,7 +157,6 @@ import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.component.OverlayEditButton
 import com.metrolist.music.ui.component.SongListItem
-import com.metrolist.music.ui.component.SortHeader
 import com.metrolist.music.ui.component.TextFieldDialog
 import com.metrolist.music.ui.menu.CustomThumbnailMenu
 import com.metrolist.music.ui.menu.LocalPlaylistMenu
@@ -502,6 +504,10 @@ fun LocalPlaylistScreen(
         }
     }
 
+    val queueTitle by playerConnection.queueTitle.collectAsStateWithLifecycle()
+    // Playing from this playlist, its play buttons pause and resume instead of starting over.
+    val playlistQueued = queueTitle != null && queueTitle == playlist?.playlist?.name
+
     val topBarColor by animateColorAsState(
         if (showTopBarTitle || isSearching || inSelectMode) MaterialTheme.colorScheme.surface else Color.Transparent,
         label = "playlist top bar",
@@ -555,14 +561,16 @@ fun LocalPlaylistScreen(
                                 Modifier
                                     .padding(start = 16.dp),
                         ) {
-                            SortHeader(
+                            SortPill(
+                                options = PlaylistSongSortType.entries,
                                 sortType = sortType,
                                 sortDescending = sortDescending,
                                 onSortTypeChange = onSortTypeChange,
                                 onSortDescendingChange = onSortDescendingChange,
-                                sortTypeText = { sortType ->
+                                hasDirection = { it != PlaylistSongSortType.CUSTOM },
+                                label = { sortType ->
                                     when (sortType) {
-                                        PlaylistSongSortType.CUSTOM -> R.string.sort_by_custom
+                                        PlaylistSongSortType.CUSTOM -> R.string.playlist_sort_custom
                                         PlaylistSongSortType.CREATE_DATE -> R.string.sort_by_create_date
                                         PlaylistSongSortType.NAME -> R.string.sort_by_name
                                         PlaylistSongSortType.ARTIST -> R.string.sort_by_artist
@@ -572,13 +580,15 @@ fun LocalPlaylistScreen(
                                 modifier = Modifier.weight(1f),
                             )
                             if (editable) {
-                                IconButton(
-                                    onClick = { locked = !locked },
-                                    modifier = Modifier.padding(horizontal = 6.dp),
+                                // Unlocked, songs can be dragged into a new order.
+                                FilledTonalIconToggleButton(
+                                    checked = !locked,
+                                    onCheckedChange = { locked = !it },
+                                    modifier = Modifier.padding(horizontal = 12.dp),
                                 ) {
                                     Icon(
                                         painter = painterResource(if (locked) R.drawable.lock else R.drawable.lock_open),
-                                        contentDescription = null,
+                                        contentDescription = stringResource(R.string.playlist_edit_order),
                                     )
                                 }
                             }
@@ -938,13 +948,17 @@ fun LocalPlaylistScreen(
                     if (showTopBarTitle && songs.isNotEmpty()) {
                         FilledIconButton(
                             onClick = {
-                                playerConnection.playQueue(
-                                    ListQueue(title = playlist?.playlist?.name, items = songs.map { it.song.toMediaItem() }),
-                                )
+                                if (playlistQueued) {
+                                    playerConnection.togglePlayPause()
+                                } else {
+                                    playerConnection.playQueue(
+                                        ListQueue(title = playlist?.playlist?.name, items = songs.map { it.song.toMediaItem() }),
+                                    )
+                                }
                             },
                             modifier = Modifier.padding(end = 8.dp),
                         ) {
-                            Icon(painterResource(R.drawable.play), contentDescription = stringResource(R.string.play))
+                            PlayPauseIcon(playing = playlistQueued && isPlaying)
                         }
                     }
                 }
@@ -1491,16 +1505,24 @@ fun LocalPlaylistHeader(
             }
 
             // Play Button - Larger primary circular button
+            val queueTitle by playerConnection.queueTitle.collectAsStateWithLifecycle()
+            val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
+            val playlistQueued = queueTitle == playlist.playlist.name
             Surface(
                 onClick = {
-                    playerConnection.playQueue(
-                        ListQueue(
-                            title = playlist.playlist.name,
-                            items = songs.map { it.song.toMediaItem() },
-                        ),
-                    )
+                    if (playlistQueued) {
+                        playerConnection.togglePlayPause()
+                    } else {
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = playlist.playlist.name,
+                                items = songs.map { it.song.toMediaItem() },
+                            ),
+                        )
+                    }
                 },
                 color = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = CircleShape,
                 modifier = Modifier.size(72.dp),
             ) {
@@ -1508,12 +1530,7 @@ fun LocalPlaylistHeader(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.play),
-                        contentDescription = stringResource(R.string.play),
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(32.dp),
-                    )
+                    PlayPauseIcon(playing = playlistQueued && isPlaying, size = 32.dp)
                 }
             }
 

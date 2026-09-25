@@ -5,6 +5,8 @@
 
 package com.metrolist.music.ui.screens.playlist
 
+import com.metrolist.music.ui.component.PlayPauseIcon
+import com.metrolist.music.ui.component.SortPill
 import com.metrolist.music.ui.component.PlaylistStats
 import androidx.compose.ui.platform.LocalDensity
 import com.metrolist.music.ui.component.PlaylistDownloads
@@ -122,7 +124,6 @@ import com.metrolist.music.ui.component.HideOnScrollFAB
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.component.SongListItem
-import com.metrolist.music.ui.component.SortHeader
 import com.metrolist.music.ui.menu.AutoPlaylistMenu
 import com.metrolist.music.ui.menu.SelectionSongMenu
 import com.metrolist.music.ui.menu.SongMenu
@@ -569,12 +570,13 @@ fun AutoPlaylistScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(start = 16.dp),
                         ) {
-                            SortHeader(
+                            SortPill(
+                                options = SongSortType.entries,
                                 sortType = sortType,
                                 sortDescending = sortDescending,
                                 onSortTypeChange = onSortTypeChange,
                                 onSortDescendingChange = onSortDescendingChange,
-                                sortTypeText = { sortType ->
+                                label = { sortType ->
                                     when (sortType) {
                                         SongSortType.CREATE_DATE -> R.string.sort_by_create_date
                                         SongSortType.NAME -> R.string.sort_by_name
@@ -1004,16 +1006,25 @@ private fun AutoPlaylistHeader(
             }
 
             // Play Button - Larger primary circular button
+            val queueTitle by playerConnection.queueTitle.collectAsStateWithLifecycle()
+            val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
+            // Playing from this playlist, the button pauses and resumes instead of starting over.
+            val playlistQueued = queueTitle == name
             Surface(
                 onClick = {
-                    playerConnection.playQueue(
-                        ListQueue(
-                            title = name,
-                            items = songs.map { it.toMediaItem() },
-                        ),
-                    )
+                    if (playlistQueued) {
+                        playerConnection.togglePlayPause()
+                    } else {
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = name,
+                                items = songs.map { it.toMediaItem() },
+                            ),
+                        )
+                    }
                 },
                 color = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = androidx.compose.foundation.shape.CircleShape,
                 modifier = Modifier.size(72.dp),
             ) {
@@ -1021,12 +1032,7 @@ private fun AutoPlaylistHeader(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.play),
-                        contentDescription = stringResource(R.string.play),
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(32.dp),
-                    )
+                    PlayPauseIcon(playing = playlistQueued && isPlaying, size = 32.dp)
                 }
             }
 
