@@ -143,7 +143,9 @@ fun HomeFeedScreen(
     val recents by viewModel.recentCollections.collectAsStateWithLifecycle()
     val keepListening by viewModel.keepListening.collectAsStateWithLifecycle()
     val daylist by viewModel.daylist.collectAsStateWithLifecycle()
-    val dailyDiscover by viewModel.dailyDiscover.collectAsStateWithLifecycle()
+    val discoverMix by viewModel.discoverMix.collectAsStateWithLifecycle()
+    val onRepeat by viewModel.onRepeat.collectAsStateWithLifecycle()
+    val quickPicks by viewModel.quickPicks.collectAsStateWithLifecycle()
     val forgotten by viewModel.forgottenFavorites.collectAsStateWithLifecycle()
     val newReleases by viewModel.newReleases.collectAsStateWithLifecycle()
     val chart by viewModel.chart.collectAsStateWithLifecycle()
@@ -165,8 +167,14 @@ fun HomeFeedScreen(
             daylist?.let { list ->
                 add(Mix(stringResource(list.part.titleRes), list.songs.map { it.toMediaItem() }, list.songs.map { it.song.thumbnailUrl }))
             }
-            dailyDiscover?.mapNotNull { it.recommendation as? SongItem }?.takeIf { it.size >= MIN_MIX }?.let { songs ->
+            onRepeat?.takeIf { it.size >= MIN_MIX }?.let { songs ->
+                add(Mix(stringResource(R.string.home_mix_on_repeat), songs.map { it.toMediaItem() }, songs.map { it.song.thumbnailUrl }))
+            }
+            discoverMix?.takeIf { it.size >= MIN_MIX }?.let { songs ->
                 add(Mix(stringResource(R.string.home_mix_discover), songs.map { it.toMediaItem() }, songs.map { it.thumbnail }))
+            }
+            quickPicks?.takeIf { it.size >= MIN_MIX }?.let { songs ->
+                add(Mix(stringResource(R.string.quick_picks), songs.map { it.toMediaItem() }, songs.map { it.song.thumbnailUrl }))
             }
             forgotten?.takeIf { it.size >= MIN_MIX }?.let { songs ->
                 add(Mix(stringResource(R.string.home_mix_forgotten), songs.map { it.toMediaItem() }, songs.map { it.song.thumbnailUrl }))
@@ -1019,14 +1027,20 @@ private fun moodIcon(title: String): Int {
     val name = title.lowercase()
     fun has(vararg words: String) = words.any { it in name }
     return when {
-        has("chill", "relax", "calm", "спок", "расслаб", "чил") -> R.drawable.graphic_eq
+        has("commut", "drive", "road", "дорог", "машин", "поездк") -> R.drawable.directions_car
+        has("chill", "relax", "calm", "спок", "расслаб", "чил", "отдых") -> R.drawable.self_improvement
         has("energy", "energ", "энерг", "бодр") -> R.drawable.bolt
         has("workout", "gym", "fitness", "трениров", "спорт") -> R.drawable.fitness_center
-        has("focus", "study", "work", "фокус", "концентр", "учёб", "учеб") -> R.drawable.center_focus
+        has("focus", "study", "фокус", "концентр", "учёб", "учеб") -> R.drawable.center_focus
+        has("dance", "electro", "edm", "танц", "электр") -> R.drawable.nightlife
         has("party", "вечерин", "туса") -> R.drawable.celebration
+        has("feel good", "happy", "хорош", "позитив", "радост") -> R.drawable.sentiment_very_satisfied
         has("sad", "груст", "печал") -> R.drawable.water_drop
         has("sleep", "сон", "сна") -> R.drawable.bedtime
         has("romance", "love", "романт", "любов") -> R.drawable.favorite
-        else -> R.drawable.music_note
+        has("r&b", "soul", "соул", "hip", "rap", "хип", "рэп", "поп", "pop") -> R.drawable.mic
+        has("jazz", "blues", "classic", "джаз", "блюз", "классик", "piano") -> R.drawable.piano
+        has("rock", "metal", "рок", "метал", "punk", "панк") -> R.drawable.local_fire_department
+        else -> R.drawable.headphones
     }
 }

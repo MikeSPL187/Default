@@ -114,6 +114,12 @@ class HomeViewModel @Inject constructor(
     /** The top songs of the charts, for the home screen. */
     val chart = MutableStateFlow<List<SongItem>?>(null)
 
+    /** Songs related to what the user likes, for the discoveries mix. */
+    val discoverMix = MutableStateFlow<List<SongItem>?>(null)
+
+    /** What the user played most this month. */
+    val onRepeat = MutableStateFlow<List<Song>?>(null)
+
     /** Collections the user opened lately, newest first, for quick access. */
     val recentCollections =
         RecentCollections.flow(context).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -329,6 +335,7 @@ class HomeViewModel @Inject constructor(
         
         // Use a synchronized list to collect results safely from concurrent coroutines
         val items = java.util.Collections.synchronizedList(mutableListOf<DailyDiscoverItem>())
+        val mix = java.util.Collections.synchronizedList(mutableListOf<SongItem>())
 
         kotlinx.coroutines.coroutineScope {
             seeds.map { seed ->
@@ -343,6 +350,8 @@ class HomeViewModel @Inject constructor(
                                     true
                                 }
                                 .shuffled()
+
+                            mix += recommendations.filter { it.id != seed.id }.take(DISCOVER_PER_SEED)
 
                             // Simple check to avoid immediate duplicate of seed
                             val recommendation = recommendations.firstOrNull { rec ->
@@ -366,6 +375,10 @@ class HomeViewModel @Inject constructor(
         
         // Final deduplication just in case multiple seeds recommended the same song
         dailyDiscover.value = items.toList().distinctBy { it.recommendation.id }.shuffled()
+        val liked = likedSongs.mapTo(HashSet()) { it.id }
+        discoverMix.value =
+            mix.toList().distinctBy { it.id }.filterNot { it.id in liked }
+                .filterNotRecommended(context.notRecommended()).shuffled()
     }
 
     private suspend fun getQuickPicks() {
@@ -513,6 +526,15 @@ class HomeViewModel @Inject constructor(
             launch(Dispatchers.IO) { getQuickPicks() }
 
             launch(Dispatchers.IO) {
+                onRepeat.value =
+                    database.mostPlayedSongs(LocalDateTime.now().minusDays(ON_REPEAT_DAYS), limit = ON_REPEAT_SIZE).first()
+                        .filterNot { it.song.isEpisode }
+                        .filterVideoSongs(hideVideoSongs).filterExplicit(hideExplicit)
+                        .filterNotRecommended(context.notRecommended())
+                        .shuffled()
+            }
+
+            launch(Dispatchers.IO) {
                 forgottenFavorites.value = database.forgottenFavorites().first()
                     .filterVideoSongs(hideVideoSongs).filterExplicit(hideExplicit).shuffled().take(20)
             }
@@ -595,6 +617,15 @@ class HomeViewModel @Inject constructor(
                         .filterNotRecommended(context.notRecommended())
                         .take(HOME_CHART_SIZE)
             }.onFailure { Timber.w(it, "Could not load the chart for home") }
+            // Charts are not published in every country; the global chart stands in for them.
+            if (chart.value.orEmpty().size < HOME_CHART_SIZE) {
+                YouTube.playlist(GLOBAL_CHART_PLAYLIST).onSuccess { page ->
+                    chart.value =
+                        page.songs.filterExplicit(hideExplicit)
+                            .filterNotRecommended(context.notRecommended())
+                            .take(HOME_CHART_SIZE)
+                }.onFailure { Timber.w(it, "Could not load the global chart for home") }
+            }
         }
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -886,3 +917,7 @@ private const val DAYLIST_SIZE = 25
 private const val DAYLIST_MIN_SIZE = 8
 
 private const val HOME_CHART_SIZE = 5
+private const val GLOBAL_CHART_PLAYLIST = "PL4fGSI1pDJn6puJdseH2Rt9sMvt9E2M4i"
+private const val DISCOVER_PER_SEED = 5
+private const val ON_REPEAT_DAYS = 30L
+private const val ON_REPEAT_SIZE = 30

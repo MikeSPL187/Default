@@ -1208,6 +1208,7 @@
     <string name="home_block_chart">Чарт недели</string>
     <string name="home_block_moods">Настроение</string>
     <string name="home_mix_discover">Открытия недели</string>
+    <string name="home_mix_on_repeat">На повторе</string>
     <string name="home_mix_forgotten">Забытое любимое</string>
     <string name="home_releases_label">От артистов, которых вы слушаете</string>
     <string name="home_edit">Изменить Главную</string>
