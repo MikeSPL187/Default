@@ -10,6 +10,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -211,7 +213,7 @@ private fun DeveloperSocials(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun AboutScreen(
     navController: NavController,
@@ -280,8 +282,11 @@ fun AboutScreen(
             
                     Spacer(Modifier.height(8.dp))
             
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    // Chips move to a new line when they do not fit, instead of squeezing a word
+                    // into one letter per line.
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Surface(
                             shape = RoundedCornerShape(8.dp),
