@@ -68,12 +68,15 @@ object FlowPlanner {
         if (tracks.size < 2) return tracks
         val maxPlay = tracks.maxOf { it.playTime }
         // Weighted shuffle: each song draws a key from an exponential with its weight as the rate,
-        // so heavier songs tend to come first while every song keeps a chance anywhere.
+        // so heavier songs tend to come first while every song keeps a chance anywhere. Keys are
+        // drawn once per song: drawing them inside the sort would break its ordering contract.
         val drawn =
-            tracks.sortedBy { track ->
-                val weight = weight(track, character, familiarity(track.playTime, maxPlay), now)
-                -ln(1.0 - random.nextDouble()) / weight
-            }
+            tracks
+                .map { track ->
+                    val weight = weight(track, character, familiarity(track.playTime, maxPlay), now)
+                    track to -ln(1.0 - random.nextDouble()) / weight
+                }.sortedBy { it.second }
+                .map { it.first }
         return spreadArtists(drawn)
     }
 
