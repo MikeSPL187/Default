@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.screens.playlist
 
+import com.metrolist.music.ui.component.PlaylistStats
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.material3.TopAppBarDefaults
@@ -161,7 +162,6 @@ import com.metrolist.music.ui.menu.SelectionSongMenu
 import com.metrolist.music.ui.menu.SongMenu
 import com.metrolist.music.ui.screens.settings.DarkMode
 import com.metrolist.music.ui.utils.backToMain
-import com.metrolist.music.utils.makeTimeString
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.utils.reportException
@@ -1377,14 +1377,11 @@ fun LocalPlaylistHeader(
             } else {
                 playlist.songCount
             }
-        val nSongs = pluralStringResource(R.plurals.n_song, songCount, songCount)
-        val durationText = if (playlistLength > 0) makeTimeString(playlistLength * 1000L) else null
-        val downloadedText = if (downloads.done > 0) stringResource(R.string.playlist_downloaded_count, downloads.done) else null
-        val metadataString = listOfNotNull(nSongs, durationText, downloadedText).joinToString("  ·  ")
-        Text(
-            text = metadataString,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+        PlaylistStats(
+            songCount = songCount,
+            durationSeconds = playlistLength,
+            downloads = downloads,
+            modifier = Modifier.padding(top = 4.dp),
         )
 
         val onlineAuthor = onlinePlaylist?.author

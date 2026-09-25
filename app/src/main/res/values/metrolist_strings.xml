@@ -1285,6 +1285,10 @@
     <string name="playlist_suggestions">You might like</string>
     <string name="playlist_suggestions_subtitle">Similar to this playlist</string>
     <string name="playlist_suggestion_add">Add to playlist</string>
+    <string name="playlist_all_downloaded">All downloaded</string>
+    <string name="duration_hours_minutes">%1$d h %2$d min</string>
+    <string name="duration_hours">%d h</string>
+    <string name="duration_minutes">%d min</string>
     <plurals name="download_eta_minutes">
         <item quantity="one">≈ %d min</item>
         <item quantity="other">≈ %d min</item>

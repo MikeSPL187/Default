@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.screens.playlist
 
+import com.metrolist.music.ui.component.PlaylistStats
 import androidx.compose.ui.platform.LocalDensity
 import com.metrolist.music.ui.component.PlaylistDownloads
 import com.metrolist.music.ui.component.ArtworkGlow
@@ -127,7 +128,6 @@ import com.metrolist.music.ui.menu.SelectionSongMenu
 import com.metrolist.music.ui.menu.SongMenu
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.ui.utils.isScrollingUp
-import com.metrolist.music.utils.makeTimeString
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.AutoPlaylistViewModel
@@ -549,6 +549,7 @@ fun AutoPlaylistScreen(
                                 likeLength = likeLength,
                                 downloadState = downloadState,
                                 downloads = playlistDownloads,
+                                showAllDownloaded = playlistType != PlaylistType.DOWNLOAD,
                                 onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
                                 menuState = menuState,
                                 modifier = Modifier.animateItem(),
@@ -874,6 +875,7 @@ private fun AutoPlaylistHeader(
     likeLength: Int,
     downloadState: Int,
     downloads: PlaylistDownloads,
+    showAllDownloaded: Boolean,
     onShowRemoveDownloadDialog: () -> Unit,
     menuState: com.metrolist.music.ui.component.MenuState,
     modifier: Modifier = Modifier,
@@ -934,15 +936,11 @@ private fun AutoPlaylistHeader(
         Spacer(modifier = Modifier.height(12.dp))
 
         // Metadata - Song Count • Duration
-        Text(
-            text =
-                listOfNotNull(
-                    pluralStringResource(R.plurals.n_song, songs.size, songs.size),
-                    if (likeLength > 0) makeTimeString(likeLength * 1000L) else null,
-                    if (downloads.done > 0 && !downloads.complete) stringResource(R.string.playlist_downloaded_count, downloads.done) else null,
-                ).joinToString("  ·  "),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+        PlaylistStats(
+            songCount = songs.size,
+            durationSeconds = likeLength,
+            // Every song of "Downloaded" is on the device; saying so there would add nothing.
+            downloads = downloads.takeIf { !it.complete || showAllDownloaded },
         )
 
         Spacer(modifier = Modifier.height(24.dp))

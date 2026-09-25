@@ -1,5 +1,9 @@
 package com.metrolist.music.ui.component
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import android.text.format.Formatter
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -354,3 +358,81 @@ fun DownloadFilter.accepts(state: Int?): Boolean =
         DownloadFilter.DOWNLOADED -> state == Download.STATE_COMPLETED
         DownloadFilter.MISSING -> state != Download.STATE_COMPLETED
     }
+
+/**
+ * A playlist's figures as small pills: how many songs, how long in words ("6 h 39 min"), and how
+ * many of them are on the device when [downloads] is given.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun PlaylistStats(
+    songCount: Int,
+    durationSeconds: Int,
+    modifier: Modifier = Modifier,
+    downloads: PlaylistDownloads? = null,
+) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier.padding(horizontal = 24.dp),
+    ) {
+        StatPill(R.drawable.music_note, pluralStringResource(R.plurals.n_song, songCount, songCount))
+        if (durationSeconds > 0) StatPill(R.drawable.timer, durationText(durationSeconds))
+        if (downloads != null && downloads.done > 0) {
+            StatPill(
+                icon = R.drawable.offline,
+                text =
+                    if (downloads.complete) {
+                        stringResource(R.string.playlist_all_downloaded)
+                    } else {
+                        stringResource(R.string.playlist_downloaded_count, downloads.done)
+                    },
+                highlighted = true,
+            )
+        }
+    }
+}
+
+@Composable
+private fun durationText(seconds: Int): String {
+    val totalMinutes = (seconds + 30) / 60
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+    return when {
+        hours > 0 && minutes > 0 -> stringResource(R.string.duration_hours_minutes, hours, minutes)
+        hours > 0 -> stringResource(R.string.duration_hours, hours)
+        else -> stringResource(R.string.duration_minutes, totalMinutes.coerceAtLeast(1))
+    }
+}
+
+@Composable
+private fun StatPill(
+    icon: Int,
+    text: String,
+    highlighted: Boolean = false,
+) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier =
+            Modifier
+                .background(
+                    if (highlighted) colors.primary.copy(alpha = 0.14f) else colors.onSurface.copy(alpha = 0.08f),
+                    CircleShape,
+                ).padding(start = 10.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = if (highlighted) colors.primary else colors.onSurfaceVariant,
+            modifier = Modifier.size(16.dp),
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            color = if (highlighted) colors.primary else colors.onSurface,
+            maxLines = 1,
+            modifier = Modifier.padding(start = 6.dp),
+        )
+    }
+}
