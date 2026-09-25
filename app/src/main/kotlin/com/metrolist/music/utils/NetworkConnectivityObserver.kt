@@ -73,6 +73,9 @@ class NetworkConnectivityObserver(context: Context) {
         } catch (e: Exception) {
             // Fallback: assume connected if registration fails
             _networkStatus.value = true
+        } catch (e: LinkageError) {
+            // Some framework builds lack part of the connectivity API; better online than stuck offline.
+            _networkStatus.value = true
         }
     }
 
@@ -110,6 +113,8 @@ class NetworkConnectivityObserver(context: Context) {
             networkCapabilities != null && reachesInternet(networkCapabilities)
         } catch (e: Exception) {
             false
+        } catch (e: LinkageError) {
+            true
         }
     }
 }
