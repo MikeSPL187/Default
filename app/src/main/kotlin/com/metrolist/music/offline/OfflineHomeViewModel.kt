@@ -45,7 +45,9 @@ data class OfflineLibrary(
         now: LocalDateTime = LocalDateTime.now(),
     ): List<Song> {
         val songById = songs.associateBy { it.id }
-        return FlowPlanner.order(FlowPlanner.candidates(tracks, mode, now), character, now).mapNotNull { songById[it.id] }
+        // A mode left with nothing, like "forgotten" after catching up, plays everything instead.
+        val candidates = FlowPlanner.candidates(tracks, mode, now).ifEmpty { tracks }
+        return FlowPlanner.order(candidates, character, now).mapNotNull { songById[it.id] }
     }
 }
 
