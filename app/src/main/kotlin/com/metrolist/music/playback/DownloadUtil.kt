@@ -117,20 +117,22 @@ constructor(
                 .setCache(playerCache)
                 .setCacheWriteDataSinkFactory(null)
                 .setUpstreamDataSourceFactory(
-                    OkHttpDataSource.Factory(streamHttpClient)
-                        .setContentTypePredicate(::isAudioContentType),
+                    ChunkedDataSource.Factory(
+                        OkHttpDataSource.Factory(streamHttpClient)
+                            .setContentTypePredicate(::isAudioContentType),
+                    ),
                 ),
         ) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
             // Downloads ask for the whole song, so a cached prefix from playback is not enough:
             // an unresolved spec would fail at the first uncached byte.
+            val playedLength =
+                ContentMetadata.getContentLength(playerCache.getContentMetadata(mediaId)).takeIf { it > 0 }
             val length =
                 if (dataSpec.length >= 0) {
                     dataSpec.length
                 } else {
-                    ContentMetadata.getContentLength(playerCache.getContentMetadata(mediaId))
-                        .takeIf { it > 0 }
-                        ?.let { it - dataSpec.position }
+                    playedLength?.let { it - dataSpec.position }
                 }
 
             if (length != null && length > 0 && playerCache.isCached(mediaId, dataSpec.position, length)) {
@@ -138,7 +140,7 @@ constructor(
             }
 
             songUrlCache[mediaId]?.let { cachedStream ->
-                return@Factory dataSpec.withResolvedStream(cachedStream)
+                return@Factory dataSpec.forDownload(cachedStream, playedLength)
             }
             val cacheGeneration = songUrlCache.generation(mediaId)
 
@@ -240,15 +242,13 @@ constructor(
                 useRangeChunks = playbackData.useRangeChunks,
                 expectedGeneration = cacheGeneration,
             )
-            dataSpec.withResolvedStream(
+            dataSpec.forDownload(
                 CachedStreamUrl(
                     url = streamUrl,
                     requestHeaders = streamHeaders,
                     clientName = playbackData.streamClient,
-                    requireBoundedRange = playbackData.requireBoundedRange,
-                    rangeChunkSizeBytes = playbackData.rangeChunkSizeBytes,
-                    useRangeChunks = playbackData.useRangeChunks,
                 ),
+                actualContentLength,
             )
         }
 

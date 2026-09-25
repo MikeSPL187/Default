@@ -34,6 +34,22 @@ internal fun DataSpec.withResolvedStream(stream: CachedStreamUrl): DataSpec {
     return resolved.subrange(0, boundedLength)
 }
 
+/**
+ * The request for downloading [stream]: the whole song, with its length when known so that it is
+ * fetched in bounded ranges (see [ChunkedDataSource]). Unlike playback it never stops at the first
+ * chunk, which would save a cut-off song.
+ */
+internal fun DataSpec.forDownload(
+    stream: CachedStreamUrl,
+    contentLength: Long?,
+): DataSpec {
+    val resolved =
+        withUri(stream.url.toUri())
+            .withRequestHeaders(httpRequestHeaders + stream.requestHeaders)
+    if (length != C.LENGTH_UNSET.toLong() || contentLength == null || contentLength <= position) return resolved
+    return resolved.subrange(0, contentLength - position)
+}
+
 internal class StreamUrlCache(
     private val maxEntries: Int = 500,
     private val currentTimeMillis: () -> Long = System::currentTimeMillis,
