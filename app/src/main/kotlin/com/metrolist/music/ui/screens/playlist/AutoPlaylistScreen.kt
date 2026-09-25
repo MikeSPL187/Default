@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.screens.playlist
 
+import com.metrolist.music.ui.component.isPlaylistQueued
 import com.metrolist.music.ui.component.PlayPauseIcon
 import com.metrolist.music.ui.component.SortPill
 import com.metrolist.music.ui.component.PlaylistStats
@@ -1008,8 +1009,10 @@ private fun AutoPlaylistHeader(
             // Play Button - Larger primary circular button
             val queueTitle by playerConnection.queueTitle.collectAsStateWithLifecycle()
             val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
+            val current by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
+            val playbackState by playerConnection.playbackState.collectAsStateWithLifecycle()
             // Playing from this playlist, the button pauses and resumes instead of starting over.
-            val playlistQueued = queueTitle == name
+            val playlistQueued = isPlaylistQueued(queueTitle, name, current?.id, playbackState) { id -> songs.any { it.id == id } }
             Surface(
                 onClick = {
                     if (playlistQueued) {

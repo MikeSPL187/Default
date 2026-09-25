@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.screens.playlist
 
+import com.metrolist.music.ui.component.isPlaylistQueued
 import com.metrolist.music.ui.component.PlayPauseIcon
 import androidx.compose.material3.FilledTonalIconToggleButton
 import com.metrolist.music.ui.component.SortPill
@@ -505,8 +506,11 @@ fun LocalPlaylistScreen(
     }
 
     val queueTitle by playerConnection.queueTitle.collectAsStateWithLifecycle()
-    // Playing from this playlist, its play buttons pause and resume instead of starting over.
-    val playlistQueued = queueTitle != null && queueTitle == playlist?.playlist?.name
+    val playbackState by playerConnection.playbackState.collectAsStateWithLifecycle()
+    // Playing from this playlist, its play buttons pause and resume instead of starting over. The
+    // title alone is not enough: it outlives a closed player or a queue that has played out.
+    val playlistQueued =
+        isPlaylistQueued(queueTitle, playlist?.playlist?.name, mediaMetadata?.id, playbackState) { id -> songs.any { it.song.id == id } }
 
     val topBarColor by animateColorAsState(
         if (showTopBarTitle || isSearching || inSelectMode) MaterialTheme.colorScheme.surface else Color.Transparent,
@@ -1507,7 +1511,10 @@ fun LocalPlaylistHeader(
             // Play Button - Larger primary circular button
             val queueTitle by playerConnection.queueTitle.collectAsStateWithLifecycle()
             val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
-            val playlistQueued = queueTitle == playlist.playlist.name
+            val currentId by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
+            val playbackState by playerConnection.playbackState.collectAsStateWithLifecycle()
+            val playlistQueued =
+                isPlaylistQueued(queueTitle, playlist.playlist.name, currentId?.id, playbackState) { id -> songs.any { it.song.id == id } }
             Surface(
                 onClick = {
                     if (playlistQueued) {

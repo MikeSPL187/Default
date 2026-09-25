@@ -119,3 +119,20 @@ fun PlayPauseIcon(
         )
     }
 }
+
+/**
+ * Whether the player is on this playlist: its queue carries the playlist's name, a song of the
+ * playlist is loaded, and it has not played out. The name alone outlives a closed player.
+ */
+fun isPlaylistQueued(
+    queueTitle: String?,
+    playlistName: String?,
+    currentSongId: String?,
+    playbackState: Int,
+    inPlaylist: (String) -> Boolean,
+): Boolean =
+    queueTitle != null &&
+        queueTitle == playlistName &&
+        currentSongId != null &&
+        playbackState != androidx.media3.common.Player.STATE_ENDED &&
+        inPlaylist(currentSongId)
