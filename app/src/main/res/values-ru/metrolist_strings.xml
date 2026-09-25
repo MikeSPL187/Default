@@ -1131,17 +1131,39 @@
     </plurals>
 
     <!-- Offline mode -->
-    <string name="offline_title_no_network">Нет подключения</string>
     <string name="offline_title_downloaded_only">Только скачанное</string>
-    <string name="offline_subtitle">Скачанная музыка готова к прослушиванию</string>
-    <string name="offline_reconnect_note">Когда связь вернётся, всё обновится само.</string>
     <string name="offline_turn_off">Выключить</string>
     <string name="offline_shuffle">Перемешать</string>
     <string name="offline_play">Слушать</string>
-    <string name="offline_recent">Недавно слушали</string>
-    <string name="offline_playlists">Плейлисты</string>
-    <string name="offline_albums">Альбомы</string>
     <string name="offline_all_downloads">Все скачанные</string>
+    <string name="offline_flow_title">Поток</string>
+    <string name="offline_flow_tune">Настроить поток</string>
+    <string name="offline_mode_all">Всё подряд</string>
+    <string name="offline_mode_liked">Любимое</string>
+    <string name="offline_mode_forgotten">Забытое</string>
+    <string name="offline_mode_new">Новое</string>
+    <string name="offline_character">Характер</string>
+    <string name="offline_character_familiar">Привычное</string>
+    <string name="offline_character_balanced">Баланс</string>
+    <string name="offline_character_rare">Редкое</string>
+    <string name="offline_tab_tracks">Треки %d</string>
+    <string name="offline_tab_playlists">Плейлисты %d</string>
+    <string name="offline_tab_albums">Альбомы %d</string>
+    <string name="offline_tab_artists">Артисты %d</string>
+    <string name="offline_sort_recently_played">Недавно слушали</string>
+    <string name="offline_sort_recently_downloaded">Недавно скачанные</string>
+    <string name="offline_sort_name">По названию</string>
+    <string name="offline_my_playlists">Мои плейлисты</string>
+    <string name="offline_downloaded_of">%1$d из %2$d скачано</string>
+    <string name="offline_status_no_network">Нет сети</string>
+    <string name="offline_status_downloads">Офлайн</string>
+    <string name="offline_empty_tab">Здесь пока пусто</string>
+    <plurals name="offline_flow_label">
+        <item quantity="one">Из скачанного · %d трек</item>
+        <item quantity="few">Из скачанного · %d трека</item>
+        <item quantity="many">Из скачанного · %d треков</item>
+        <item quantity="other">Из скачанного · %d трека</item>
+    </plurals>
     <string name="offline_empty_title">Скачанной музыки пока нет</string>
     <string name="offline_empty_text">Скачивайте треки, альбомы и плейлисты, чтобы слушать их без интернета.</string>
     <string name="downloaded_only_setting_desc">Играть только музыку на устройстве, без загрузки из сети. Экономит трафик.</string>

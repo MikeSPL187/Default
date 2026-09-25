@@ -1234,17 +1234,37 @@
     </plurals>
 
     <!-- Offline mode -->
-    <string name="offline_title_no_network">No connection</string>
     <string name="offline_title_downloaded_only">Downloads only</string>
-    <string name="offline_subtitle">Your downloaded music is ready to play</string>
-    <string name="offline_reconnect_note">Everything updates by itself when the connection is back.</string>
     <string name="offline_turn_off">Turn off</string>
     <string name="offline_shuffle">Shuffle</string>
     <string name="offline_play">Play</string>
-    <string name="offline_recent">Recently played</string>
-    <string name="offline_playlists">Playlists</string>
-    <string name="offline_albums">Albums</string>
     <string name="offline_all_downloads">All downloads</string>
+    <string name="offline_flow_title">Flow</string>
+    <string name="offline_flow_tune">Tune the flow</string>
+    <string name="offline_mode_all">Anything</string>
+    <string name="offline_mode_liked">Liked</string>
+    <string name="offline_mode_forgotten">Forgotten</string>
+    <string name="offline_mode_new">New</string>
+    <string name="offline_character">Character</string>
+    <string name="offline_character_familiar">Familiar</string>
+    <string name="offline_character_balanced">Balance</string>
+    <string name="offline_character_rare">Rare</string>
+    <string name="offline_tab_tracks">Tracks %d</string>
+    <string name="offline_tab_playlists">Playlists %d</string>
+    <string name="offline_tab_albums">Albums %d</string>
+    <string name="offline_tab_artists">Artists %d</string>
+    <string name="offline_sort_recently_played">Recently played</string>
+    <string name="offline_sort_recently_downloaded">Recently downloaded</string>
+    <string name="offline_sort_name">By name</string>
+    <string name="offline_my_playlists">My playlists</string>
+    <string name="offline_downloaded_of">%1$d of %2$d downloaded</string>
+    <string name="offline_status_no_network">No network</string>
+    <string name="offline_status_downloads">Offline</string>
+    <string name="offline_empty_tab">Nothing here yet</string>
+    <plurals name="offline_flow_label">
+        <item quantity="one">From downloads · %d track</item>
+        <item quantity="other">From downloads · %d tracks</item>
+    </plurals>
     <string name="offline_empty_title">No downloaded music yet</string>
     <string name="offline_empty_text">Download songs, albums and playlists to listen without a connection.</string>
     <string name="downloaded_only_setting_desc">Play only music on the device, never streaming. Saves mobile data.</string>

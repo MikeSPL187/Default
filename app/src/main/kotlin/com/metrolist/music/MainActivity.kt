@@ -200,6 +200,7 @@ import com.metrolist.music.ui.screens.settings.NavigationTab
 import com.metrolist.music.ui.screens.wrapped.WRAPPED_ROUTE
 import com.metrolist.music.offline.LocalOfflineMode
 import com.metrolist.music.offline.OfflineMode
+import com.metrolist.music.offline.OfflineStatusChip
 import com.metrolist.music.utils.NetworkConnectivityObserver
 import com.metrolist.music.constants.DownloadedOnlyKey
 import com.metrolist.music.ui.theme.ColorSaver
@@ -1074,7 +1075,7 @@ class MainActivity : FragmentActivity() {
                         noNetwork = !connected
                     }
                 }
-                val downloadedOnly by rememberPreference(DownloadedOnlyKey, false)
+                var downloadedOnly by rememberPreference(DownloadedOnlyKey, false)
 
                 CompositionLocalProvider(
                     LocalOfflineMode provides OfflineMode(noNetwork = noNetwork, downloadedOnly = downloadedOnly),
@@ -1113,6 +1114,10 @@ class MainActivity : FragmentActivity() {
                                             )
                                         },
                                         actions = {
+                                            val offline = LocalOfflineMode.current
+                                            if (offline.active) {
+                                                OfflineStatusChip(offline = offline, onTurnOff = { downloadedOnly = false })
+                                            }
                                             if (showHistoryButton) {
                                                 IconButton(onClick = { navController.navigate("history") }) {
                                                     Icon(

@@ -30,6 +30,8 @@ import com.metrolist.music.db.entities.Album
 import com.metrolist.music.db.entities.AlbumArtistMap
 import com.metrolist.music.db.entities.AlbumEntity
 import com.metrolist.music.db.entities.AlbumPlayStats
+import com.metrolist.music.db.entities.DownloadedSongStats
+import com.metrolist.music.db.entities.PlaylistDownloadCount
 import com.metrolist.music.db.entities.AlbumWithSongs
 import com.metrolist.music.db.entities.Artist
 import com.metrolist.music.db.entities.ArtistEntity
@@ -1103,37 +1105,43 @@ interface DatabaseDao {
     )
     fun albumsDownloadedByCreateDateAsc(): Flow<List<Album>>
 
-    /** Downloaded songs, the most recently played first; never played ones follow, newest download first. */
-    @Transaction
+    /** Listening of every downloaded song: total time and when it last played. */
     @Query(
         """
-        SELECT song.* FROM song
-        LEFT JOIN (SELECT songId, MAX(timestamp) AS lastPlayed FROM event GROUP BY songId) played ON played.songId = song.id
+        SELECT song.id AS id, IFNULL(SUM(event.playTime), 0) AS playTime, MAX(event.timestamp) AS lastPlayed
+        FROM song LEFT JOIN event ON event.songId = song.id
         WHERE song.isDownloaded = 1 AND (song.isEpisode = 0 OR song.isEpisode IS NULL)
-        ORDER BY played.lastPlayed IS NULL, played.lastPlayed DESC, song.dateDownload DESC
-        LIMIT :limit
+        GROUP BY song.id
     """
     )
-    fun recentlyPlayedDownloadedSongs(limit: Int): Flow<List<Song>>
+    fun downloadedSongStats(): Flow<List<DownloadedSongStats>>
 
-    @Transaction
-    @Query("SELECT * FROM song WHERE liked AND isDownloaded = 1 ORDER BY likedDate DESC, rowId DESC")
-    fun likedDownloadedSongs(): Flow<List<Song>>
-
-    /** Playlists with at least one downloaded song, with only those counted. */
+    /** Library playlists with at least one downloaded song, the most recently changed first. */
     @Transaction
     @Query(
         """
-        SELECT playlist.*,
-               (SELECT COUNT(*) FROM playlist_song_map psm JOIN song ON song.id = psm.songId
-                WHERE psm.playlistId = playlist.id AND song.isDownloaded = 1) AS songCount
+        SELECT playlist.*, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount
         FROM playlist
-        WHERE EXISTS(SELECT 1 FROM playlist_song_map psm JOIN song ON song.id = psm.songId
+        WHERE bookmarkedAt IS NOT NULL
+          AND EXISTS(SELECT 1 FROM playlist_song_map psm JOIN song ON song.id = psm.songId
                      WHERE psm.playlistId = playlist.id AND song.isDownloaded = 1)
         ORDER BY lastUpdateTime DESC
     """
     )
     fun playlistsWithDownloads(): Flow<List<Playlist>>
+
+    @Query(
+        """
+        SELECT psm.playlistId AS playlistId, SUM(song.isDownloaded = 1) AS downloaded, COUNT(*) AS total
+        FROM playlist_song_map psm JOIN song ON song.id = psm.songId
+        GROUP BY psm.playlistId
+    """
+    )
+    fun playlistDownloadCounts(): Flow<List<PlaylistDownloadCount>>
+
+    @Transaction
+    @Query("SELECT song.* FROM playlist_song_map psm JOIN song ON song.id = psm.songId WHERE psm.playlistId = :playlistId AND song.isDownloaded = 1 ORDER BY psm.position")
+    suspend fun downloadedPlaylistSongs(playlistId: String): List<Song>
 
     /**
      * Puts back in the library the local playlists that were saved without a library date by the

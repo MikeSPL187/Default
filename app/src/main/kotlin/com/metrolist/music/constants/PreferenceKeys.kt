@@ -171,6 +171,10 @@ val EnableSongCacheKey = booleanPreferencesKey("enableSongCache")
 /** Play only what is on the device, never streaming, even with a connection. */
 val DownloadedOnlyKey = booleanPreferencesKey("downloadedOnly")
 
+val FlowModeKey = stringPreferencesKey("offlineFlowMode")
+val FlowCharacterKey = stringPreferencesKey("offlineFlowCharacter")
+val OfflineSongSortKey = stringPreferencesKey("offlineSongSort")
+
 /** Imported playlists saved outside the library were moved into it once. */
 val HiddenPlaylistsRestoredKey = booleanPreferencesKey("hiddenPlaylistsRestored")
 
