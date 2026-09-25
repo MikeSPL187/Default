@@ -5,6 +5,8 @@
 
 package com.metrolist.music.ui.screens
 
+import com.metrolist.music.utils.RememberForQuickAccess
+import com.metrolist.music.utils.RecentCollection
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -119,6 +121,9 @@ fun AlbumScreen(
 
     val playlistId by viewModel.playlistId.collectAsStateWithLifecycle()
     val albumWithSongs by viewModel.albumWithSongs.collectAsStateWithLifecycle()
+    RememberForQuickAccess(
+        albumWithSongs?.album?.let { RecentCollection(RecentCollection.Kind.ALBUM, it.id, it.title, it.thumbnailUrl) },
+    )
     val otherVersions by viewModel.otherVersions.collectAsStateWithLifecycle()
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
     val hideVideoSongs by rememberPreference(key = HideVideoSongsKey, defaultValue = false)

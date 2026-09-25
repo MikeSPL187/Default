@@ -5,6 +5,8 @@
 
 package com.metrolist.music.ui.screens.artist
 
+import com.metrolist.music.utils.RememberForQuickAccess
+import com.metrolist.music.utils.RecentCollection
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -150,6 +152,16 @@ fun ArtistScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
     val artistPage = viewModel.artistPage
     val libraryArtist by viewModel.libraryArtist.collectAsStateWithLifecycle()
+    RememberForQuickAccess(
+        (artistPage?.artist?.title ?: libraryArtist?.artist?.name)?.let { name ->
+            RecentCollection(
+                RecentCollection.Kind.ARTIST,
+                viewModel.artistId,
+                name,
+                libraryArtist?.artist?.thumbnailUrl ?: artistPage?.artist?.thumbnail,
+            )
+        },
+    )
     val artistNameAliases = LocalArtistNameAliases.current
     val displayArtistName =
         ArtistNameAliases.resolve(

@@ -5,6 +5,8 @@
 
 package com.metrolist.music.ui.screens.playlist
 
+import com.metrolist.music.utils.RememberForQuickAccess
+import com.metrolist.music.utils.RecentCollection
 import com.metrolist.music.ui.component.isPlaylistQueued
 import com.metrolist.music.ui.component.PlayPauseIcon
 import com.metrolist.music.ui.component.SortPill
@@ -163,6 +165,11 @@ fun AutoPlaylistScreen(
         }
 
     val songs by viewModel.likedSongs.collectAsStateWithLifecycle(null)
+    RememberForQuickAccess(
+        songs?.takeIf { it.isNotEmpty() }?.let {
+            RecentCollection(RecentCollection.Kind.AUTO_PLAYLIST, viewModel.playlist, playlist, it.first().song.thumbnailUrl)
+        },
+    )
     val mutableSongs =
         remember {
             mutableStateListOf<Song>()

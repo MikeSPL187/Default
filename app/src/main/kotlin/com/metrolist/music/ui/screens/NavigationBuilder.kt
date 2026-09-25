@@ -70,6 +70,7 @@ import com.metrolist.music.utils.rememberPreference
 import java.time.LocalDate
 import com.metrolist.music.offline.LocalOfflineMode
 import com.metrolist.music.offline.OfflineHomeScreen
+import com.metrolist.music.ui.screens.home.HomeFeedScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.navigationBuilder(
@@ -83,7 +84,7 @@ fun NavGraphBuilder.navigationBuilder(
         if (LocalOfflineMode.current.active) {
             OfflineHomeScreen()
         } else {
-            HomeScreen(snackbarHostState = snackbarHostState)
+            HomeFeedScreen(snackbarHostState = snackbarHostState)
         }
     }
 

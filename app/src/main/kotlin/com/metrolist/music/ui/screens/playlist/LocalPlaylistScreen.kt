@@ -5,6 +5,8 @@
 
 package com.metrolist.music.ui.screens.playlist
 
+import com.metrolist.music.utils.RememberForQuickAccess
+import com.metrolist.music.utils.RecentCollection
 import com.metrolist.music.ui.component.isPlaylistQueued
 import com.metrolist.music.ui.component.PlayPauseIcon
 import androidx.compose.material3.FilledTonalIconToggleButton
@@ -195,6 +197,9 @@ fun LocalPlaylistScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
 
     val playlist by viewModel.playlist.collectAsStateWithLifecycle()
+    RememberForQuickAccess(
+        playlist?.let { RecentCollection(RecentCollection.Kind.PLAYLIST, it.id, it.playlist.name, it.thumbnails.firstOrNull()) },
+    )
     val songs by viewModel.playlistSongs.collectAsStateWithLifecycle()
     val onlinePlaylist by viewModel.onlinePlaylist.collectAsStateWithLifecycle()
     val mutableSongs = remember { mutableStateListOf<PlaylistSong>() }

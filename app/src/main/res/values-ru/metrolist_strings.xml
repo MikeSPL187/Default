@@ -1196,4 +1196,23 @@
         <item quantity="many">≈ %d мин</item>
         <item quantity="other">≈ %d мин</item>
     </plurals>
+
+    <!-- Home -->
+    <string name="dj_title">Диджей</string>
+    <string name="dj_idle">Любимое и новое — без пауз</string>
+    <string name="dj_next">Далее: %s</string>
+    <string name="home_block_dj">Диджей</string>
+    <string name="home_block_quick_access">Быстрый доступ</string>
+    <string name="home_block_for_you">Для вас</string>
+    <string name="home_block_new_releases">Новые релизы</string>
+    <string name="home_block_chart">Чарт недели</string>
+    <string name="home_block_moods">Настроение</string>
+    <string name="home_mix_discover">Открытия недели</string>
+    <string name="home_mix_forgotten">Забытое любимое</string>
+    <string name="home_releases_label">От артистов, которых вы слушаете</string>
+    <string name="home_edit">Изменить Главную</string>
+    <string name="home_forget">Убрать из быстрого доступа</string>
+    <string name="home_kind_playlist">Плейлист</string>
+    <string name="home_kind_album">Альбом</string>
+    <string name="home_kind_artist">Исполнитель</string>
 </resources>

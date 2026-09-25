@@ -171,6 +171,9 @@ val EnableSongCacheKey = booleanPreferencesKey("enableSongCache")
 /** Play only what is on the device, never streaming, even with a connection. */
 val DownloadedOnlyKey = booleanPreferencesKey("downloadedOnly")
 
+/** Blocks of the home screen the user hid. */
+val HiddenHomeBlocksKey = stringSetPreferencesKey("hiddenHomeBlocks")
+
 val FlowModeKey = stringPreferencesKey("offlineFlowMode")
 val FlowCharacterKey = stringPreferencesKey("offlineFlowCharacter")
 val OfflineSongSortKey = stringPreferencesKey("offlineSongSort")

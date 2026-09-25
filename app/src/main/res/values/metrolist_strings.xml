@@ -1295,4 +1295,23 @@
         <item quantity="one">≈ %d min</item>
         <item quantity="other">≈ %d min</item>
     </plurals>
+
+    <!-- Home -->
+    <string name="dj_title">DJ</string>
+    <string name="dj_idle">Favorites and new finds, nonstop</string>
+    <string name="dj_next">Next: %s</string>
+    <string name="home_block_dj">DJ</string>
+    <string name="home_block_quick_access">Quick access</string>
+    <string name="home_block_for_you">For you</string>
+    <string name="home_block_new_releases">New releases</string>
+    <string name="home_block_chart">Chart of the week</string>
+    <string name="home_block_moods">Moods</string>
+    <string name="home_mix_discover">Weekly discoveries</string>
+    <string name="home_mix_forgotten">Forgotten favorites</string>
+    <string name="home_releases_label">From artists you listen to</string>
+    <string name="home_edit">Edit Home</string>
+    <string name="home_forget">Remove from quick access</string>
+    <string name="home_kind_playlist">Playlist</string>
+    <string name="home_kind_album">Album</string>
+    <string name="home_kind_artist">Artist</string>
 </resources>

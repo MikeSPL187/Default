@@ -5,6 +5,11 @@
 
 package com.metrolist.music.viewmodels
 
+import com.metrolist.music.utils.RecentCollections
+import com.metrolist.music.utils.RecentCollection
+import com.metrolist.music.dj.DjQueue
+import com.metrolist.music.constants.HiddenHomeBlocksKey
+import com.metrolist.innertube.pages.ChartsPage
 import com.metrolist.music.utils.Daylist
 import com.metrolist.music.utils.DayPart
 import com.metrolist.music.utils.filterNotRecommended
@@ -103,6 +108,35 @@ class HomeViewModel @Inject constructor(
     val syncUtils: SyncUtils,
     private val networkConnectivity: NetworkConnectivityObserver,
 ) : ViewModel() {
+    /** New albums, those by artists the user listens to first. */
+    val newReleases = MutableStateFlow<List<AlbumItem>?>(null)
+
+    /** The top songs of the charts, for the home screen. */
+    val chart = MutableStateFlow<List<SongItem>?>(null)
+
+    /** Collections the user opened lately, newest first, for quick access. */
+    val recentCollections =
+        RecentCollections.flow(context).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Home blocks the user chose to hide. */
+    val hiddenHomeBlocks =
+        context.dataStore.data.map { it[HiddenHomeBlocksKey].orEmpty() }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
+
+    fun setHomeBlockHidden(
+        block: String,
+        hidden: Boolean,
+    ) = viewModelScope.launch {
+        context.safeDataStoreEdit { prefs ->
+            val current = prefs[HiddenHomeBlocksKey].orEmpty()
+            prefs[HiddenHomeBlocksKey] = if (hidden) current + block else current - block
+        }
+    }
+
+    fun forgetRecent(item: RecentCollection) = viewModelScope.launch { RecentCollections.remove(context, item) }
+
+    fun djQueue(title: String) = DjQueue(title, database, context)
+
     val isRefreshing = MutableStateFlow(false)
     val isLoading = MutableStateFlow(false)
     val isRandomizing = MutableStateFlow(false)
@@ -542,7 +576,25 @@ class HomeViewModel @Inject constructor(
                     newReleaseAlbums = page.newReleaseAlbums.filterOutNulls().filterExplicit(hideExplicit),
                     moodAndGenres = page.moodAndGenres.filterOutNulls()
                 )
+                // Releases by artists the user listens to come first.
+                val listened = database.mostPlayedArtists(LocalDateTime.now().minusMonths(6), limit = 100).first().mapTo(HashSet()) { it.id }
+                newReleases.value =
+                    page.newReleaseAlbums.filterOutNulls().filterExplicit(hideExplicit)
+                        .sortedByDescending { album -> album.artists.orEmpty().any { it.id in listened } }
             }.onFailure { reportException(it) }
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            YouTube.getChartsPage().onSuccess { page ->
+                val section =
+                    page.sections.firstOrNull { it.chartType == ChartsPage.ChartType.TOP && it.items.any { item -> item is SongItem } }
+                        ?: page.sections.firstOrNull { it.items.any { item -> item is SongItem } }
+                chart.value =
+                    section?.items.orEmpty().filterIsInstance<SongItem>()
+                        .filterExplicit(hideExplicit)
+                        .filterNotRecommended(context.notRecommended())
+                        .take(HOME_CHART_SIZE)
+            }.onFailure { Timber.w(it, "Could not load the chart for home") }
         }
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -832,3 +884,5 @@ private const val DAYLIST_DAYS = 60L
 private const val DAYLIST_POOL = 40
 private const val DAYLIST_SIZE = 25
 private const val DAYLIST_MIN_SIZE = 8
+
+private const val HOME_CHART_SIZE = 5
