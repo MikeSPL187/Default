@@ -552,6 +552,9 @@ interface DatabaseDao {
         limit: Int,
     ): List<Song>
 
+    @Query("SELECT DISTINCT songId FROM event WHERE timestamp > :fromTimeStamp")
+    suspend fun songIdsPlayedSince(fromTimeStamp: LocalDateTime): List<String>
+
     @Transaction
     @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     @Query(

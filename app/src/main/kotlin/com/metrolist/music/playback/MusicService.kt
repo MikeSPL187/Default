@@ -7,6 +7,7 @@
 
 package com.metrolist.music.playback
 
+import com.metrolist.music.dj.DjQueue
 import com.metrolist.music.utils.NotRecommended
 import com.metrolist.music.utils.notRecommended
 import com.metrolist.music.utils.filterNotRecommended
@@ -4389,8 +4390,10 @@ class MusicService :
         eventTime: AnalyticsListener.EventTime,
         playbackStats: PlaybackStats,
     ) {
-        val mediaItem = eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window()).mediaItem
+        val window = eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window())
+        val mediaItem = window.mediaItem
         val historyDurationMs = preferences()[HistoryDuration]?.times(1000f) ?: 30000f
+        (currentQueue as? DjQueue)?.onPlayed(mediaItem.mediaId, playbackStats.totalPlayTimeMs, window.durationMs)
 
         if (playbackStats.totalPlayTimeMs >= historyDurationMs &&
             !pref(PauseListenHistoryKey, false)
