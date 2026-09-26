@@ -1399,4 +1399,5 @@
     <string name="collection_play">Play</string>
     <string name="collection_album">Album</string>
     <string name="collection_playlist">Playlist</string>
+    <string name="search_recognize">Recognize a song</string>
 </resources>

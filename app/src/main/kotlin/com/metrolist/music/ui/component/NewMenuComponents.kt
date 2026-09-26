@@ -31,6 +31,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -67,45 +71,40 @@ private fun NewActionButton(
         }
     }
 
-    Card(
-        modifier =
-            modifier
-                .clickable(enabled = enabled) { performAction = true },
-        colors =
-            CardDefaults.cardColors(
-                containerColor = animatedBackground,
-            ),
-        shape = RoundedCornerShape(16.dp),
-        elevation =
-            CardDefaults.cardElevation(),
+    // Takt tile: the icon in a rounded block, the word under it; the ripple keeps to the block.
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Column(
+        Box(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+                    .height(60.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(animatedBackground)
+                    .clickable(enabled = enabled) { performAction = true },
+            contentAlignment = Alignment.Center,
         ) {
-            Box(
-                modifier = Modifier.size(28.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                icon()
+            CompositionLocalProvider(LocalContentColor provides animatedContent) {
+                Box(
+                    modifier = Modifier.size(26.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    icon()
+                }
             }
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelMedium,
-                color = animatedContent,
-                textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.basicMarquee(),
-            )
         }
+
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 1f else 0.5f),
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(top = 6.dp),
+        )
     }
 }
 
@@ -138,7 +137,7 @@ fun NewActionGrid(
                             ) {
                                 action.backgroundColor
                             } else {
-                                MaterialTheme.colorScheme.surfaceVariant
+                                MaterialTheme.colorScheme.surfaceContainerHigh
                             },
                         contentColor =
                             if (action.contentColor !=
@@ -146,7 +145,7 @@ fun NewActionGrid(
                             ) {
                                 action.contentColor
                             } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
+                                MaterialTheme.colorScheme.onSurface
                             },
                     )
                 }

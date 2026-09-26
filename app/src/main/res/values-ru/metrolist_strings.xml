@@ -1300,4 +1300,5 @@
     <string name="collection_play">Слушать</string>
     <string name="collection_album">Альбом</string>
     <string name="collection_playlist">Плейлист</string>
+    <string name="search_recognize">Распознать песню</string>
 </resources>

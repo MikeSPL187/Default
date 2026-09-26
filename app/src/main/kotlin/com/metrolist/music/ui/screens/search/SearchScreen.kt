@@ -11,12 +11,19 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -64,7 +71,6 @@ import com.metrolist.music.constants.SearchSource
 import com.metrolist.music.constants.SearchSourceKey
 import com.metrolist.music.db.entities.SearchHistory
 import com.metrolist.music.playback.queues.YouTubeQueue
-import com.metrolist.music.ui.component.HideOnScrollFAB
 import com.metrolist.music.utils.SearchRoutes
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
@@ -86,7 +92,6 @@ fun SearchScreen(
     val playerConnection = LocalPlayerConnection.current
     val isPlayerExpanded = LocalIsPlayerExpanded.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-    val lazyListState = rememberLazyListState()
     var isHandlingScrollToTop by remember { mutableStateOf(false) }
 
     val scrollToTopCount by savedStateHandle.getStateFlow("scrollToTopCount", 0).collectAsStateWithLifecycle(initialValue = 0)
@@ -180,60 +185,75 @@ fun SearchScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
+                    Surface(
+                        shape = CircleShape,
+                        color = if (pureBlack) Color(0xFF1C1C1C) else MaterialTheme.colorScheme.surfaceContainerHigh,
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(end = 12.dp)
+                                .height(52.dp),
                     ) {
-                        BasicTextField(
-                            value = query,
-                            onValueChange = { query = it },
-                            modifier =
-                                Modifier
-                                    .weight(1f)
-                                    .focusRequester(focusRequester),
-                            textStyle =
-                                TextStyle(
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontSize = 16.sp,
-                                ),
-                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                            singleLine = true,
-                            decorationBox = { innerTextField ->
-                                if (query.text.isEmpty()) {
-                                    Text(
-                                        text =
-                                            stringResource(
-                                                when (searchSource) {
-                                                    SearchSource.LOCAL -> R.string.search_library
-                                                    SearchSource.ONLINE -> R.string.search_yt_music
-                                                },
-                                            ),
-                                        style =
-                                            TextStyle(
-                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                                fontSize = 16.sp,
-                                            ),
-                                    )
-                                }
-                                innerTextField()
-                            },
-                            keyboardOptions =
-                                KeyboardOptions(
-                                    imeAction = ImeAction.Search,
-                                ),
-                            keyboardActions =
-                                KeyboardActions(
-                                    onSearch = { onSearch(query.text) },
-                                ),
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(start = 16.dp, end = 6.dp),
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.search),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(22.dp),
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            BasicTextField(
+                                value = query,
+                                onValueChange = { query = it },
+                                modifier =
+                                    Modifier
+                                        .weight(1f)
+                                        .focusRequester(focusRequester),
+                                textStyle =
+                                    TextStyle(
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        fontSize = 16.sp,
+                                    ),
+                                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                                singleLine = true,
+                                decorationBox = { innerTextField ->
+                                    if (query.text.isEmpty()) {
+                                        Text(
+                                            text =
+                                                stringResource(
+                                                    when (searchSource) {
+                                                        SearchSource.LOCAL -> R.string.search_library
+                                                        SearchSource.ONLINE -> R.string.search_yt_music
+                                                    },
+                                                ),
+                                            style =
+                                                TextStyle(
+                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                                    fontSize = 16.sp,
+                                                ),
+                                        )
+                                    }
+                                    innerTextField()
+                                },
+                                keyboardOptions =
+                                    KeyboardOptions(
+                                        imeAction = ImeAction.Search,
+                                    ),
+                                keyboardActions =
+                                    KeyboardActions(
+                                        onSearch = { onSearch(query.text) },
+                                    ),
+                            )
 
-                        Row {
                             if (query.text.isNotEmpty()) {
                                 IconButton(onClick = { query = TextFieldValue("") }) {
                                     Icon(
                                         painter = painterResource(R.drawable.close),
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurface,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 }
                             }
@@ -256,7 +276,22 @@ fun SearchScreen(
                                             },
                                         ),
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurface,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            FilledTonalIconButton(
+                                onClick = { navController.navigate("recognition") },
+                                colors =
+                                    IconButtonDefaults.filledTonalIconButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    ),
+                                modifier = Modifier.size(40.dp),
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.graphic_eq),
+                                    contentDescription = stringResource(R.string.search_recognize),
+                                    modifier = Modifier.size(22.dp),
                                 )
                             }
                         }
@@ -273,7 +308,7 @@ fun SearchScreen(
                 },
                 colors =
                     TopAppBarDefaults.topAppBarColors(
-                        containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer,
+                        containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface,
                     ),
             )
         },
@@ -305,11 +340,6 @@ fun SearchScreen(
                 }
             }
 
-            HideOnScrollFAB(
-                lazyListState = lazyListState,
-                icon = R.drawable.mic,
-                onClick = { navController.navigate("recognition") },
-            )
         }
     }
 

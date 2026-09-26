@@ -25,6 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
@@ -81,6 +82,7 @@ fun SettingsScreen(
         // User Interface Section
         Material3SettingsGroup(
             title = stringResource(R.string.settings_section_ui),
+            accent = SettingsTintInterface,
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.palette),
@@ -95,6 +97,7 @@ fun SettingsScreen(
         // Player & Content Section (moved up and combined with content)
         Material3SettingsGroup(
             title = stringResource(R.string.settings_section_player_content),
+            accent = SettingsTintSound,
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.play),
@@ -120,6 +123,7 @@ fun SettingsScreen(
         if (hasAndroidAuto) {
             Material3SettingsGroup(
                 title = "Android Auto",
+                accent = SettingsTintSound,
                 items = listOf(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.ic_android_auto),
@@ -135,6 +139,7 @@ fun SettingsScreen(
         // Privacy & Security Section
         Material3SettingsGroup(
             title = stringResource(R.string.settings_section_privacy),
+            accent = SettingsTintData,
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.security),
@@ -149,6 +154,7 @@ fun SettingsScreen(
         // Storage & Data Section
         Material3SettingsGroup(
             title = stringResource(R.string.settings_section_storage),
+            accent = SettingsTintData,
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.storage),
@@ -168,6 +174,7 @@ fun SettingsScreen(
         // System & About Section
         Material3SettingsGroup(
             title = stringResource(R.string.settings_section_system),
+            accent = SettingsTintSystem,
             items = buildList {
                 if (isAndroid12OrLater) {
                     add(
@@ -287,3 +294,9 @@ fun SettingsScreen(
         }
     )
 }
+
+// Each group of settings has its own tint, the same in every theme.
+private val SettingsTintInterface = Color(0xFFFFB780)
+private val SettingsTintSound = Color(0xFF9CC7FF)
+private val SettingsTintData = Color(0xFF9DD3A8)
+private val SettingsTintSystem = Color(0xFFC9A2F5)

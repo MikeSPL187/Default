@@ -30,6 +30,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.dp
@@ -43,8 +47,17 @@ import androidx.compose.ui.unit.dp
 fun Material3SettingsGroup(
     title: String? = null,
     items: List<Material3SettingsItem>,
-    useLowContrast: Boolean = false
+    useLowContrast: Boolean = false,
+    accent: Color = Color.Unspecified,
 ) {
+    // A group may carry its own tint; in a light theme it is darkened to stay readable.
+    val light = MaterialTheme.colorScheme.surface.luminance() > 0.5f
+    val tint =
+        when {
+            accent == Color.Unspecified -> MaterialTheme.colorScheme.primary
+            light -> lerp(accent, Color.Black, 0.45f)
+            else -> accent
+        }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -86,7 +99,7 @@ fun Material3SettingsGroup(
                     ),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Material3SettingsItemRow(item = item)
+                    Material3SettingsItemRow(item = item, tint = tint)
                 }
             }
         }
@@ -98,7 +111,8 @@ fun Material3SettingsGroup(
  */
 @Composable
 private fun Material3SettingsItemRow(
-    item: Material3SettingsItem
+    item: Material3SettingsItem,
+    tint: Color,
 ) {
     Row(
         modifier = Modifier
@@ -118,12 +132,8 @@ private fun Material3SettingsItemRow(
             Box(
                 modifier = Modifier
                     .size(40.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        MaterialTheme.colorScheme.primary.copy(
-                            alpha = if (item.isHighlighted) 0.15f else 0.1f
-                        )
-                    ),
+                    .clip(CircleShape)
+                    .background(tint.copy(alpha = if (item.isHighlighted) 0.2f else 0.14f)),
                 contentAlignment = Alignment.Center
             ) {
                 if (item.showBadge) {
@@ -139,10 +149,8 @@ private fun Material3SettingsItemRow(
                             contentDescription = null,
                             tint = if (!item.enabled)
                                 MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                            else if (item.isHighlighted)
-                                MaterialTheme.colorScheme.primary
                             else
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                                tint,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -152,10 +160,8 @@ private fun Material3SettingsItemRow(
                         contentDescription = null,
                         tint = if (!item.enabled)
                             MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                        else if (item.isHighlighted)
-                            MaterialTheme.colorScheme.primary
                         else
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                            tint,
                         modifier = Modifier.size(24.dp)
                     )
                 }
