@@ -1396,4 +1396,7 @@
     <string name="output_this_phone">This phone</string>
     <string name="output_headphones">Headphones</string>
     <string name="output_bluetooth">Bluetooth</string>
+    <string name="collection_play">Play</string>
+    <string name="collection_album">Album</string>
+    <string name="collection_playlist">Playlist</string>
 </resources>

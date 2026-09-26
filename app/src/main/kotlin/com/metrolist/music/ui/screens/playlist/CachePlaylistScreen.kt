@@ -489,13 +489,13 @@ private fun CachePlaylistHeader(
         ) {
             androidx.compose.material3.Surface(
                 modifier = Modifier
-                    .size(240.dp)
+                    .size(212.dp)
                     .shadow(
                         elevation = 24.dp,
-                        shape = RoundedCornerShape(3.dp),
+                        shape = RoundedCornerShape(26.dp),
                         spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                     ),
-                shape = RoundedCornerShape(3.dp)
+                shape = RoundedCornerShape(26.dp)
             ) {
                 AsyncImage(
                     model = songs.first().thumbnailUrl,

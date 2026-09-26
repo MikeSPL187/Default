@@ -1297,4 +1297,7 @@
     <string name="output_this_phone">Этот телефон</string>
     <string name="output_headphones">Наушники</string>
     <string name="output_bluetooth">Bluetooth</string>
+    <string name="collection_play">Слушать</string>
+    <string name="collection_album">Альбом</string>
+    <string name="collection_playlist">Плейлист</string>
 </resources>

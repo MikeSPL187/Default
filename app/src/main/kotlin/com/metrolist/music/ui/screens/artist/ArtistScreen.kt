@@ -38,8 +38,11 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -125,7 +128,6 @@ import com.metrolist.music.ui.menu.YouTubePlaylistMenu
 import com.metrolist.music.ui.menu.YouTubeSongMenu
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.ui.utils.fadingEdge
-import com.metrolist.music.ui.utils.isScrollingUp
 import com.metrolist.music.ui.utils.resize
 import com.metrolist.music.utils.ArtistNameAliases
 import com.metrolist.music.utils.rememberPreference
@@ -209,6 +211,90 @@ fun ArtistScreen(
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
+        val canPlayAll =
+            !isGuest && (
+                (showLocal && librarySongs.isNotEmpty()) ||
+                    (
+                        !showLocal && artistPage?.sections?.any {
+                            (it.items.firstOrNull() as? SongItem)?.album != null
+                        } == true
+                    )
+            )
+
+        val onPlayAllClick: () -> Unit = {
+            if (!isGuest) {
+                if (showLocal) {
+                    if (librarySongs.isNotEmpty()) {
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = displayArtistName ?: "Unknown Artist",
+                                items = librarySongs.map { it.toMediaItem() },
+                            ),
+                        )
+                    }
+                } else if (artistPage != null) {
+                    val songSection =
+                        artistPage.sections.find { section ->
+                            (section.items.firstOrNull() as? SongItem)?.album != null
+                        }
+
+                    val moreEndpoint = songSection?.moreEndpoint
+                    if (moreEndpoint != null) {
+                        coroutineScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                            val result = YouTube.artistItems(moreEndpoint).getOrNull()
+                            withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                if (result != null && result.items.isNotEmpty()) {
+                                    val songs = result.items.filterIsInstance<SongItem>().map { it.toMediaItem() }
+                                    playerConnection.playQueue(
+                                        ListQueue(
+                                            title = displayArtistName ?: artistPage.artist.title,
+                                            items = songs,
+                                        ),
+                                    )
+                                } else {
+                                    // Fallback to loaded items
+                                    val songs = songSection.items.filterIsInstance<SongItem>().map { it.toMediaItem() }
+                                    if (songs.isNotEmpty()) {
+                                        playerConnection.playQueue(
+                                            ListQueue(
+                                                title = displayArtistName ?: artistPage.artist.title,
+                                                items = songs,
+                                            ),
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    } else if (songSection != null) {
+                        // Use loaded items if no more endpoint
+                        val songs = songSection.items.filterIsInstance<SongItem>().map { it.toMediaItem() }
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = displayArtistName ?: artistPage.artist.title,
+                                items = songs,
+                            ),
+                        )
+                    } else {
+                        // Fallback to shuffle endpoint (stripped) if no song section found
+                        val shuffleEndpoint = artistPage.artist.shuffleEndpoint
+                        if (shuffleEndpoint != null) {
+                            val endpoint =
+                                if (shuffleEndpoint.playlistId != null) {
+                                    WatchEndpoint(
+                                        playlistId = shuffleEndpoint.playlistId,
+                                        params = null, // Remove shuffle params to play in order
+                                        videoId = null, // Ensure videoId is null to start from beginning of playlist
+                                    )
+                                } else {
+                                    shuffleEndpoint
+                                }
+                            playerConnection.playQueue(YouTubeQueue(endpoint))
+                        }
+                    }
+                }
+            }
+        }
+
         LazyColumn(
             state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
@@ -373,10 +459,57 @@ fun ArtistScreen(
                                     modifier = Modifier.padding(bottom = 16.dp),
                                 )
 
-                                // Buttons Row
+                                // Play and shuffle, the same pair as on an album
+                                val shuffleEndpoint = artistPage?.artist?.shuffleEndpoint
                                 Row(
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                                     modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    Button(
+                                        onClick = onPlayAllClick,
+                                        enabled = canPlayAll,
+                                        shape = CircleShape,
+                                        modifier =
+                                            Modifier
+                                                .weight(1f)
+                                                .height(52.dp),
+                                    ) {
+                                        Icon(painterResource(R.drawable.play), contentDescription = null, modifier = Modifier.size(22.dp))
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(stringResource(R.string.collection_play), style = MaterialTheme.typography.titleMedium)
+                                    }
+                                    FilledTonalButton(
+                                        onClick = {
+                                            if (showLocal) {
+                                                playerConnection.playQueue(
+                                                    ListQueue(
+                                                        title = displayArtistName ?: "",
+                                                        items = librarySongs.shuffled().map { it.toMediaItem() },
+                                                    ),
+                                                )
+                                            } else {
+                                                shuffleEndpoint?.let { playerConnection.playQueue(YouTubeQueue(it)) }
+                                            }
+                                        },
+                                        enabled = !isGuest && (if (showLocal) librarySongs.isNotEmpty() else shuffleEndpoint != null),
+                                        shape = CircleShape,
+                                        modifier =
+                                            Modifier
+                                                .weight(1f)
+                                                .height(52.dp),
+                                    ) {
+                                        Icon(painterResource(R.drawable.shuffle), contentDescription = null, modifier = Modifier.size(22.dp))
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(stringResource(R.string.shuffle), style = MaterialTheme.typography.titleMedium, maxLines = 1)
+                                    }
+                                }
+
+                                Spacer(Modifier.height(10.dp))
+
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth(),
                                 ) {
                                     // Subscribe Button
                                     OutlinedButton(
@@ -402,58 +535,26 @@ fun ArtistScreen(
                                         )
                                     }
 
-                                    Spacer(modifier = Modifier.weight(1f))
-
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        // Radio Button
-                                        if (!showLocal && !isGuest) {
-                                            artistPage?.artist?.radioEndpoint?.let { radioEndpoint ->
-                                                OutlinedButton(
-                                                    onClick = {
-                                                        playerConnection.playQueue(YouTubeQueue(radioEndpoint))
-                                                    },
-                                                    shape = RoundedCornerShape(50),
-                                                    modifier = Modifier.height(40.dp),
-                                                ) {
-                                                    Icon(
-                                                        painter = painterResource(R.drawable.radio),
-                                                        contentDescription = null,
-                                                        modifier = Modifier.size(20.dp),
-                                                    )
-                                                    Spacer(modifier = Modifier.width(8.dp))
-                                                    Text(
-                                                        text = stringResource(R.string.radio),
-                                                        fontSize = 14.sp,
-                                                    )
-                                                }
-                                            }
-                                        }
-
-                                        // Shuffle Button
-                                        if (!showLocal && !isGuest) {
-                                            artistPage?.artist?.shuffleEndpoint?.let { shuffleEndpoint ->
-                                                IconButton(
-                                                    onClick = {
-                                                        playerConnection.playQueue(YouTubeQueue(shuffleEndpoint))
-                                                    },
-                                                    modifier =
-                                                        Modifier
-                                                            .size(48.dp)
-                                                            .background(
-                                                                MaterialTheme.colorScheme.primary,
-                                                                RoundedCornerShape(24.dp),
-                                                            ),
-                                                ) {
-                                                    Icon(
-                                                        painter = painterResource(R.drawable.shuffle),
-                                                        contentDescription = "Shuffle",
-                                                        tint = MaterialTheme.colorScheme.onPrimary,
-                                                        modifier = Modifier.size(20.dp),
-                                                    )
-                                                }
+                                    // Radio Button
+                                    if (!showLocal && !isGuest) {
+                                        artistPage?.artist?.radioEndpoint?.let { radioEndpoint ->
+                                            OutlinedButton(
+                                                onClick = {
+                                                    playerConnection.playQueue(YouTubeQueue(radioEndpoint))
+                                                },
+                                                shape = RoundedCornerShape(50),
+                                                modifier = Modifier.height(40.dp),
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.radio),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(20.dp),
+                                                )
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Text(
+                                                    text = stringResource(R.string.radio),
+                                                    fontSize = 14.sp,
+                                                )
                                             }
                                         }
                                     }
@@ -875,7 +976,6 @@ fun ArtistScreen(
             }
         }
 
-        val isScrollingUp = lazyListState.isScrollingUp()
         val showLocalFab = librarySongs.isNotEmpty() && libraryArtist?.artist?.isLocal != true
 
         // Library/Local Toggle FAB
@@ -888,132 +988,6 @@ fun ArtistScreen(
                 if (!showLocal && artistPage == null) viewModel.fetchArtistsFromYTM()
             },
         )
-
-        // Play All FAB (Stacked above Library/Local FAB if visible)
-        val canPlayAll =
-            !isGuest && (
-                (showLocal && librarySongs.isNotEmpty()) ||
-                    (
-                        !showLocal && artistPage?.sections?.any {
-                            (it.items.firstOrNull() as? SongItem)?.album != null
-                        } == true
-                    )
-            )
-
-        if (canPlayAll) {
-            androidx.compose.animation.AnimatedVisibility(
-                visible = isScrollingUp,
-                enter = androidx.compose.animation.slideInVertically { it * 2 },
-                exit = androidx.compose.animation.slideOutVertically { it * 2 },
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomEnd)
-                        .windowInsetsPadding(
-                            LocalPlayerAwareWindowInsets.current
-                                .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal),
-                        )
-                        // Add padding to position it above the other FAB (56dp height + 16dp padding + 8dp spacing)
-                        // If the other FAB is visible.
-                        .padding(bottom = if (showLocalFab) 64.dp else 0.dp),
-            ) {
-                val onPlayAllClick: () -> Unit = {
-                    if (!isGuest) {
-                        if (showLocal) {
-                            if (librarySongs.isNotEmpty()) {
-                                playerConnection.playQueue(
-                                    ListQueue(
-                                        title = displayArtistName ?: "Unknown Artist",
-                                        items = librarySongs.map { it.toMediaItem() },
-                                    ),
-                                )
-                            }
-                        } else if (artistPage != null) {
-                            val songSection =
-                                artistPage.sections.find { section ->
-                                    (section.items.firstOrNull() as? SongItem)?.album != null
-                                }
-
-                            val moreEndpoint = songSection?.moreEndpoint
-                            if (moreEndpoint != null) {
-                                coroutineScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                                    val result = YouTube.artistItems(moreEndpoint).getOrNull()
-                                    withContext(kotlinx.coroutines.Dispatchers.Main) {
-                                        if (result != null && result.items.isNotEmpty()) {
-                                            val songs = result.items.filterIsInstance<SongItem>().map { it.toMediaItem() }
-                                            playerConnection.playQueue(
-                                                ListQueue(
-                                                    title = displayArtistName ?: artistPage.artist.title,
-                                                    items = songs,
-                                                ),
-                                            )
-                                        } else {
-                                            // Fallback to loaded items
-                                            val songs = songSection.items.filterIsInstance<SongItem>().map { it.toMediaItem() }
-                                            if (songs.isNotEmpty()) {
-                                                playerConnection.playQueue(
-                                                    ListQueue(
-                                                        title = displayArtistName ?: artistPage.artist.title,
-                                                        items = songs,
-                                                    ),
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            } else if (songSection != null) {
-                                // Use loaded items if no more endpoint
-                                val songs = songSection.items.filterIsInstance<SongItem>().map { it.toMediaItem() }
-                                playerConnection.playQueue(
-                                    ListQueue(
-                                        title = displayArtistName ?: artistPage.artist.title,
-                                        items = songs,
-                                    ),
-                                )
-                            } else {
-                                // Fallback to shuffle endpoint (stripped) if no song section found
-                                val shuffleEndpoint = artistPage.artist.shuffleEndpoint
-                                if (shuffleEndpoint != null) {
-                                    val endpoint =
-                                        if (shuffleEndpoint.playlistId != null) {
-                                            WatchEndpoint(
-                                                playlistId = shuffleEndpoint.playlistId,
-                                                params = null, // Remove shuffle params to play in order
-                                                videoId = null, // Ensure videoId is null to start from beginning of playlist
-                                            )
-                                        } else {
-                                            shuffleEndpoint
-                                        }
-                                    playerConnection.playQueue(YouTubeQueue(endpoint))
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (showLocalFab) {
-                    androidx.compose.material3.SmallFloatingActionButton(
-                        modifier = Modifier.padding(16.dp).offset(x = (-4).dp), // Align center with standard FAB (56dp vs 48dp)
-                        onClick = onPlayAllClick,
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.play),
-                            contentDescription = "Play All",
-                        )
-                    }
-                } else {
-                    androidx.compose.material3.FloatingActionButton(
-                        modifier = Modifier.padding(16.dp),
-                        onClick = onPlayAllClick,
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.play),
-                            contentDescription = "Play All",
-                            modifier = Modifier.size(32.dp),
-                        )
-                    }
-                }
-            }
-        }
 
         SnackbarHost(
             hostState = snackbarHostState,
