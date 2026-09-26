@@ -91,11 +91,15 @@ appId: com.metrolist.music
 - takeScreenshot: ${P}14-artist
 - scroll
 - takeScreenshot: ${P}15-artist-2
-- back
 
-# Album
+# Album, from the artist's albums
+- scrollUntilVisible:
+    element:
+      text: "Radical Optimism|Future Nostalgia|Dua Lipa \\(Deluxe\\)"
+    timeout: 15000
+    optional: true
 - tapOn:
-    text: "Radical Optimism|Future Nostalgia"
+    text: "Radical Optimism|Future Nostalgia|Dua Lipa \\(Deluxe\\)"
     optional: true
 - waitForAnimationToEnd:
     timeout: 10000
