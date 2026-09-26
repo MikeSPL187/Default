@@ -6,6 +6,26 @@
 package com.metrolist.music.ui.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.FilledTonalIconToggleButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import coil3.compose.AsyncImage
+import com.metrolist.music.viewmodels.StatsTimeline
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
@@ -203,6 +223,9 @@ fun StatsScreen(
     val lazyListState = rememberLazyListState()
     val scrolledPastTitle by remember { derivedStateOf { lazyListState.firstVisibleItemIndex > 0 } }
     val selectedOption by viewModel.selectedOption.collectAsStateWithLifecycle()
+    val timeline by viewModel.timeline.collectAsStateWithLifecycle()
+    // Past weeks, months and years stay one tap away behind the period row.
+    var showArchive by rememberSaveable { mutableStateOf(selectedOption != OptionStats.CONTINUOUS) }
 
     var showTimeTransfer by rememberSaveable { mutableStateOf(false) }
     var prevOptionOrdinal by rememberSaveable { mutableStateOf<OptionStats?>(null) }
@@ -372,7 +395,39 @@ fun StatsScreen(
                         artist.name.contains(query.text, ignoreCase = true)
                     }
 
-            item(key = "choice_chips") {
+            item(key = "period") {
+                StatsPeriodRow(
+                    selected = if (selectedOption == OptionStats.CONTINUOUS) StatPeriod.entries.getOrNull(indexChips) else null,
+                    archiveShown = showArchive,
+                    onSelect = { period ->
+                        showArchive = false
+                        viewModel.selectedOption.value = OptionStats.CONTINUOUS
+                        viewModel.indexChips.value = period.ordinal
+                    },
+                    onToggleArchive = {
+                        showArchive = !showArchive
+                        if (!showArchive) {
+                            viewModel.selectedOption.value = OptionStats.CONTINUOUS
+                            viewModel.indexChips.value = StatPeriod.WEEK_1.ordinal
+                        }
+                    },
+                )
+            }
+
+            if (!isSearching && sArtists.isEmpty()) {
+                item(key = "summary") {
+                    StatsSummary(
+                        totalMs = mostPlayedSongsStats.sumOf { it.timeListened ?: 0L },
+                        songs = mostPlayedSongsStats.size,
+                        artists = mostPlayedArtists.size,
+                        albums = mostPlayedAlbums.size,
+                        timeline = timeline,
+                        modifier = Modifier.animateItem(),
+                    )
+                }
+            }
+
+            if (showArchive) item(key = "choice_chips") {
                 ChoiceChipsRow(
                     chips =
                         when (selectedOption) {
@@ -570,46 +625,32 @@ fun StatsScreen(
                         title = stringResource(R.string.artists),
                         modifier = Modifier.animateItem(),
                     )
-
-                    LazyRow(
+                }
+                val topArtists = mostPlayedArtists.take(5)
+                val longest = topArtists.maxOfOrNull { it.timeListened ?: 0 }?.coerceAtLeast(1) ?: 1
+                itemsIndexed(
+                    items = topArtists,
+                    key = { _, artist -> "top_artist_${artist.id}" },
+                ) { index, artist ->
+                    ArtistShareRow(
+                        rank = index + 1,
+                        name = artist.artist.name,
+                        thumbnailUrl = artist.artist.thumbnailUrl,
+                        time = makeTimeString(artist.timeListened?.toLong()),
+                        share = (artist.timeListened ?: 0).toFloat() / longest,
+                        onClick = { navController.navigate("artist/${artist.id}") },
+                        onLongClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            menuState.show {
+                                ArtistMenu(
+                                    originalArtist = artist,
+                                    coroutineScope = coroutineScope,
+                                    onDismiss = menuState::dismiss,
+                                )
+                            }
+                        },
                         modifier = Modifier.animateItem(),
-                    ) {
-                        itemsIndexed(
-                            items = mostPlayedArtists,
-                            key = { _, artist -> artist.id },
-                        ) { index, artist ->
-                            LocalArtistsGrid(
-                                title = "${index + 1}. ${artist.artist.name}",
-                                subtitle =
-                                    joinByBullet(
-                                        pluralStringResource(
-                                            R.plurals.n_time,
-                                            artist.songCount,
-                                            artist.songCount,
-                                        ),
-                                        makeTimeString(artist.timeListened?.toLong()),
-                                    ),
-                                thumbnailUrl = artist.artist.thumbnailUrl,
-                                modifier =
-                                    Modifier
-                                        .combinedClickable(
-                                            onClick = {
-                                                navController.navigate("artist/${artist.id}")
-                                            },
-                                            onLongClick = {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                menuState.show {
-                                                    ArtistMenu(
-                                                        originalArtist = artist,
-                                                        coroutineScope = coroutineScope,
-                                                        onDismiss = menuState::dismiss,
-                                                    )
-                                                }
-                                            },
-                                        ).animateItem(),
-                            )
-                        }
-                    }
+                    )
                 }
             }
 
@@ -852,6 +893,212 @@ fun StatsScreen(
             }
         },
     )
+}
+
+private val StatsPeriods = listOf(StatPeriod.WEEK_1, StatPeriod.MONTH_1, StatPeriod.YEAR_1, StatPeriod.ALL)
+
+/** Week, month, year or all time as segments; the calendar opens past weeks, months and years. */
+@Composable
+private fun StatsPeriodRow(
+    selected: StatPeriod?,
+    archiveShown: Boolean,
+    onSelect: (StatPeriod) -> Unit,
+    onToggleArchive: () -> Unit,
+) {
+    val haptic = LocalHapticFeedback.current
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 8.dp, bottom = 4.dp),
+    ) {
+        SingleChoiceSegmentedButtonRow(Modifier.weight(1f)) {
+            StatsPeriods.forEachIndexed { index, period ->
+                SegmentedButton(
+                    selected = !archiveShown && period == selected,
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                        onSelect(period)
+                    },
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = StatsPeriods.size),
+                    label = {
+                        Text(
+                            stringResource(
+                                when (period) {
+                                    StatPeriod.WEEK_1 -> R.string.stats_week
+                                    StatPeriod.MONTH_1 -> R.string.stats_month
+                                    StatPeriod.YEAR_1 -> R.string.stats_year
+                                    else -> R.string.stats_all_time
+                                },
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
+                )
+            }
+        }
+        FilledTonalIconToggleButton(
+            checked = archiveShown,
+            onCheckedChange = { onToggleArchive() },
+            modifier = Modifier.padding(start = 6.dp),
+        ) {
+            Icon(painterResource(R.drawable.history), contentDescription = stringResource(R.string.stats_earlier))
+        }
+    }
+}
+
+/** The period in one number, what it was made of, and how it spread over the days or months. */
+@Composable
+private fun StatsSummary(
+    totalMs: Long,
+    songs: Int,
+    artists: Int,
+    albums: Int,
+    timeline: StatsTimeline?,
+    modifier: Modifier = Modifier,
+) {
+    val colors = MaterialTheme.colorScheme
+    Column(
+        modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+    ) {
+        val minutes = (totalMs / 60_000).toInt()
+        Text(
+            when {
+                minutes >= 60 && minutes % 60 > 0 -> stringResource(R.string.duration_hours_minutes, minutes / 60, minutes % 60)
+                minutes >= 60 -> stringResource(R.string.duration_hours, minutes / 60)
+                else -> stringResource(R.string.duration_minutes, minutes)
+            },
+            style = MaterialTheme.typography.displaySmall,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Text(
+            listOf(
+                pluralStringResource(R.plurals.n_song, songs, songs),
+                pluralStringResource(R.plurals.n_artist, artists, artists),
+                pluralStringResource(R.plurals.n_album, albums, albums),
+            ).joinToString(" · "),
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.onSurfaceVariant,
+            modifier = Modifier.padding(top = 2.dp),
+        )
+        if (timeline != null) {
+            val max = timeline.bars.maxOrNull()?.coerceAtLeast(1L) ?: 1L
+            val last = timeline.bars.lastIndex
+            val gap = if (timeline.bars.size > 12) 3.dp else 6.dp
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(gap),
+                verticalAlignment = Alignment.Bottom,
+                modifier =
+                    Modifier
+                        .padding(top = 18.dp)
+                        .fillMaxWidth()
+                        .height(96.dp),
+            ) {
+                timeline.bars.forEachIndexed { i, ms ->
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Bottom,
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                    ) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .height((4 + 64 * ms.toFloat() / max).dp)
+                                .clip(RoundedCornerShape(if (timeline.bars.size > 12) 3.dp else 8.dp))
+                                .background(if (i == last) colors.primary else lerp(colors.surfaceContainerHighest, colors.primary, 0.28f)),
+                        )
+                        Text(
+                            timeline.labels.getOrElse(i) { "" },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (i == last) colors.onSurface else colors.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false,
+                            modifier = Modifier.padding(top = 6.dp),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** An artist in the top five: rank, face, name, time, and a bar for their share of the leader's time. */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ArtistShareRow(
+    rank: Int,
+    name: String,
+    thumbnailUrl: String?,
+    time: String,
+    share: Float,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+    ) {
+        Text(
+            rank.toString(),
+            style = MaterialTheme.typography.titleMedium,
+            color = colors.onSurfaceVariant,
+            modifier = Modifier.width(22.dp),
+        )
+        AsyncImage(
+            model = thumbnailUrl,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier =
+                Modifier
+                    .size(44.dp)
+                    .clip(CircleShape),
+        )
+        Column(
+            Modifier
+                .weight(1f)
+                .padding(start = 14.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    name,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(time, style = MaterialTheme.typography.labelMedium, color = colors.onSurfaceVariant, modifier = Modifier.padding(start = 8.dp))
+            }
+            Box(
+                Modifier
+                    .padding(top = 8.dp)
+                    .fillMaxWidth()
+                    .height(5.dp)
+                    .clip(CircleShape)
+                    .background(colors.surfaceContainerHighest),
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxWidth(share.coerceIn(0.02f, 1f))
+                        .fillMaxHeight()
+                        .clip(CircleShape)
+                        .background(colors.primary),
+                )
+            }
+        }
+    }
 }
 
 enum class OptionStats { WEEKS, MONTHS, YEARS, CONTINUOUS }

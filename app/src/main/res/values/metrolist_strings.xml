@@ -1404,4 +1404,9 @@
     <string name="offline_flow_live">Flow · playing</string>
     <string name="podcast_latest">Latest episode</string>
     <string name="stats_nothing_yet">Nothing played in this period yet</string>
+    <string name="stats_week">Week</string>
+    <string name="stats_month">Month</string>
+    <string name="stats_year">Year</string>
+    <string name="stats_all_time">All time</string>
+    <string name="stats_earlier">Earlier periods</string>
 </resources>

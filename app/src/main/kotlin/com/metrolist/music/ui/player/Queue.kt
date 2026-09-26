@@ -54,6 +54,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.FilledTonalIconToggleButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -1002,15 +1003,6 @@ fun Queue(
                 ) {
                     Row {
                         IconButton(
-                            onClick = { showSaveQueueDialog = true },
-                            enabled = queueWindows.isNotEmpty(),
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.playlist_add),
-                                contentDescription = stringResource(R.string.save_queue_as_playlist),
-                            )
-                        }
-                        IconButton(
                             onClick = { locked = !locked },
                             modifier = Modifier.padding(horizontal = 6.dp),
                         ) {
@@ -1099,35 +1091,47 @@ fun Queue(
 
         val shuffleModeEnabled by playerConnection.shuffleModeEnabled.collectAsStateWithLifecycle()
 
-        Box(
+        // Takt: the queue ends in what can be done with it, saving it first; order modes sit beside.
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier =
                 Modifier
-                    .background(
-                        if (pureBlack) {
-                            Color.Black
-                        } else {
-                            MaterialTheme.colorScheme
-                                .secondaryContainer
-                                .copy(alpha = 0.90f)
-                        },
-                    ).fillMaxWidth()
+                    .background(if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer)
+                    .fillMaxWidth()
                     .height(
                         ListItemHeight +
                             WindowInsets.systemBars
                                 .asPaddingValues()
                                 .calculateBottomPadding(),
                     ).align(Alignment.BottomCenter)
-                    .clickable {
-                        state.collapseSoft()
-                    }.windowInsetsPadding(
+                    .windowInsetsPadding(
                         WindowInsets.systemBars
                             .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal),
-                    ).padding(12.dp),
+                    ).padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
-            IconButton(
+            OutlinedButton(
+                onClick = { showSaveQueueDialog = true },
+                enabled = queueWindows.isNotEmpty(),
+                shape = CircleShape,
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .height(44.dp),
+            ) {
+                Icon(painterResource(R.drawable.playlist_add), contentDescription = null, modifier = Modifier.size(20.dp))
+                Text(
+                    stringResource(R.string.save_queue_as_playlist),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            }
+
+            FilledTonalIconToggleButton(
+                checked = shuffleModeEnabled,
                 enabled = !isListenTogetherGuest,
-                modifier = Modifier.align(Alignment.CenterStart),
-                onClick = {
+                onCheckedChange = {
                     coroutineScope
                         .launch {
                             lazyListState.animateScrollToItem(
@@ -1139,39 +1143,17 @@ fun Queue(
                         }
                 },
             ) {
-                val baseAlpha = if (shuffleModeEnabled) 1f else 0.5f
-                val finalAlpha = if (!isListenTogetherGuest) baseAlpha else 0.3f
-                Icon(
-                    painter = painterResource(R.drawable.shuffle),
-                    contentDescription = null,
-                    modifier = Modifier.alpha(finalAlpha),
-                )
+                Icon(painterResource(R.drawable.shuffle), contentDescription = stringResource(R.string.shuffle))
             }
 
-            Icon(
-                painter = painterResource(R.drawable.expand_more),
-                contentDescription = null,
-                modifier = Modifier.align(Alignment.Center),
-            )
-
-            IconButton(
+            FilledTonalIconToggleButton(
+                checked = repeatMode != Player.REPEAT_MODE_OFF,
                 enabled = !isListenTogetherGuest,
-                modifier = Modifier.align(Alignment.CenterEnd),
-                onClick = playerConnection.player::toggleRepeatMode,
+                onCheckedChange = { playerConnection.player.toggleRepeatMode() },
             ) {
-                val baseAlpha = if (repeatMode == Player.REPEAT_MODE_OFF) 0.5f else 1f
-                val finalAlpha = if (!isListenTogetherGuest) baseAlpha else 0.3f
                 Icon(
-                    painter =
-                        painterResource(
-                            when (repeatMode) {
-                                Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ALL -> R.drawable.repeat
-                                Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
-                                else -> throw IllegalStateException()
-                            },
-                        ),
+                    painter = painterResource(if (repeatMode == Player.REPEAT_MODE_ONE) R.drawable.repeat_one else R.drawable.repeat),
                     contentDescription = null,
-                    modifier = Modifier.alpha(finalAlpha),
                 )
             }
         }

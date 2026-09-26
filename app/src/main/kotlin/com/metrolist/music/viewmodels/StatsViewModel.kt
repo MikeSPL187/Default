@@ -41,11 +41,18 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.Duration
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.time.temporal.ChronoUnit
+import java.util.Locale
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -114,6 +121,59 @@ constructor(
                         if (hideVideoSongs) songs.filter { !it.song.isVideo } else songs
                     }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    /**
+     * Listening over the chosen rolling period as bars: days of the last week or month, months of the
+     * last year. Archive periods and "all time" have no bars.
+     */
+    val timeline =
+        combine(selectedOption, indexChips) { option, index -> option to index }
+            .flatMapLatest<Pair<OptionStats, Int>, StatsTimeline?> { (option, index) ->
+                val period = StatPeriod.entries.getOrNull(index)
+                if (option != OptionStats.CONTINUOUS || period == null) return@flatMapLatest flowOf(null)
+                val today = LocalDate.now()
+                when (period) {
+                    StatPeriod.WEEK_1, StatPeriod.MONTH_1 -> {
+                        val days = if (period == StatPeriod.WEEK_1) 7 else 30
+                        val start = today.minusDays(days - 1L)
+                        database.eventsSince(start.atStartOfDay()).map { events ->
+                            val bars = LongArray(days)
+                            events.forEach { event ->
+                                val i = ChronoUnit.DAYS.between(start, event.timestamp.toLocalDate()).toInt()
+                                if (i in 0 until days) bars[i] += event.playTime
+                            }
+                            StatsTimeline(
+                                bars = bars.toList(),
+                                labels =
+                                    List(days) { i ->
+                                        val day = start.plusDays(i.toLong())
+                                        when {
+                                            period == StatPeriod.WEEK_1 -> day.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                                            i == 0 || i == days - 1 -> day.format(DateTimeFormatter.ofPattern("d MMM"))
+                                            else -> ""
+                                        }
+                                    },
+                            )
+                        }
+                    }
+                    StatPeriod.YEAR_1 -> {
+                        val start = today.withDayOfMonth(1).minusMonths(11)
+                        database.eventsSince(start.atStartOfDay()).map { events ->
+                            val bars = LongArray(12)
+                            events.forEach { event ->
+                                val i = ChronoUnit.MONTHS.between(YearMonth.from(start), YearMonth.from(event.timestamp)).toInt()
+                                if (i in 0 until 12) bars[i] += event.playTime
+                            }
+                            StatsTimeline(
+                                bars = bars.toList(),
+                                labels = List(12) { i -> start.plusMonths(i.toLong()).month.getDisplayName(TextStyle.NARROW_STANDALONE, Locale.getDefault()) },
+                            )
+                        }
+                    }
+                    else -> flowOf(null)
+                }
+            }.flowOn(Dispatchers.Default)
+            .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val mostPlayedArtists =
         combine(
@@ -464,3 +524,9 @@ constructor(
         }
     }
 }
+
+/** Listening per bar, oldest first; the last bar is the current day or month. */
+data class StatsTimeline(
+    val bars: List<Long>,
+    val labels: List<String>,
+)

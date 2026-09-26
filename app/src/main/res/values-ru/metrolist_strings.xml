@@ -1305,4 +1305,9 @@
     <string name="offline_flow_live">Поток · играет</string>
     <string name="podcast_latest">Новый выпуск</string>
     <string name="stats_nothing_yet">За этот период пока ничего не прослушано</string>
+    <string name="stats_week">Неделя</string>
+    <string name="stats_month">Месяц</string>
+    <string name="stats_year">Год</string>
+    <string name="stats_all_time">Всё время</string>
+    <string name="stats_earlier">Прошлые периоды</string>
 </resources>

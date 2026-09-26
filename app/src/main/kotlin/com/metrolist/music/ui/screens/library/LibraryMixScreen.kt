@@ -28,7 +28,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -439,7 +439,7 @@ fun LibraryMixScreen(
                 onClick = {
                     onViewTypeChange(viewType.toggle())
                 },
-                modifier = Modifier.padding(end = 8.dp).size(40.dp),
+                modifier = Modifier.size(40.dp),
             ) {
                 Icon(
                     painter =
@@ -455,6 +455,16 @@ fun LibraryMixScreen(
                             LibraryViewType.GRID -> R.string.switch_to_list_view
                         },
                     ),
+                )
+            }
+
+            FilledTonalIconButton(
+                onClick = { showCreatePlaylistDialog = true },
+                modifier = Modifier.padding(start = 4.dp, end = 12.dp).size(40.dp),
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.add),
+                    contentDescription = stringResource(R.string.create_playlist),
                 )
             }
         }
@@ -1086,23 +1096,6 @@ fun LibraryMixScreen(
                     }
                 }
             }
-        }
-
-        // Always visible + button (no scroll hiding)
-        FloatingActionButton(
-            onClick = { showCreatePlaylistDialog = true },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .windowInsetsPadding(
-                    LocalPlayerAwareWindowInsets.current
-                        .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
-                )
-                .padding(16.dp)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.add),
-                contentDescription = stringResource(R.string.create_playlist),
-            )
         }
 
         Indicator(

@@ -30,8 +30,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -384,7 +383,7 @@ fun LibraryPlaylistsScreen(
                 onClick = {
                     onViewTypeChange(viewType.toggle())
                 },
-                modifier = Modifier.padding(end = 8.dp).size(40.dp),
+                modifier = Modifier.size(40.dp),
             ) {
                 Icon(
                     painter =
@@ -400,6 +399,26 @@ fun LibraryPlaylistsScreen(
                             LibraryViewType.GRID -> R.string.switch_to_list_view
                         },
                     ),
+                )
+            }
+
+            IconButton(
+                onClick = { navController.navigate("playlist_import") },
+                modifier = Modifier.size(40.dp),
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.link),
+                    contentDescription = stringResource(R.string.playlist_import_title),
+                )
+            }
+
+            FilledTonalIconButton(
+                onClick = { showCreatePlaylistDialog = true },
+                modifier = Modifier.padding(start = 4.dp, end = 12.dp).size(40.dp),
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.add),
+                    contentDescription = stringResource(R.string.create_playlist),
                 )
             }
         }
@@ -543,34 +562,5 @@ fun LibraryPlaylistsScreen(
             }
         }
 
-        // Always visible buttons (no scroll hiding): transfer a playlist from another service, create one.
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .windowInsetsPadding(
-                    LocalPlayerAwareWindowInsets.current
-                        .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
-                )
-                .padding(16.dp)
-        ) {
-            SmallFloatingActionButton(
-                onClick = { navController.navigate("playlist_import") },
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.link),
-                    contentDescription = stringResource(R.string.playlist_import_title),
-                )
-            }
-            FloatingActionButton(onClick = { showCreatePlaylistDialog = true }) {
-                Icon(
-                    painter = painterResource(R.drawable.add),
-                    contentDescription = stringResource(R.string.create_playlist),
-                )
-            }
-        }
     }
 }
