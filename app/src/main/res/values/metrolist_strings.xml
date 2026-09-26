@@ -1403,4 +1403,5 @@
     <string name="offline_flow_idle">Everything downloaded</string>
     <string name="offline_flow_live">Flow · playing</string>
     <string name="podcast_latest">Latest episode</string>
+    <string name="stats_nothing_yet">Nothing played in this period yet</string>
 </resources>

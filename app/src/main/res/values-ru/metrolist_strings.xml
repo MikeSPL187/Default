@@ -1304,4 +1304,5 @@
     <string name="offline_flow_idle">Всё скачанное</string>
     <string name="offline_flow_live">Поток · играет</string>
     <string name="podcast_latest">Новый выпуск</string>
+    <string name="stats_nothing_yet">За этот период пока ничего не прослушано</string>
 </resources>

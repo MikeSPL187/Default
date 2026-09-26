@@ -76,7 +76,7 @@ fun AutoCollectionsRow(
                 }
                 Text(
                     collection.title,
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -87,4 +87,4 @@ fun AutoCollectionsRow(
     }
 }
 
-private val TileSize = 84.dp
+private val TileSize = 88.dp

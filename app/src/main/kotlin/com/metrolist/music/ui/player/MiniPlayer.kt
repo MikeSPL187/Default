@@ -611,31 +611,32 @@ private fun NewMiniPlayerSongInfo(
                 overflow = TextOverflow.Clip,
                 modifier = Modifier.basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp),
             )
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (metadata.explicit) MIcon.Explicit()
-                 if (metadata.artists.any { it.name.isNotBlank() }) {
-                     Text(
-                         text = metadata.artists.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name },
-                         color = onSurfaceColor.copy(alpha = 0.7f),
-                        fontSize = 12.5.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Clip,
-                        modifier = Modifier.basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp),
-                    )
-                }
-            }
-
-            AnimatedVisibility(visible = error != null, enter = fadeIn(), exit = fadeOut()) {
+            // A failed track says so in place of the artist, so the bar keeps its height.
+            if (error != null) {
                 Text(
                     text = stringResource(R.string.error_playing),
                     color = errorColor,
-                    fontSize = 10.sp,
+                    fontSize = 12.5.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+            } else {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (metadata.explicit) MIcon.Explicit()
+                     if (metadata.artists.any { it.name.isNotBlank() }) {
+                         Text(
+                             text = metadata.artists.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name },
+                             color = onSurfaceColor.copy(alpha = 0.7f),
+                            fontSize = 12.5.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Clip,
+                            modifier = Modifier.basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp),
+                        )
+                    }
+                }
             }
         }
     }

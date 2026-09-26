@@ -483,7 +483,7 @@ fun StatsScreen(
                 }
             }
 
-            if (!isSearching) {
+            if (!isSearching && mostPlayedSongsStats.isNotEmpty()) {
                 item(key = "mostPlayedSongs") {
                     SectionHeader(
                         title = stringResource(R.string.songs),
@@ -564,7 +564,7 @@ fun StatsScreen(
                 }
             }
 
-            if (!isSearching) {
+            if (!isSearching && mostPlayedArtists.isNotEmpty()) {
                 item(key = "mostPlayedArtists") {
                     SectionHeader(
                         title = stringResource(R.string.artists),
@@ -613,7 +613,7 @@ fun StatsScreen(
                 }
             }
 
-            if (!isSearching) {
+            if (!isSearching && mostPlayedAlbums.isNotEmpty()) {
                 item(key = "mostPlayedAlbums") {
                     SectionHeader(
                         title = stringResource(R.string.albums),
@@ -663,6 +663,16 @@ fun StatsScreen(
                             }
                         }
                     }
+                }
+            }
+
+            if (!isSearching && mostPlayedSongsStats.isEmpty() && mostPlayedArtists.isEmpty() && mostPlayedAlbums.isEmpty()) {
+                item(key = "nothing_yet") {
+                    EmptyPlaceholder(
+                        icon = R.drawable.trending_up,
+                        text = stringResource(R.string.stats_nothing_yet),
+                        modifier = Modifier.animateItem(),
+                    )
                 }
             }
 

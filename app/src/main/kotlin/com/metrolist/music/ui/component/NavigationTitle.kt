@@ -25,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,41 +70,31 @@ fun NavigationTitle(
                 )
             }
 
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 1,
-            )
-        }
-
-        onPlayAllClick?.let { playAllClick ->
-            OutlinedButton(
-                onClick = playAllClick,
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.primary
-                ),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp),
-                modifier = Modifier
-                    .height(24.dp)
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = stringResource(R.string.play_all),
-                    style = MaterialTheme.typography.labelSmall
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f, fill = false),
                 )
+                if (onClick != null) {
+                    Icon(
+                        painter = painterResource(R.drawable.navigate_next),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
 
-        if (onClick != null) {
-            Icon(
-                painter = painterResource(R.drawable.navigate_next),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        onPlayAllClick?.let { playAllClick ->
+            TextButton(onClick = playAllClick) {
+                Text(stringResource(R.string.play_all))
+            }
         }
+
     }
 }

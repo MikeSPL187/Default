@@ -29,6 +29,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
@@ -48,6 +49,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.listSaver
@@ -194,7 +196,12 @@ fun AlbumScreen(
         }
     }
 
+    val lazyListState = rememberLazyListState()
+    // The header already names the album; the bar takes the name once it scrolls away.
+    val isScrolledPastHeader by remember { derivedStateOf { lazyListState.firstVisibleItemIndex > 0 } }
+
     LazyColumn(
+        state = lazyListState,
         contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
     ) {
         val albumWithSongs = albumWithSongs
@@ -372,7 +379,7 @@ fun AlbumScreen(
         title = {
             if (inSelectMode) {
                 Text(pluralStringResource(R.plurals.n_selected, selection.size, selection.size))
-            } else {
+            } else if (isScrolledPastHeader) {
                 Text(
                     text = albumWithSongs?.album?.title.orEmpty(),
                     style = MaterialTheme.typography.titleLarge,
