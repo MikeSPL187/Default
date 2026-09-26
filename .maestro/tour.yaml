@@ -1,0 +1,168 @@
+# A tour of every screen for design review. Every step is optional: it never fails the build.
+appId: com.metrolist.music
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Home"
+    timeout: 60000
+- waitForAnimationToEnd:
+    timeout: 15000
+- takeScreenshot: ${P}01-home
+- scroll
+- takeScreenshot: ${P}02-home-2
+- scroll
+- takeScreenshot: ${P}03-home-3
+- scroll
+- takeScreenshot: ${P}04-home-4
+- scrollUntilVisible:
+    element: "Edit Home"
+    timeout: 20000
+    optional: true
+- tapOn:
+    text: "Edit Home"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ${P}05-edit-home
+- back
+- scrollUntilVisible:
+    element: "Tune"
+    direction: UP
+    timeout: 20000
+    optional: true
+- tapOn:
+    text: "Tune"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ${P}06-dj-tune
+- back
+
+# Search, results, artist
+- tapOn: "Search"
+- waitForAnimationToEnd
+- takeScreenshot: ${P}07-search
+- inputText: "dua lipa"
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: ${P}08-search-results
+- longPressOn:
+    text: "Levitating.*"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ${P}09-song-menu
+- back
+- tapOn:
+    text: "Levitating.*"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: ${P}10-mini-player
+
+# Player and its tabs
+- tapOn:
+    point: "50%,85%"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: ${P}11-player
+- tapOn:
+    text: "Lyrics"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ${P}12-player-lyrics
+- tapOn:
+    text: "Lyrics"
+    optional: true
+- tapOn:
+    text: "Queue"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ${P}13-player-queue
+- back
+- back
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "Dua Lipa"
+    index: 1
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: ${P}14-artist
+- scroll
+- takeScreenshot: ${P}15-artist-2
+- back
+
+# Album
+- tapOn:
+    text: "Radical Optimism|Future Nostalgia"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: ${P}16-album
+- back
+- back
+- runFlow:
+    when:
+      notVisible: "Library"
+    commands:
+      - back
+
+# Library, You, settings
+- tapOn: "Library"
+- waitForAnimationToEnd
+- takeScreenshot: ${P}17-library
+- tapOn:
+    text: "Liked"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ${P}18-liked
+- back
+- tapOn: "You"
+- waitForAnimationToEnd
+- takeScreenshot: ${P}19-you
+- tapOn:
+    text: "THIS WEEK"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ${P}20-stats
+- back
+- tapOn:
+    text: "History"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ${P}21-history
+- back
+- tapOn:
+    text: "Settings"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ${P}22-settings
+- scroll
+- takeScreenshot: ${P}23-settings-2
+- scrollUntilVisible:
+    element: "Appearance"
+    direction: UP
+    optional: true
+- tapOn:
+    text: "Appearance"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ${P}24-appearance
+- back
+- back
+
+# Charts and new releases from home
+- tapOn: "Home"
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element: "Chart of the week"
+    timeout: 20000
+    optional: true
+- tapOn:
+    text: "Chart of the week"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: ${P}25-charts
+- back

@@ -118,6 +118,23 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
           script: bash .github/scripts/smoke.sh
 
+      # Artifacts need a login to download; a branch of screenshots can be fetched with git.
+      - name: Publish screenshots to the smoke-shots branch
+        if: always()
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/shots
+          find . -name '*.png' -not -path './.git/*' -not -path './app/*' -not -path './apk/*' -exec cp {} /tmp/shots/ \;
+          cd /tmp/shots
+          [ -n "$(ls)" ] || exit 0
+          git init -q -b smoke-shots
+          git config user.name "Metrolist Watch CI"
+          git config user.email "ci@users.noreply.github.com"
+          git add .
+          git commit -q -m "Screenshots of ${GITHUB_SHA::7}"
+          git push -qf "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" smoke-shots
+
       - name: Upload smoke test results
         if: always()
         uses: actions/upload-artifact@v4

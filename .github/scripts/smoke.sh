@@ -34,6 +34,16 @@ if [ $status -ne 0 ]; then
   grep -E " E [A-Za-z]|AndroidRuntime" smoke-output/logcat.txt | grep -iE "metrolist|AndroidRuntime" | tail -40
   echo "::endgroup::"
 fi
+# A tour of every screen, light then dark, for design review. It never changes the result.
+if [ $status -eq 0 ]; then
+  for night in no yes; do
+    adb shell cmd uimode night $night || true
+    prefix=$([ "$night" = yes ] && echo dark- || echo light-)
+    maestro test .maestro/tour.yaml -e P=$prefix --test-output-dir smoke-output/tour-$night > smoke-output/tour-$night.log 2>&1 || true
+  done
+  adb logcat -d > smoke-output/logcat.txt
+fi
+
 if grep -A30 "FATAL EXCEPTION" smoke-output/logcat.txt | grep -q "com.metrolist.music"; then
   echo "::error::The app crashed during the smoke test, see logcat.txt"
   grep -A30 "FATAL EXCEPTION" smoke-output/logcat.txt | head -80
