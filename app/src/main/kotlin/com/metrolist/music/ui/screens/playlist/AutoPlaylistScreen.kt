@@ -110,6 +110,8 @@ import com.metrolist.music.LocalDownloadUtil
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import com.metrolist.music.ui.component.CollectionPlayButtons
+import com.metrolist.music.ui.component.CollectionSideAction
 import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.constants.SongSortDescendingKey
 import com.metrolist.music.constants.SongSortType
@@ -935,7 +937,7 @@ private fun AutoPlaylistHeader(
         // Playlist Name
         Text(
             text = name,
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             maxLines = 2,
@@ -955,96 +957,37 @@ private fun AutoPlaylistHeader(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Action Buttons Row
+        // Play and shuffle under the thumb, the smaller actions under them
+        val queueTitle by playerConnection.queueTitle.collectAsStateWithLifecycle()
+        val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
+        val current by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
+        val playbackState by playerConnection.playbackState.collectAsStateWithLifecycle()
+        // Playing from this playlist, the button pauses and resumes instead of starting over.
+        val playlistQueued = isPlaylistQueued(queueTitle, name, current?.id, playbackState) { id -> songs.any { it.id == id } }
+        CollectionPlayButtons(
+            onPlay = {
+                if (playlistQueued) {
+                    playerConnection.togglePlayPause()
+                } else {
+                    playerConnection.playQueue(ListQueue(title = name, items = songs.map { it.toMediaItem() }))
+                }
+            },
+            onShuffle = {
+                playerConnection.playQueue(ListQueue(title = name, items = songs.shuffled().map { it.toMediaItem() }))
+            },
+            playing = playlistQueued && isPlaying,
+        )
+
         Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+            modifier = Modifier.padding(top = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            androidx.compose.material3.Surface(
-                onClick = {
-                    playerConnection.service.playSmartShuffle(
-                        title = name,
-                        items = songs.map { it.toMediaItem() },
-                    )
-                },
-                shape = androidx.compose.foundation.shape.CircleShape,
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.size(48.dp),
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.smart_shuffle),
-                        contentDescription = stringResource(R.string.smart_shuffle),
-                        modifier = Modifier.size(24.dp),
-                    )
-                }
-            }
-
-            // Shuffle Button - Smaller secondary button
-            androidx.compose.material3.Surface(
-                onClick = {
-                    playerConnection.playQueue(
-                        ListQueue(
-                            title = name,
-                            items = songs.shuffled().map { it.toMediaItem() },
-                        ),
-                    )
-                },
-                shape = androidx.compose.foundation.shape.CircleShape,
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.size(48.dp),
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.shuffle),
-                        contentDescription = stringResource(R.string.shuffle),
-                        modifier = Modifier.size(24.dp),
-                    )
-                }
-            }
-
-            // Play Button - Larger primary circular button
-            val queueTitle by playerConnection.queueTitle.collectAsStateWithLifecycle()
-            val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
-            val current by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
-            val playbackState by playerConnection.playbackState.collectAsStateWithLifecycle()
-            // Playing from this playlist, the button pauses and resumes instead of starting over.
-            val playlistQueued = isPlaylistQueued(queueTitle, name, current?.id, playbackState) { id -> songs.any { it.id == id } }
-            Surface(
-                onClick = {
-                    if (playlistQueued) {
-                        playerConnection.togglePlayPause()
-                    } else {
-                        playerConnection.playQueue(
-                            ListQueue(
-                                title = name,
-                                items = songs.map { it.toMediaItem() },
-                            ),
-                        )
-                    }
-                },
-                color = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = androidx.compose.foundation.shape.CircleShape,
-                modifier = Modifier.size(72.dp),
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    PlayPauseIcon(playing = playlistQueued && isPlaying, size = 32.dp)
-                }
-            }
+            CollectionSideAction(
+                icon = R.drawable.smart_shuffle,
+                contentDescription = stringResource(R.string.smart_shuffle),
+                onClick = { playerConnection.service.playSmartShuffle(title = name, items = songs.map { it.toMediaItem() }) },
+            )
 
             DownloadRingButton(
                 state = downloads,
@@ -1060,8 +1003,9 @@ private fun AutoPlaylistHeader(
                 },
             )
 
-            // Menu Button - Smaller secondary button
-            Surface(
+            CollectionSideAction(
+                icon = R.drawable.more_vert,
+                contentDescription = null,
                 onClick = {
                     menuState.show {
                         AutoPlaylistMenu(
@@ -1099,21 +1043,7 @@ private fun AutoPlaylistHeader(
                         )
                     }
                 },
-                shape = androidx.compose.foundation.shape.CircleShape,
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.size(48.dp),
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.more_vert),
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                    )
-                }
-            }
+            )
         }
 
         DownloadProgressCard(

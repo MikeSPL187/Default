@@ -239,6 +239,9 @@ fun DjHero(
     onDislike: () -> Unit,
     onFavour: () -> Unit,
     modifier: Modifier = Modifier,
+    label: String? = null,
+    liveLabel: String? = null,
+    showTune: Boolean = true,
 ) {
     val haptic = LocalHapticFeedback.current
     val playing = active && isPlaying
@@ -324,7 +327,7 @@ fun DjHero(
                 )
             }
             Text(
-                stringResource(if (active) R.string.dj_live else R.string.dj_title).uppercase(),
+                (if (active) liveLabel ?: stringResource(R.string.dj_live) else label ?: stringResource(R.string.dj_title)).uppercase(),
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -364,16 +367,18 @@ fun DjHero(
                         haptic.performHapticFeedback(HapticFeedbackType.Reject)
                         onDislike()
                     }
-                    DjAction(R.drawable.tune, R.string.dj_tune) {
-                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                        onTune()
+                    if (showTune) {
+                        DjAction(R.drawable.tune, R.string.dj_tune) {
+                            haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                            onTune()
+                        }
                     }
                     DjAction(if (liked) R.drawable.favorite else R.drawable.favorite_border, R.string.dj_favour, highlighted = liked) {
                         haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                         onFavour()
                     }
                 }
-            } else {
+            } else if (showTune) {
                 FilledTonalButton(
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.ContextClick)

@@ -58,7 +58,6 @@ fun CollectionHeader(
     cover: (@Composable () -> Unit)? = null,
     below: (@Composable () -> Unit)? = null,
 ) {
-    val haptic = LocalHapticFeedback.current
     val accent = rememberArtworkAccent(thumbnailUrl) ?: MaterialTheme.colorScheme.primary
     val glow by animateColorAsState(accent, tween(700), label = "collection glow")
     Box(modifier.fillMaxWidth()) {
@@ -120,52 +119,86 @@ fun CollectionHeader(
                 )
             }
             below?.invoke()
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(start = 20.dp, end = 20.dp, top = 20.dp),
-            ) {
-                Button(
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-                        onPlay()
-                    },
-                    enabled = playEnabled,
-                    shape = CircleShape,
-                    modifier =
-                        Modifier
-                            .weight(1f)
-                            .height(56.dp),
-                ) {
-                    Icon(painterResource(R.drawable.play), contentDescription = null, modifier = Modifier.size(22.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.collection_play), style = MaterialTheme.typography.titleMedium)
-                }
-                FilledTonalButton(
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-                        onShuffle()
-                    },
-                    enabled = playEnabled,
-                    shape = CircleShape,
-                    modifier =
-                        Modifier
-                            .weight(1f)
-                            .height(56.dp),
-                ) {
-                    Icon(painterResource(R.drawable.shuffle), contentDescription = null, modifier = Modifier.size(22.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.shuffle), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-            }
+            CollectionPlayButtons(
+                onPlay = onPlay,
+                onShuffle = onShuffle,
+                enabled = playEnabled,
+                modifier = Modifier.padding(top = 20.dp),
+            )
         }
     }
 }
 
 private val CoverSize = 212.dp
 private val CoverRadius = 26.dp
+
+/**
+ * "Play" and "Shuffle" side by side, the width of the screen. While the collection itself plays,
+ * the first one pauses and resumes it.
+ */
+@Composable
+fun CollectionPlayButtons(
+    onPlay: () -> Unit,
+    onShuffle: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    playing: Boolean = false,
+) {
+    val haptic = LocalHapticFeedback.current
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+    ) {
+        Button(
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                onPlay()
+            },
+            enabled = enabled,
+            shape = CircleShape,
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .height(56.dp),
+        ) {
+            Icon(painterResource(if (playing) R.drawable.pause else R.drawable.play), contentDescription = null, modifier = Modifier.size(22.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(if (playing) R.string.player_pause else R.string.collection_play), style = MaterialTheme.typography.titleMedium)
+        }
+        FilledTonalButton(
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                onShuffle()
+            },
+            enabled = enabled,
+            shape = CircleShape,
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .height(56.dp),
+        ) {
+            Icon(painterResource(R.drawable.shuffle), contentDescription = null, modifier = Modifier.size(22.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.shuffle), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+/** A small round secondary action under the play buttons: smart shuffle, download, menu. */
+@Composable
+fun CollectionSideAction(
+    icon: Int,
+    contentDescription: String?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    androidx.compose.material3.FilledTonalIconButton(onClick = onClick, modifier = modifier.size(44.dp)) {
+        Icon(painterResource(icon), contentDescription = contentDescription, modifier = Modifier.size(22.dp))
+    }
+}
 
 /** A running time the way people say it: "1 h 38 min", or "42 min". */
 @Composable

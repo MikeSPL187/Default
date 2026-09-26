@@ -138,6 +138,8 @@ import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.LocalSyncUtils
 import com.metrolist.music.R
+import com.metrolist.music.ui.component.CollectionPlayButtons
+import com.metrolist.music.ui.component.CollectionSideAction
 import com.metrolist.music.constants.DarkModeKey
 import com.metrolist.music.constants.PlaylistEditLockKey
 import com.metrolist.music.constants.PlaylistSongSortDescendingKey
@@ -1383,7 +1385,7 @@ fun LocalPlaylistHeader(
         // Playlist Name
         Text(
             text = playlist.playlist.name,
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             maxLines = 2,
@@ -1455,96 +1457,38 @@ fun LocalPlaylistHeader(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Action Buttons Row
+        // Play and shuffle under the thumb, the smaller actions under them
+        val queueTitle by playerConnection.queueTitle.collectAsStateWithLifecycle()
+        val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
+        val currentId by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
+        val playbackState by playerConnection.playbackState.collectAsStateWithLifecycle()
+        val playlistQueued =
+            isPlaylistQueued(queueTitle, playlist.playlist.name, currentId?.id, playbackState) { id -> songs.any { it.song.id == id } }
+        CollectionPlayButtons(
+            onPlay = {
+                if (playlistQueued) {
+                    playerConnection.togglePlayPause()
+                } else {
+                    playerConnection.playQueue(ListQueue(title = playlist.playlist.name, items = songs.map { it.song.toMediaItem() }))
+                }
+            },
+            onShuffle = {
+                playerConnection.playQueue(ListQueue(title = playlist.playlist.name, items = songs.shuffled().map { it.song.toMediaItem() }))
+            },
+            enabled = songs.isNotEmpty(),
+            playing = playlistQueued && isPlaying,
+        )
+
         Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+            modifier = Modifier.padding(top = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Surface(
-                onClick = {
-                    playerConnection.service.playSmartShuffle(
-                        title = playlist.playlist.name,
-                        items = songs.map { it.song.toMediaItem() },
-                    )
-                },
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.size(48.dp),
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.smart_shuffle),
-                        contentDescription = stringResource(R.string.smart_shuffle),
-                        modifier = Modifier.size(24.dp),
-                    )
-                }
-            }
-
-            // Shuffle Button - Smaller secondary button
-            Surface(
-                onClick = {
-                    playerConnection.playQueue(
-                        ListQueue(
-                            title = playlist.playlist.name,
-                            items = songs.shuffled().map { it.song.toMediaItem() },
-                        ),
-                    )
-                },
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.size(48.dp),
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.shuffle),
-                        contentDescription = stringResource(R.string.shuffle),
-                        modifier = Modifier.size(24.dp),
-                    )
-                }
-            }
-
-            // Play Button - Larger primary circular button
-            val queueTitle by playerConnection.queueTitle.collectAsStateWithLifecycle()
-            val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
-            val currentId by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
-            val playbackState by playerConnection.playbackState.collectAsStateWithLifecycle()
-            val playlistQueued =
-                isPlaylistQueued(queueTitle, playlist.playlist.name, currentId?.id, playbackState) { id -> songs.any { it.song.id == id } }
-            Surface(
-                onClick = {
-                    if (playlistQueued) {
-                        playerConnection.togglePlayPause()
-                    } else {
-                        playerConnection.playQueue(
-                            ListQueue(
-                                title = playlist.playlist.name,
-                                items = songs.map { it.song.toMediaItem() },
-                            ),
-                        )
-                    }
-                },
-                color = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = CircleShape,
-                modifier = Modifier.size(72.dp),
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    PlayPauseIcon(playing = playlistQueued && isPlaying, size = 32.dp)
-                }
-            }
+            CollectionSideAction(
+                icon = R.drawable.smart_shuffle,
+                contentDescription = stringResource(R.string.smart_shuffle),
+                onClick = { playerConnection.service.playSmartShuffle(title = playlist.playlist.name, items = songs.map { it.song.toMediaItem() }) },
+            )
 
             DownloadRingButton(
                 state = downloads,
@@ -1560,8 +1504,9 @@ fun LocalPlaylistHeader(
                 },
             )
 
-            // Menu Button - Smaller secondary button
-            Surface(
+            CollectionSideAction(
+                icon = R.drawable.more_vert,
+                contentDescription = null,
                 onClick = {
                     menuState.show {
                         LocalPlaylistMenu(
@@ -1615,21 +1560,7 @@ fun LocalPlaylistHeader(
                         )
                     }
                 },
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.size(48.dp),
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.more_vert),
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                    )
-                }
-            }
+            )
         }
 
         DownloadProgressCard(

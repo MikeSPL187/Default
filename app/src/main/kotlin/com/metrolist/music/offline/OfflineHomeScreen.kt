@@ -90,6 +90,8 @@ import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import com.metrolist.music.ui.screens.home.DjHero
+import com.metrolist.music.ui.screens.home.spherePalette
 import com.metrolist.music.constants.FlowCharacterKey
 import com.metrolist.music.constants.FlowModeKey
 import com.metrolist.music.constants.OfflineSongSortKey
@@ -208,11 +210,13 @@ fun OfflineHomeScreen(viewModel: OfflineHomeViewModel = hiltViewModel()) {
             item(key = "flow_hero") {
                 FlowHero(
                     count = offlineLibrary.songs.size,
-                    artworkUrl = mediaMetadata?.thumbnailUrl ?: offlineLibrary.songs.first().song.thumbnailUrl,
+                    active = flowIsQueued,
                     playing = flowIsQueued && isPlaying,
                     current = mediaMetadata,
                     currentLiked = currentSong?.song?.liked == true,
+                    previews = remember(offlineLibrary.songs) { offlineLibrary.songs.mapNotNull { it.song.thumbnailUrl }.distinct().shuffled().take(4) },
                     onPlay = { if (flowIsQueued) playerConnection.togglePlayPause() else startFlow() },
+                    onSkip = playerConnection::seekToNext,
                     onLike = playerConnection::toggleLike,
                 )
             }
@@ -374,144 +378,46 @@ fun OfflineHomeScreen(viewModel: OfflineHomeViewModel = hiltViewModel()) {
     }
 }
 
+/** The flow as the same living sphere as the DJ on home, fed only by what is on the device. */
 @Composable
 private fun FlowHero(
     count: Int,
-    artworkUrl: String?,
+    active: Boolean,
     playing: Boolean,
     current: MediaMetadata?,
     currentLiked: Boolean,
+    previews: List<String>,
     onPlay: () -> Unit,
+    onSkip: () -> Unit,
     onLike: () -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
-    val accent = rememberArtworkAccent(artworkUrl) ?: colors.primary
-    Box(Modifier.fillMaxWidth()) {
-        WrappedAmbience(accent = accent, modifier = Modifier.matchParentSize())
-        // Melts the glow into the page below.
-        Box(
-            Modifier
-                .matchParentSize()
-                .background(Brush.verticalGradient(0.55f to Color.Transparent, 1f to colors.background)),
-        )
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(top = 28.dp, bottom = 20.dp),
-        ) {
-            Text(
-                text = pluralStringResource(R.plurals.offline_flow_label, count, count).uppercase(),
-                style = MaterialTheme.typography.labelLarge,
-                letterSpacing = 1.2.sp,
-                color = colors.primary,
-            )
-            Text(
-                text = stringResource(R.string.offline_flow_title),
-                style = MaterialTheme.typography.displayMedium,
-                fontWeight = FontWeight.Bold,
-                color = colors.onSurface,
-                modifier = Modifier.padding(top = 4.dp),
-            )
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(196.dp)) {
-                FlowRings(playing = playing, color = colors.onSurface)
-                FilledIconButton(
-                    onClick = onPlay,
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = colors.primary, contentColor = colors.onPrimary),
-                    modifier = Modifier.size(88.dp),
-                ) {
-                    Icon(
-                        painter = painterResource(if (playing) R.drawable.pause else R.drawable.play),
-                        contentDescription = stringResource(if (playing) R.string.pause else R.string.play),
-                        modifier = Modifier.size(40.dp),
-                    )
-                }
-            }
-            if (current != null) {
-                Surface(
-                    shape = CircleShape,
-                    color = colors.surfaceContainerHigh.copy(alpha = 0.9f),
-                    modifier =
-                        Modifier
-                            .padding(horizontal = 32.dp)
-                            .fillMaxWidth(),
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(6.dp)) {
-                        AsyncImage(
-                            model = current.thumbnailUrl,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier =
-                                Modifier
-                                    .size(40.dp)
-                                    .clip(CircleShape),
-                        )
-                        Column(
-                            Modifier
-                                .weight(1f)
-                                .padding(horizontal = 12.dp),
-                        ) {
-                            Text(current.title, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(
-                                current.artists.joinToString { it.name },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colors.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                        IconButton(onClick = onLike) {
-                            Icon(
-                                painter = painterResource(if (currentLiked) R.drawable.favorite else R.drawable.favorite_border),
-                                contentDescription = stringResource(R.string.action_like),
-                                tint = if (currentLiked) colors.error else colors.onSurface,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-/** Soft rings around the play button that ripple outward while the flow plays. */
-@Composable
-private fun FlowRings(
-    playing: Boolean,
-    color: Color,
-) {
-    val ripple by rememberInfiniteTransition(label = "flow rings").animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(durationMillis = 3_600, easing = LinearEasing)),
-        label = "flow ripple",
+    val accent = rememberArtworkAccent(if (active) current?.thumbnailUrl else null) ?: colors.primary
+    val palette = remember(accent, colors.tertiary) { spherePalette(accent, colors.tertiary) }
+    DjHero(
+        active = active && current != null,
+        isPlaying = playing,
+        starting = false,
+        title = if (active && current != null) current.title else stringResource(R.string.offline_flow_idle),
+        subtitle =
+            if (active && current != null) {
+                current.artists.joinToString { it.name }
+            } else {
+                pluralStringResource(R.plurals.offline_flow_label, count, count)
+            },
+        palette = palette,
+        previews = previews,
+        liked = currentLiked,
+        onPlay = onPlay,
+        onTune = {},
+        onDislike = onSkip,
+        onFavour = onLike,
+        label = stringResource(R.string.offline_flow_title),
+        liveLabel = stringResource(R.string.offline_flow_live),
+        showTune = false,
+        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
     )
-    Canvas(Modifier.fillMaxSize()) {
-        val inner = 50.dp.toPx()
-        val span = size.minDimension / 2 - inner
-        repeat(3) { ring ->
-            val phase = if (playing) (ripple + ring / 3f) % 1f else (ring + 1) / 4f
-            val alpha = if (playing) 0.3f * (1f - phase) else 0.16f - ring * 0.04f
-            drawCircle(color.copy(alpha = alpha), radius = inner + span * phase, style = Stroke(width = 1.5.dp.toPx()))
-        }
-    }
 }
-
-private data class ModeLook(
-    val label: Int,
-    val icon: Int,
-    val color: Color,
-)
-
-private val FlowMode.look: ModeLook
-    get() =
-        when (this) {
-            FlowMode.ALL -> ModeLook(R.string.offline_mode_all, R.drawable.graphic_eq, Color(0xFF3D63C9))
-            FlowMode.LIKED -> ModeLook(R.string.offline_mode_liked, R.drawable.favorite, Color(0xFFB83A72))
-            FlowMode.FORGOTTEN -> ModeLook(R.string.offline_mode_forgotten, R.drawable.history, Color(0xFF9A6A16))
-            FlowMode.NEW -> ModeLook(R.string.offline_mode_new, R.drawable.download, Color(0xFF1F8A68))
-        }
 
 @Composable
 private fun FlowTuning(

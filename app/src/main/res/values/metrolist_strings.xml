@@ -1400,4 +1400,6 @@
     <string name="collection_album">Album</string>
     <string name="collection_playlist">Playlist</string>
     <string name="search_recognize">Recognize a song</string>
+    <string name="offline_flow_idle">Everything downloaded</string>
+    <string name="offline_flow_live">Flow · playing</string>
 </resources>

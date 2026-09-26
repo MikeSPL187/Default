@@ -37,6 +37,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -68,6 +69,7 @@ import com.metrolist.innertube.utils.parseCookieString
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import com.metrolist.music.ui.component.LargeScreenTitle
 import com.metrolist.music.constants.CONTENT_TYPE_ARTIST
 import com.metrolist.music.constants.InnerTubeCookieKey
 import com.metrolist.music.constants.StatPeriod
@@ -198,6 +200,7 @@ fun StatsScreen(
 
     val coroutineScope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
+    val scrolledPastTitle by remember { derivedStateOf { lazyListState.firstVisibleItemIndex > 0 } }
     val selectedOption by viewModel.selectedOption.collectAsStateWithLifecycle()
 
     var showTimeTransfer by rememberSaveable { mutableStateOf(false) }
@@ -355,6 +358,8 @@ fun StatsScreen(
                     LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top),
                 ),
         ) {
+            item(key = "large_title") { LargeScreenTitle(stringResource(R.string.stats)) }
+
             val filteredArtists =
                 allArtists
                     .map { artistWrapper ->
@@ -766,7 +771,7 @@ fun StatsScreen(
                         }
                     }
                 }
-            } else {
+            } else if (scrolledPastTitle) {
                 Text(stringResource(R.string.stats))
             }
         },

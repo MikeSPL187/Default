@@ -83,3 +83,29 @@ fun SectionHeader(
         }
     }
 }
+
+/** The large title a list screen opens with; the top bar takes the name once it scrolls away. */
+@Composable
+fun LargeScreenTitle(
+    title: String,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+) {
+    Column(
+        modifier
+            .fillMaxWidth()
+            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
+            .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 12.dp),
+    ) {
+        Text(
+            title,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+        subtitle?.let {
+            Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+        }
+    }
+}

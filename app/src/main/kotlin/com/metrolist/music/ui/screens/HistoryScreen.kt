@@ -33,6 +33,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -61,6 +62,7 @@ import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import com.metrolist.music.ui.component.LargeScreenTitle
 import com.metrolist.music.constants.HistorySource
 import com.metrolist.music.constants.InnerTubeCookieKey
 import com.metrolist.music.extensions.metadata
@@ -207,6 +209,7 @@ fun HistoryScreen(
     }
 
     val lazyListState = rememberLazyListState()
+    val scrolledPastTitle by remember { derivedStateOf { lazyListState.firstVisibleItemIndex > 0 } }
 
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
@@ -222,6 +225,8 @@ fun HistoryScreen(
                     ),
                 ),
         ) {
+            item(key = "large_title") { LargeScreenTitle(stringResource(R.string.history)) }
+
             item(key = "chips_row") {
                 ChipsRow(
                     chips =
@@ -463,7 +468,7 @@ fun HistoryScreen(
                             .fillMaxWidth()
                             .focusRequester(focusRequester),
                 )
-            } else {
+            } else if (scrolledPastTitle) {
                 Text(stringResource(R.string.history))
             }
         },
