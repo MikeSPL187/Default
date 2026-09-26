@@ -31,6 +31,9 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.draw.shadow
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -78,7 +81,6 @@ import com.metrolist.music.constants.PlayerBackgroundStyleKey
 import com.metrolist.music.constants.PlayerHorizontalPadding
 import com.metrolist.music.constants.SeekExtraSeconds
 import com.metrolist.music.constants.SwipeThumbnailKey
-import com.metrolist.music.constants.ThumbnailCornerRadius
 import com.metrolist.music.listentogether.RoomRole
 import com.metrolist.music.ui.component.CastButton
 import com.metrolist.music.ui.utils.artworkContentScale
@@ -118,7 +120,7 @@ private fun calculateThumbnailDimensions(
     containerWidth: Dp,
     containerHeight: Dp = containerWidth,
     horizontalPadding: Dp = PlayerHorizontalPadding,
-    cornerRadius: Dp = ThumbnailCornerRadius,
+    cornerRadius: Dp = PlayerCoverRadius,
     isLandscape: Boolean = false
 ): ThumbnailDimensions {
     // In landscape, use height as the constraining dimension for a square thumbnail
@@ -131,7 +133,7 @@ private fun calculateThumbnailDimensions(
         itemWidth = containerWidth,
         containerSize = containerWidth,
         thumbnailSize = effectiveSize,
-        cornerRadius = cornerRadius * 2
+        cornerRadius = cornerRadius,
     )
 }
 
@@ -202,6 +204,8 @@ fun Thumbnail(
     isPlayerExpanded: () -> Boolean = { true },
     isLandscape: Boolean = false,
     isListenTogetherGuest: Boolean = false,
+    onCollapse: (() -> Unit)? = null,
+    onMore: (() -> Unit)? = null,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
@@ -338,7 +342,9 @@ fun Thumbnail(
                     ThumbnailHeader(
                         queueTitle = queueTitle,
                         albumTitle = mediaMetadata?.album?.title,
-                        textColor = textBackgroundColor
+                        textColor = textBackgroundColor,
+                        onCollapse = onCollapse,
+                        onMore = onMore,
                     )
                 }
                 
@@ -438,47 +444,62 @@ private fun ThumbnailHeader(
     queueTitle: String?,
     albumTitle: String?,
     textColor: Color,
+    onCollapse: (() -> Unit)?,
+    onMore: (() -> Unit)?,
     modifier: Modifier = Modifier
 ) {
     val listenTogetherManager = LocalListenTogetherManager.current
     val listenTogetherRoleState = listenTogetherManager?.role?.collectAsStateWithLifecycle(initialValue = RoomRole.NONE)
-    val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
-    Box(
+    val playingFrom = queueTitle ?: albumTitle
+    val overline =
+        when (listenTogetherRoleState?.value) {
+            RoomRole.HOST -> stringResource(R.string.player_lt_hosting)
+            RoomRole.GUEST -> stringResource(R.string.player_lt_listening)
+            else -> stringResource(if (playingFrom.isNullOrBlank()) R.string.now_playing else R.string.player_playing_from)
+        }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = 6.dp, vertical = 4.dp)
     ) {
+        if (onCollapse != null) {
+            IconButton(onClick = onCollapse) {
+                Icon(painterResource(R.drawable.expand_more), contentDescription = null, tint = textColor, modifier = Modifier.size(28.dp))
+            }
+        } else {
+            Spacer(Modifier.size(48.dp))
+        }
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(horizontal = 48.dp)
+            modifier = Modifier.weight(1f)
         ) {
-            // Listen Together indicator
-            if (listenTogetherRoleState?.value != RoomRole.NONE) {
-                Text(
-                    text = if (listenTogetherRoleState?.value == RoomRole.HOST) "Hosting Listen Together" else "Listening Together",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = textColor
-                )
-            } else {
-                Text(
-                    text = stringResource(R.string.now_playing),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = textColor
-                )
-            }
-            val playingFrom = queueTitle ?: albumTitle
+            Text(
+                text = overline.uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = textColor.copy(alpha = 0.75f),
+                maxLines = 1,
+            )
             if (!playingFrom.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = playingFrom,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = textColor.copy(alpha = 0.8f),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = textColor,
                     maxLines = 1,
-                    modifier = Modifier.basicMarquee()
+                    modifier = Modifier
+                        .padding(top = 2.dp)
+                        .basicMarquee()
                 )
             }
+        }
+        if (onMore != null) {
+            IconButton(onClick = onMore) {
+                Icon(painterResource(R.drawable.more_vert), contentDescription = null, tint = textColor)
+            }
+        } else {
+            Spacer(Modifier.size(48.dp))
         }
     }
 }
@@ -559,6 +580,7 @@ private fun ThumbnailItem(
         Box(
             modifier = Modifier
                 .size(dimensions.thumbnailSize)
+                .shadow(CoverElevation, RoundedCornerShape(dimensions.cornerRadius))
                 .clip(RoundedCornerShape(dimensions.cornerRadius))
         ) {
             if (hidePlayerThumbnail) {
@@ -664,3 +686,6 @@ private fun SeekEffectOverlay(
             .padding(8.dp)
     )
 }
+
+private val PlayerCoverRadius = 28.dp
+private val CoverElevation = 22.dp

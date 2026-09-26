@@ -1388,4 +1388,12 @@
     <string name="dj_set_night">Night set</string>
     <string name="dj_new_find">new to you</string>
     <string name="dj_from_favourites">from your favorites</string>
+    <string name="player_playing_from">Playing from</string>
+    <string name="player_lt_hosting">Hosting Listen Together</string>
+    <string name="player_lt_listening">Listening together</string>
+    <string name="player_tab_lyrics">Lyrics</string>
+    <string name="player_tab_timer">Timer</string>
+    <string name="output_this_phone">This phone</string>
+    <string name="output_headphones">Headphones</string>
+    <string name="output_bluetooth">Bluetooth</string>
 </resources>

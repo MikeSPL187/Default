@@ -266,53 +266,48 @@ fun Queue(
         },
         collapsedContent = {
             if (useNewPlayerDesign) {
-                // New design
+                // Takt: the queue, the lyrics and the timer as tabs, the menu at the end.
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 30.dp, vertical = 12.dp)
+                            .padding(horizontal = 20.dp, vertical = 12.dp)
                             .windowInsetsPadding(
                                 WindowInsets.systemBars.only(
                                     WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal,
                                 ),
                             ),
                 ) {
-                    val buttonSize = 42.dp
-                    val iconSize = 24.dp
-                    val queueShape =
-                        RoundedCornerShape(
-                            topStart = 50.dp,
-                            bottomStart = 50.dp,
-                            topEnd = 3.dp,
-                            bottomEnd = 3.dp,
-                        )
-                    val middleShape = RoundedCornerShape(3.dp)
-                    val repeatShape =
-                        RoundedCornerShape(
-                            topStart = 3.dp,
-                            bottomStart = 3.dp,
-                            topEnd = 50.dp,
-                            bottomEnd = 50.dp,
-                        )
-
-                    PlayerQueueButton(
+                    PlayerTab(
                         icon = R.drawable.queue_music,
+                        label = stringResource(R.string.queue),
+                        active = false,
+                        color = TextBackgroundColor,
+                        activeContainer = textButtonColor,
+                        activeContent = iconButtonColor,
                         onClick = { state.expandSoft() },
-                        isActive = false,
-                        shape = queueShape,
-                        modifier = Modifier.size(buttonSize),
-                        textButtonColor = textButtonColor,
-                        iconButtonColor = iconButtonColor,
-                        iconSize = iconSize,
-                        textBackgroundColor = TextBackgroundColor,
-                        playerBackground = playerBackground,
+                        modifier = Modifier.weight(1f),
                     )
-
-                    PlayerQueueButton(
+                    PlayerTab(
+                        icon = R.drawable.lyrics,
+                        label = stringResource(R.string.player_tab_lyrics),
+                        active = showInlineLyrics,
+                        color = TextBackgroundColor,
+                        activeContainer = textButtonColor,
+                        activeContent = iconButtonColor,
+                        onClick = { onToggleLyrics() },
+                        modifier = Modifier.weight(1f),
+                    )
+                    PlayerTab(
                         icon = R.drawable.bedtime,
+                        label = if (sleepTimerEnabled) makeTimeString(sleepTimerTimeLeft) else stringResource(R.string.player_tab_timer),
+                        active = sleepTimerEnabled,
+                        enabled = !isListenTogetherGuest,
+                        color = TextBackgroundColor,
+                        activeContainer = textButtonColor,
+                        activeContent = iconButtonColor,
                         onClick = {
                             if (sleepTimerEnabled) {
                                 playerConnection.service.sleepTimer?.clear()
@@ -320,102 +315,8 @@ fun Queue(
                                 showSleepTimerDialog = true
                             }
                         },
-                        isActive = sleepTimerEnabled,
-                        enabled = !isListenTogetherGuest,
-                        shape = middleShape,
-                        modifier = Modifier.size(buttonSize),
-                        textButtonColor = textButtonColor,
-                        iconButtonColor = iconButtonColor,
-                        text = if (sleepTimerEnabled) makeTimeString(sleepTimerTimeLeft) else null,
-                        iconSize = iconSize,
-                        textBackgroundColor = TextBackgroundColor,
-                        playerBackground = playerBackground,
+                        modifier = Modifier.weight(1f),
                     )
-
-                    val shuffleModeEnabled by playerConnection.shuffleModeEnabled.collectAsStateWithLifecycle()
-                    PlayerQueueButton(
-                        icon = R.drawable.shuffle,
-                        onClick = {
-                            playerConnection.player.shuffleModeEnabled = !shuffleModeEnabled
-                        },
-                        isActive = shuffleModeEnabled,
-                        enabled = !isListenTogetherGuest,
-                        shape = middleShape,
-                        modifier = Modifier.size(buttonSize),
-                        textButtonColor = textButtonColor,
-                        iconButtonColor = iconButtonColor,
-                        iconSize = iconSize,
-                        textBackgroundColor = TextBackgroundColor,
-                        playerBackground = playerBackground,
-                    )
-
-                    PlayerQueueButton(
-                        icon = R.drawable.lyrics,
-                        onClick = { onToggleLyrics() },
-                        isActive = showInlineLyrics,
-                        shape = middleShape,
-                        modifier = Modifier.size(buttonSize),
-                        textButtonColor = textButtonColor,
-                        iconButtonColor = iconButtonColor,
-                        iconSize = iconSize,
-                        textBackgroundColor = TextBackgroundColor,
-                        playerBackground = playerBackground,
-                    )
-
-                    PlayerQueueButton(
-                        icon =
-                            when (repeatMode) {
-                                Player.REPEAT_MODE_ALL -> R.drawable.repeat
-                                Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
-                                else -> R.drawable.repeat
-                            },
-                        onClick = {
-                            playerConnection.player.toggleRepeatMode()
-                        },
-                        isActive = repeatMode != Player.REPEAT_MODE_OFF,
-                        enabled = !isListenTogetherGuest,
-                        shape = repeatShape,
-                        modifier = Modifier.size(buttonSize),
-                        textButtonColor = textButtonColor,
-                        iconButtonColor = iconButtonColor,
-                        iconSize = iconSize,
-                        textBackgroundColor = TextBackgroundColor,
-                        playerBackground = playerBackground,
-                    )
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    Box(
-                        modifier =
-                            Modifier
-                                .size(buttonSize)
-                                .clip(CircleShape)
-                                .background(textButtonColor)
-                                .clickable {
-                                    menuState.show {
-                                        PlayerMenu(
-                                            mediaMetadata = mediaMetadata,
-                                            playerBottomSheetState = playerBottomSheetState,
-                                            onShowDetailsDialog = {
-                                                mediaMetadata?.id?.let {
-                                                    bottomSheetPageState.show {
-                                                        ShowMediaInfo(it)
-                                                    }
-                                                }
-                                            },
-                                            onDismiss = menuState::dismiss,
-                                        )
-                                    }
-                                },
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.more_vert),
-                            contentDescription = null,
-                            modifier = Modifier.size(iconSize),
-                            tint = iconButtonColor,
-                        )
-                    }
                 }
             } else {
                 // Old design
@@ -1295,81 +1196,42 @@ fun Queue(
     }
 }
 
+/** A tab of the player's bottom row: an icon and a word in a pill, filled while it is on. */
 @Composable
-private fun PlayerQueueButton(
+private fun PlayerTab(
     icon: Int,
+    label: String,
+    active: Boolean,
+    color: Color,
+    activeContainer: Color,
+    activeContent: Color,
     onClick: () -> Unit,
-    isActive: Boolean,
-    enabled: Boolean = true,
-    shape: RoundedCornerShape,
     modifier: Modifier = Modifier,
-    text: String? = null,
-    textButtonColor: Color,
-    iconButtonColor: Color,
-    iconSize: androidx.compose.ui.unit.Dp,
-    textBackgroundColor: Color,
-    playerBackground: PlayerBackgroundStyle,
+    enabled: Boolean = true,
 ) {
-    val buttonModifier =
-        Modifier
-            .clip(shape)
-            .clickable(enabled = enabled, onClick = onClick)
-
-    val alphaFactor = if (enabled) 1f else 0.35f
-
-    val appliedModifier =
-        if (isActive) {
-            modifier.then(buttonModifier.background(textButtonColor)).alpha(alphaFactor)
-        } else {
+    val haptic = LocalHapticFeedback.current
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier =
             modifier
-                .then(
-                    buttonModifier.border(
-                        width = 1.dp,
-                        color = textButtonColor.copy(alpha = 0.3f),
-                        shape = shape,
-                    ),
-                ).alpha(alphaFactor)
-        }
-
-    Box(
-        modifier = appliedModifier,
-        contentAlignment = Alignment.Center,
+                .height(40.dp)
+                .clip(CircleShape)
+                .background(if (active) activeContainer else color.copy(alpha = 0.1f))
+                .clickable(enabled = enabled) {
+                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                    onClick()
+                }.padding(horizontal = 10.dp),
     ) {
-        if (text != null) {
-            Text(
-                text = text,
-                color = iconButtonColor.copy(alpha = if (enabled) 1f else 0.6f),
-                fontSize = 10.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .basicMarquee(),
-            )
-        } else {
-            val baseTint =
-                if (isActive) {
-                    iconButtonColor
-                } else {
-                    when (playerBackground) {
-                        PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT -> {
-                            Color.White
-                        }
-
-                        PlayerBackgroundStyle.DEFAULT -> {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        }
-                    }
-                }
-            val finalTint = if (enabled) baseTint else baseTint.copy(alpha = 0.5f)
-            Icon(
-                painter = painterResource(id = icon),
-                contentDescription = null,
-                modifier = Modifier.size(iconSize),
-                tint = finalTint,
-            )
-        }
+        val tint = (if (active) activeContent else color).copy(alpha = if (enabled) 1f else 0.4f)
+        Icon(painterResource(icon), contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
+        Text(
+            label,
+            color = tint,
+            style = MaterialTheme.typography.labelLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(start = 6.dp),
+        )
     }
 }
