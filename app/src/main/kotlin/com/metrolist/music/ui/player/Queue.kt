@@ -5,6 +5,9 @@
 
 package com.metrolist.music.ui.player
 
+import com.metrolist.music.ui.component.collectionDuration
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.layout.heightIn
 import com.metrolist.music.ui.menu.AddToPlaylistDialog
 import com.metrolist.music.LocalDatabase
 import android.annotation.SuppressLint
@@ -956,9 +959,7 @@ fun Queue(
                         if (pureBlack) {
                             Color.Black
                         } else {
-                            MaterialTheme.colorScheme
-                                .secondaryContainer
-                                .copy(alpha = 0.90f)
+                            MaterialTheme.colorScheme.surfaceContainer
                         },
                     ).windowInsetsPadding(
                         WindowInsets.systemBars
@@ -970,16 +971,29 @@ fun Queue(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier =
                     Modifier
-                        .height(ListItemHeight)
-                        .padding(horizontal = 12.dp),
+                        .heightIn(min = ListItemHeight)
+                        .padding(start = 20.dp, end = 8.dp, top = 12.dp, bottom = 8.dp),
             ) {
-                Text(
-                    text = queueTitle.orEmpty(),
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.queue),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                    )
+                    Text(
+                        text =
+                            listOfNotNull(
+                                queueTitle?.takeIf { it.isNotBlank() },
+                                pluralStringResource(R.plurals.n_song, queueWindows.size, queueWindows.size),
+                                collectionDuration(queueLength),
+                            ).joinToString(" · "),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
 
                 AnimatedVisibility(
                     visible = !inSelectMode,
@@ -1008,25 +1022,6 @@ fun Queue(
                     }
                 }
 
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    horizontalAlignment = Alignment.End,
-                ) {
-                    Text(
-                        text =
-                            pluralStringResource(
-                                R.plurals.n_song,
-                                queueWindows.size,
-                                queueWindows.size,
-                            ),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-
-                    Text(
-                        text = makeTimeString(queueLength * 1000L),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
             }
 
             AnimatedVisibility(

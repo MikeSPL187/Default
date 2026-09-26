@@ -195,7 +195,7 @@ fun AppearanceSettings(
     val (playerBackground, onPlayerBackgroundChange) =
         rememberEnumPreference(
             PlayerBackgroundStyleKey,
-            defaultValue = PlayerBackgroundStyle.DEFAULT,
+            defaultValue = PlayerBackgroundStyle.GRADIENT,
         )
 
     val (defaultOpenTab, onDefaultOpenTabChange) =
@@ -244,7 +244,7 @@ fun AppearanceSettings(
     val (sliderStyle, onSliderStyleChange) =
         rememberEnumPreference(
             SliderStyleKey,
-            defaultValue = SliderStyle.DEFAULT,
+            defaultValue = SliderStyle.WAVY,
         )
     val (squigglySlider, onSquigglySliderChange) =
         rememberPreference(

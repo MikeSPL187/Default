@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import com.metrolist.music.R
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -67,15 +70,16 @@ fun Material3SettingsGroup(
             Text(
                 text = it,
                 style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 8.dp, top = 8.dp)
+                modifier = Modifier.padding(start = 4.dp, bottom = 8.dp, top = 12.dp)
             )
         }
 
         // Settings items
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             items.forEachIndexed { index, item ->
                 val shape = when {
@@ -92,7 +96,7 @@ fun Material3SettingsGroup(
                     shape = shape,
                     colors = CardDefaults.cardColors(
                         containerColor = if (!useLowContrast) {
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                            MaterialTheme.colorScheme.surfaceContainer
                         } else {
                             MaterialTheme.colorScheme.surfaceContainerLow
                         }
@@ -121,7 +125,7 @@ private fun Material3SettingsItemRow(
                 enabled = item.enabled && item.onClick != null,
                 onClick = { item.onClick?.invoke() }
             )
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Custom leading content or Icon with background
@@ -131,7 +135,7 @@ private fun Material3SettingsItemRow(
         } else if (item.icon != null) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(36.dp)
                     .clip(CircleShape)
                     .background(tint.copy(alpha = if (item.isHighlighted) 0.2f else 0.14f)),
                 contentAlignment = Alignment.Center
@@ -190,7 +194,7 @@ private fun Material3SettingsItemRow(
             item.description?.let { desc ->
                 Spacer(modifier = Modifier.height(2.dp))
                 ProvideTextStyle(
-                    MaterialTheme.typography.bodyMedium.copy(
+                    MaterialTheme.typography.bodySmall.copy(
                         color = if (!item.enabled)
                             MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                         else
@@ -202,10 +206,17 @@ private fun Material3SettingsItemRow(
             }
         }
 
-        // Trailing content
-        item.trailingContent?.let { trailing ->
+        // Trailing content; a row that opens something else points onward.
+        if (item.trailingContent != null) {
             Spacer(modifier = Modifier.width(8.dp))
-            trailing()
+            item.trailingContent.invoke()
+        } else if (item.onClick != null) {
+            Icon(
+                painter = painterResource(R.drawable.navigate_next),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 8.dp).size(22.dp),
+            )
         }
     }
 }

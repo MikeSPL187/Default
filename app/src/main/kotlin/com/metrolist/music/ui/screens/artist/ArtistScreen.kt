@@ -40,6 +40,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -520,18 +521,29 @@ fun ArtistScreen(
                                             ButtonDefaults.outlinedButtonColors(
                                                 containerColor =
                                                     if (isChannelSubscribed) {
-                                                        MaterialTheme.colorScheme.surface
+                                                        MaterialTheme.colorScheme.secondaryContainer
                                                     } else {
                                                         Color.Transparent
+                                                    },
+                                                contentColor =
+                                                    if (isChannelSubscribed) {
+                                                        MaterialTheme.colorScheme.onSecondaryContainer
+                                                    } else {
+                                                        MaterialTheme.colorScheme.onSurface
                                                     },
                                             ),
                                         shape = RoundedCornerShape(50),
                                         modifier = Modifier.height(40.dp),
                                     ) {
+                                        Icon(
+                                            painter = painterResource(if (isChannelSubscribed) R.drawable.subscribed else R.drawable.subscribe),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(20.dp),
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
                                         Text(
                                             text = stringResource(if (isChannelSubscribed) R.string.subscribed else R.string.subscribe),
                                             fontSize = 14.sp,
-                                            color = if (!isChannelSubscribed) MaterialTheme.colorScheme.error else LocalContentColor.current,
                                         )
                                     }
 
@@ -565,80 +577,6 @@ fun ArtistScreen(
                     }
                 }
 
-                // About Artist Section
-                if (!showLocal && (showArtistDescription || showArtistSubscriberCount || showMonthlyListeners)) {
-                    val description = artistPage?.description
-                    val descriptionRuns = artistPage?.descriptionRuns
-                    val subscriberCount = artistPage?.subscriberCountText
-                    val monthlyListeners = artistPage?.monthlyListenerCount
-
-                    if ((showArtistDescription && !description.isNullOrEmpty()) ||
-                        (showArtistSubscriberCount && !subscriberCount.isNullOrEmpty()) ||
-                        (showMonthlyListeners && !monthlyListeners.isNullOrEmpty())
-                    ) {
-                        item(key = "about_artist") {
-                            Column(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp)
-                                        .padding(bottom = 16.dp)
-                                        .animateItem(),
-                            ) {
-                                if (showArtistDescription && (!description.isNullOrEmpty() || !descriptionRuns.isNullOrEmpty())) {
-                                    Text(
-                                        text = stringResource(R.string.about_artist),
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(bottom = 8.dp),
-                                    )
-                                }
-
-                                if (showArtistSubscriberCount && !subscriberCount.isNullOrEmpty()) {
-                                    Text(
-                                        text = subscriberCount,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(bottom = 4.dp),
-                                    )
-                                }
-
-                                if (showMonthlyListeners && !monthlyListeners.isNullOrEmpty()) {
-                                    Text(
-                                        text = monthlyListeners,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier =
-                                            Modifier.padding(
-                                                bottom =
-                                                    if (showArtistDescription &&
-                                                        !description.isNullOrEmpty()
-                                                    ) {
-                                                        8.dp
-                                                    } else {
-                                                        0.dp
-                                                    },
-                                            ),
-                                    )
-                                }
-
-                                if (showArtistDescription && (!description.isNullOrEmpty() || !descriptionRuns.isNullOrEmpty())) {
-                                    ExpandableText(
-                                        text = description.orEmpty(),
-                                        runs =
-                                            descriptionRuns?.map {
-                                                LinkSegment(
-                                                    text = it.text,
-                                                    url = it.navigationEndpoint?.urlEndpoint?.url,
-                                                )
-                                            },
-                                        collapsedMaxLines = 3,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
 
                 // Show loading shimmer for sections when API hasn't returned yet
                 if (artistPage == null && !showLocal) {
@@ -968,6 +906,82 @@ fun ArtistScreen(
                                                     ).animateItem(),
                                         )
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+                // About Artist Section
+                if (!showLocal && (showArtistDescription || showArtistSubscriberCount || showMonthlyListeners)) {
+                    val description = artistPage?.description
+                    val descriptionRuns = artistPage?.descriptionRuns
+                    val subscriberCount = artistPage?.subscriberCountText
+                    val monthlyListeners = artistPage?.monthlyListenerCount
+
+                    if ((showArtistDescription && !description.isNullOrEmpty()) ||
+                        (showArtistSubscriberCount && !subscriberCount.isNullOrEmpty()) ||
+                        (showMonthlyListeners && !monthlyListeners.isNullOrEmpty())
+                    ) {
+                        item(key = "about_artist") {
+                            Column(
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 16.dp, end = 16.dp, top = 22.dp, bottom = 16.dp)
+                                        .clip(RoundedCornerShape(24.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                                        .padding(18.dp)
+                                        .animateItem(),
+                            ) {
+                                if (showArtistDescription && (!description.isNullOrEmpty() || !descriptionRuns.isNullOrEmpty())) {
+                                    Text(
+                                        text = stringResource(R.string.about_artist),
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.SemiBold,
+                                        modifier = Modifier.padding(bottom = 8.dp),
+                                    )
+                                }
+
+                                if (showArtistSubscriberCount && !subscriberCount.isNullOrEmpty()) {
+                                    Text(
+                                        text = subscriberCount,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(bottom = 4.dp),
+                                    )
+                                }
+
+                                if (showMonthlyListeners && !monthlyListeners.isNullOrEmpty()) {
+                                    Text(
+                                        text = monthlyListeners,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier =
+                                            Modifier.padding(
+                                                bottom =
+                                                    if (showArtistDescription &&
+                                                        !description.isNullOrEmpty()
+                                                    ) {
+                                                        8.dp
+                                                    } else {
+                                                        0.dp
+                                                    },
+                                            ),
+                                    )
+                                }
+
+                                if (showArtistDescription && (!description.isNullOrEmpty() || !descriptionRuns.isNullOrEmpty())) {
+                                    ExpandableText(
+                                        text = description.orEmpty(),
+                                        runs =
+                                            descriptionRuns?.map {
+                                                LinkSegment(
+                                                    text = it.text,
+                                                    url = it.navigationEndpoint?.urlEndpoint?.url,
+                                                )
+                                            },
+                                        collapsedMaxLines = 3,
+                                    )
                                 }
                             }
                         }
