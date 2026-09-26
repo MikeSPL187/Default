@@ -25,6 +25,7 @@ appId: com.metrolist.music
 - waitForAnimationToEnd
 - takeScreenshot: 03-search
 - back
+- waitForAnimationToEnd
 # If the keyboard was still up, that back only closed it.
 - runFlow:
     when:
