@@ -87,6 +87,7 @@ import com.metrolist.music.ui.component.LocalArtistsGrid
 import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.component.LocalSongsGrid
 import com.metrolist.music.ui.component.NavigationTitle
+import com.metrolist.music.ui.component.SectionHeader
 import com.metrolist.music.ui.component.PlaylistGridItem
 import com.metrolist.music.ui.component.TimeTransfer
 import com.metrolist.music.ui.menu.AlbumMenu
@@ -451,13 +452,8 @@ fun StatsScreen(
 
             if (visibleStatsPlaylists.isNotEmpty() && !isSearching && sArtists.isEmpty()) {
                 item(key = "mostPeriodPlaylistsTitle") {
-                    NavigationTitle(
-                        title =
-                            pluralStringResource(
-                                R.plurals.n_playlist,
-                                visibleStatsPlaylists.size,
-                                visibleStatsPlaylists.size,
-                            ),
+                    SectionHeader(
+                        title = stringResource(R.string.playlists),
                         modifier = Modifier.animateItem(),
                     )
                 }
@@ -489,9 +485,11 @@ fun StatsScreen(
 
             if (!isSearching) {
                 item(key = "mostPlayedSongs") {
-                    NavigationTitle(
-                        title = "${mostPlayedSongsStats.size} ${stringResource(id = R.string.songs)}",
-                        onPlayAllClick =
+                    SectionHeader(
+                        title = stringResource(R.string.songs),
+                        subtitle = mostPlayedSongsStats.size.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.n_song, it, it) },
+                        action = stringResource(R.string.play_all),
+                        onAction =
                             if (orderedMostPlayedSongs.isNotEmpty()) {
                                 {
                                     playerConnection.playQueue(
@@ -568,8 +566,8 @@ fun StatsScreen(
 
             if (!isSearching) {
                 item(key = "mostPlayedArtists") {
-                    NavigationTitle(
-                        title = "${mostPlayedArtists.size} ${stringResource(id = R.string.artists)}",
+                    SectionHeader(
+                        title = stringResource(R.string.artists),
                         modifier = Modifier.animateItem(),
                     )
 
@@ -617,8 +615,8 @@ fun StatsScreen(
 
             if (!isSearching) {
                 item(key = "mostPlayedAlbums") {
-                    NavigationTitle(
-                        title = "${mostPlayedAlbums.size} ${stringResource(id = R.string.albums)}",
+                    SectionHeader(
+                        title = stringResource(R.string.albums),
                         modifier = Modifier.animateItem(),
                     )
 
