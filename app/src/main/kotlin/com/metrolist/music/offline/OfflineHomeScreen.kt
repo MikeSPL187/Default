@@ -419,6 +419,21 @@ private fun FlowHero(
     )
 }
 
+private data class ModeLook(
+    val label: Int,
+    val icon: Int,
+    val color: Color,
+)
+
+private val FlowMode.look: ModeLook
+    get() =
+        when (this) {
+            FlowMode.ALL -> ModeLook(R.string.offline_mode_all, R.drawable.graphic_eq, Color(0xFF3D63C9))
+            FlowMode.LIKED -> ModeLook(R.string.offline_mode_liked, R.drawable.favorite, Color(0xFFB83A72))
+            FlowMode.FORGOTTEN -> ModeLook(R.string.offline_mode_forgotten, R.drawable.history, Color(0xFF9A6A16))
+            FlowMode.NEW -> ModeLook(R.string.offline_mode_new, R.drawable.download, Color(0xFF1F8A68))
+        }
+
 @Composable
 private fun FlowTuning(
     mode: FlowMode,
