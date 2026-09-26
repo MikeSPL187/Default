@@ -174,6 +174,12 @@ val DownloadedOnlyKey = booleanPreferencesKey("downloadedOnly")
 /** Blocks of the home screen the user hid. */
 val HiddenHomeBlocksKey = stringSetPreferencesKey("hiddenHomeBlocks")
 
+/** Ids of the home blocks, comma-separated, in the order the user put them. */
+val HomeBlockOrderKey = stringPreferencesKey("homeBlockOrder")
+
+/** What the DJ plays: mostly favourites, a mix, or mostly new songs. */
+val DjModeKey = stringPreferencesKey("djMode")
+
 val FlowModeKey = stringPreferencesKey("offlineFlowMode")
 val FlowCharacterKey = stringPreferencesKey("offlineFlowCharacter")
 val OfflineSongSortKey = stringPreferencesKey("offlineSongSort")

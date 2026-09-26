@@ -2421,6 +2421,42 @@ class MusicService :
         }
     }
 
+    /** Swaps the DJ's upcoming songs for a set of its new tuning; the song playing now plays on. */
+    fun retuneDj() {
+        val queue = currentQueue as? DjQueue ?: return
+        scope.launch(SilentHandler) {
+            val items =
+                withContext(Dispatchers.IO) {
+                    queue.nextPage()
+                        .filterExplicit(cachedHideExplicit)
+                        .filterVideoSongs(cachedHideVideoSongs)
+                        .filterNotRecommended(notRecommended())
+                }
+            if (currentQueue !== queue || items.isEmpty() || player.mediaItemCount == 0) return@launch
+            player.replaceMediaItems(player.currentMediaItemIndex + 1, player.mediaItemCount, items)
+        }
+    }
+
+    /** "Not this" in the DJ: its artist is dropped for tonight and the next song starts. */
+    fun dislikeInDj() {
+        val queue = currentQueue as? DjQueue ?: return
+        player.currentMediaItem?.mediaId?.let(queue::dislike)
+        if (player.hasNextMediaItem()) player.seekToNextMediaItem()
+    }
+
+    /** "Spot on" in the DJ: the song is liked and leads the next new finds. */
+    fun favourInDj() {
+        val queue = currentQueue as? DjQueue ?: return
+        val id = player.currentMediaItem?.mediaId ?: return
+        queue.favour(id)
+        scope.launch {
+            if (currentSong.first()?.song?.liked == false) toggleLike()
+        }
+    }
+
+    /** Whether the DJ brought [mediaId] as a new find; null outside the DJ. */
+    fun isDjDiscovery(mediaId: String): Boolean? = (currentQueue as? DjQueue)?.isDiscovery(mediaId)
+
     fun toggleLike() {
         scope.launch {
             val songToToggle = currentSong.first()

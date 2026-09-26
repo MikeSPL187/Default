@@ -27,6 +27,7 @@ import com.metrolist.music.constants.ArtistSortType
 import com.metrolist.music.constants.PlaylistSortType
 import com.metrolist.music.constants.SongSortType
 import com.metrolist.music.db.entities.Album
+import com.metrolist.music.db.entities.AlbumProgress
 import com.metrolist.music.db.entities.AlbumArtistMap
 import com.metrolist.music.db.entities.AlbumEntity
 import com.metrolist.music.db.entities.AlbumPlayStats
@@ -551,6 +552,29 @@ interface DatabaseDao {
         fromTimeStamp: LocalDateTime,
         limit: Int,
     ): List<Song>
+
+    /**
+     * Albums of which two songs or more were played since [fromTimeStamp] and whose last played
+     * song was not their last track, newest first. The track is that of the latest play.
+     */
+    @Query(
+        """
+        SELECT album.id AS albumId, album.title AS title, album.thumbnailUrl AS thumbnailUrl,
+               album.songCount AS songCount, song_album_map.`index` AS trackIndex, MAX(event.timestamp) AS lastPlayed
+        FROM event
+        JOIN song_album_map ON song_album_map.songId = event.songId
+        JOIN album ON album.id = song_album_map.albumId
+        WHERE event.timestamp > :fromTimeStamp AND album.songCount > 1
+        GROUP BY album.id
+        HAVING COUNT(DISTINCT event.songId) >= 2 AND song_album_map.`index` + 1 < album.songCount
+        ORDER BY lastPlayed DESC
+        LIMIT :limit
+        """,
+    )
+    fun albumsInProgress(
+        fromTimeStamp: LocalDateTime,
+        limit: Int,
+    ): Flow<List<AlbumProgress>>
 
     @Query("SELECT DISTINCT songId FROM event WHERE timestamp > :fromTimeStamp")
     suspend fun songIdsPlayedSince(fromTimeStamp: LocalDateTime): List<String>

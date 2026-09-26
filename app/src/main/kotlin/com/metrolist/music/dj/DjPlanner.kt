@@ -103,16 +103,17 @@ object DjPlanner {
     }
 
     /**
-     * The share of favourites for the next set: new songs listened through ask for more of them,
-     * new songs skipped ask for fewer, favourites skipped for more new ones.
+     * The share of favourites for the next set, around what [mode] asks for: new songs listened
+     * through ask for more of them, new songs skipped ask for fewer, favourites skipped for more new ones.
      */
     fun adaptShare(
         discoveriesKept: Int,
         discoveriesSkipped: Int,
         favouritesSkipped: Int,
+        mode: DjMode = DjMode.MIXED,
     ): Double =
-        (BALANCED + SHARE_STEP * (discoveriesSkipped - discoveriesKept) - SHARE_STEP / 2 * favouritesSkipped)
-            .coerceIn(MIN_FAMILIAR, MAX_FAMILIAR)
+        (mode.base + SHARE_STEP * (discoveriesSkipped - discoveriesKept) - SHARE_STEP / 2 * favouritesSkipped)
+            .coerceIn(mode.min, mode.max)
 
     /** A song left within half a minute, before its middle, was skipped. */
     fun isSkip(

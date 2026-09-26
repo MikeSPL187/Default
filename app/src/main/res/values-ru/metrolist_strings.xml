@@ -1199,23 +1199,17 @@
 
     <!-- Home -->
     <string name="dj_title">Диджей</string>
-    <string name="dj_idle">Любимое и новое — без пауз</string>
-    <string name="dj_next">Далее: %s</string>
     <string name="home_block_dj">Диджей</string>
     <string name="home_block_quick_access">Быстрый доступ</string>
     <string name="home_block_for_you">Для вас</string>
     <string name="home_block_new_releases">Новые релизы</string>
     <string name="home_block_chart">Чарт недели</string>
-    <string name="home_block_moods">Настроение</string>
     <string name="home_mix_discover">Открытия недели</string>
     <string name="home_mix_on_repeat">На повторе</string>
     <string name="home_mix_forgotten">Забытое любимое</string>
     <string name="home_releases_label">От артистов, которых вы слушаете</string>
     <string name="home_edit">Изменить Главную</string>
     <string name="home_forget">Убрать из быстрого доступа</string>
-    <string name="home_kind_playlist">Плейлист</string>
-    <string name="home_kind_album">Альбом</string>
-    <string name="home_kind_artist">Исполнитель</string>
 
     <!-- In-app updates -->
     <string name="update_title">Доступно обновление</string>
@@ -1262,4 +1256,37 @@
     <string name="you_recap_title">Ваш %s</string>
     <string name="you_recap_sub">Итоги месяца в историях</string>
     <string name="you_recap_open">Открыть</string>
+    <string name="home_block_continue">Продолжить</string>
+    <string name="home_continue_sub">С того места, где остановились</string>
+    <string name="home_continue_track">Трек %1$d из %2$d</string>
+    <string name="home_block_artists">Ваши исполнители</string>
+    <string name="home_play_all">Слушать все</string>
+    <string name="home_mood_all">Всё</string>
+    <string name="home_mix_daylist_sub">Под это время дня</string>
+    <string name="home_mix_on_repeat_sub">Самое частое за месяц</string>
+    <string name="home_mix_discover_sub">Новое, похожее на любимое</string>
+    <string name="home_mix_forgotten_sub">Давно не слушали</string>
+    <string name="home_edit_sub">Перетащите, чтобы поменять порядок, и выключите лишнее</string>
+    <string name="home_done">Готово</string>
+    <string name="dj_live">Диджей · в эфире</string>
+    <string name="dj_dislike">Не то</string>
+    <string name="dj_tune">Настроить</string>
+    <string name="dj_favour">В точку</string>
+    <string name="dj_tune_title">Настроить Диджея</string>
+    <string name="dj_tune_sub">Меняется сразу, даже во время игры</string>
+    <string name="dj_tune_what">Что играть</string>
+    <string name="dj_tune_mood">Настроение</string>
+    <string name="dj_mood_any">Любое</string>
+    <string name="dj_mode_favourites">Любимое</string>
+    <string name="dj_mode_mixed">Вперемешку</string>
+    <string name="dj_mode_discover">Открытия</string>
+    <string name="dj_mode_favourites_desc">Почти только то, что вы любите</string>
+    <string name="dj_mode_mixed_desc">Любимое вперемешку с новым</string>
+    <string name="dj_mode_discover_desc">В основном новое для вас</string>
+    <string name="dj_set_morning">Утренний сет</string>
+    <string name="dj_set_day">Дневной сет</string>
+    <string name="dj_set_evening">Вечерний сет</string>
+    <string name="dj_set_night">Ночной сет</string>
+    <string name="dj_new_find">новое для вас</string>
+    <string name="dj_from_favourites">из любимого</string>
 </resources>

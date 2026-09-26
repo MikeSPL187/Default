@@ -7,7 +7,15 @@ package com.metrolist.music.viewmodels
 
 import com.metrolist.music.utils.RecentCollections
 import com.metrolist.music.utils.RecentCollection
+import com.metrolist.music.dj.DjMode
+import com.metrolist.music.dj.DjMood
 import com.metrolist.music.dj.DjQueue
+import com.metrolist.music.dj.DjSession
+import com.metrolist.music.constants.DjModeKey
+import com.metrolist.music.constants.HomeBlockOrderKey
+import com.metrolist.music.db.entities.AlbumProgress
+import com.metrolist.music.playback.queues.ListQueue
+import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.constants.HiddenHomeBlocksKey
 import com.metrolist.innertube.pages.ChartsPage
 import com.metrolist.music.utils.Daylist
@@ -142,6 +150,66 @@ class HomeViewModel @Inject constructor(
     fun forgetRecent(item: RecentCollection) = viewModelScope.launch { RecentCollections.remove(context, item) }
 
     fun djQueue(title: String) = DjQueue(title, database, context)
+
+    /** What the DJ plays: favourites, a mix or new songs. */
+    val djMode =
+        context.dataStore.data.map { prefs -> DjMode.entries.firstOrNull { it.name == prefs[DjModeKey] } ?: DjMode.MIXED }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DjMode.MIXED)
+
+    fun setDjMode(mode: DjMode) = viewModelScope.launch { context.safeDataStoreEdit { it[DjModeKey] = mode.name } }
+
+    /** The mood of this session, shared by the home chips and the DJ. */
+    val djMood = DjSession.mood
+
+    /**
+     * Picks a mood, or none: the home shows what YouTube Music has for it and the DJ plays from it.
+     * The chip's page is loaded by [toggleChip], which also takes a second tap as "none".
+     */
+    fun selectMood(chip: HomePage.Chip?) {
+        val params = chip?.endpoint?.params
+        DjSession.mood.value = if (chip != null && params != null && chip != selectedChip.value) DjMood(chip.title, params) else null
+        toggleChip(chip)
+    }
+
+    /** Albums left halfway through lately, to take up where they stopped. */
+    val albumsInProgress =
+        database.albumsInProgress(LocalDateTime.now().minusDays(CONTINUE_DAYS), CONTINUE_SIZE)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** The album of [progress] from the track after the one heard last, or null when it cannot be had. */
+    suspend fun continueQueue(progress: AlbumProgress): ListQueue? {
+        val saved = database.albumSongs(progress.albumId, limit = progress.songCount, offset = 0)
+        val items =
+            if (saved.size >= progress.songCount) {
+                saved.map { it.toMediaItem() }
+            } else {
+                YouTube.album(progress.albumId).getOrNull()?.songs?.map { it.toMediaItem() } ?: saved.map { it.toMediaItem() }
+            }
+        val start = progress.trackIndex + 1
+        if (start !in items.indices) return null
+        return ListQueue(title = progress.title, items = items, startIndex = start)
+    }
+
+    /** The artists the user plays most these months. */
+    val yourArtists =
+        database.mostPlayedArtists(LocalDateTime.now().minusDays(ARTISTS_DAYS), limit = ARTISTS_POOL)
+            .map { artists -> artists.filter { it.artist.thumbnailUrl != null }.take(ARTISTS_SIZE) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Home block ids in the order the user put them; blocks it does not name keep their own place. */
+    val homeBlockOrder =
+        context.dataStore.data.map { prefs -> prefs[HomeBlockOrderKey]?.split(',')?.filter { it.isNotBlank() }.orEmpty() }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    fun setHomeBlockOrder(ids: List<String>) = viewModelScope.launch { context.safeDataStoreEdit { it[HomeBlockOrderKey] = ids.joinToString(",") } }
+
+    fun resetHome() =
+        viewModelScope.launch {
+            context.safeDataStoreEdit {
+                it.remove(HomeBlockOrderKey)
+                it.remove(HiddenHomeBlocksKey)
+            }
+        }
 
     val isRefreshing = MutableStateFlow(false)
     val isLoading = MutableStateFlow(false)
@@ -917,6 +985,11 @@ private const val DAYLIST_SIZE = 25
 private const val DAYLIST_MIN_SIZE = 8
 
 private const val HOME_CHART_SIZE = 5
+private const val CONTINUE_DAYS = 14L
+private const val CONTINUE_SIZE = 8
+private const val ARTISTS_DAYS = 90L
+private const val ARTISTS_POOL = 30
+private const val ARTISTS_SIZE = 12
 private const val GLOBAL_CHART_PLAYLIST = "PL4fGSI1pDJn6puJdseH2Rt9sMvt9E2M4i"
 private const val DISCOVER_PER_SEED = 5
 private const val ON_REPEAT_DAYS = 30L

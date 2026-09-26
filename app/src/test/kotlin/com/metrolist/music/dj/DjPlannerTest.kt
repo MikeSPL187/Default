@@ -85,6 +85,16 @@ class DjPlannerTest {
     }
 
     @Test
+    fun `each mode starts from its own share and keeps to its own bounds`() {
+        DjMode.entries.forEach { mode ->
+            assertEquals(mode.base, DjPlanner.adaptShare(0, 0, 0, mode), 1e-9)
+            assertEquals(mode.max, DjPlanner.adaptShare(0, 50, 0, mode), 1e-9)
+            assertEquals(mode.min, DjPlanner.adaptShare(50, 0, 0, mode), 1e-9)
+        }
+        assertTrue(DjMode.FAVOURITES.min > DjMode.DISCOVER.max)
+    }
+
+    @Test
     fun `a skip is an early leave, a keep is a listen to the end`() {
         assertTrue(DjPlanner.isSkip(10_000, 200_000))
         assertTrue(!DjPlanner.isSkip(40_000, 200_000))
