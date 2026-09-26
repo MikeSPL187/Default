@@ -37,6 +37,10 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.R
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.derivedStateOf
+import com.metrolist.music.ui.component.LargeScreenTitle
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.NavigationTitle
 import com.metrolist.music.ui.component.shimmer.ListItemPlaceHolder
@@ -55,9 +59,15 @@ fun MoodAndGenresScreen(
 
     val moodAndGenresList by viewModel.moodAndGenres.collectAsStateWithLifecycle()
 
+    val listState = rememberLazyListState()
+    val scrolledPastTitle by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
+
     LazyColumn(
+        state = listState,
         contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
     ) {
+        item(key = "large_title") { LargeScreenTitle(stringResource(R.string.mood_and_genres)) }
+
         if (moodAndGenresList == null) {
             item(key = "mood_and_genres_shimmer") {
                 ShimmerHost(
@@ -106,7 +116,7 @@ fun MoodAndGenresScreen(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.mood_and_genres)) },
+        title = { if (scrolledPastTitle) Text(stringResource(R.string.mood_and_genres)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,

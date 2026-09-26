@@ -77,6 +77,11 @@ import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.db.entities.PodcastEntity
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.FilledTonalButton
+import com.metrolist.music.ui.component.CollectionHeader
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.playback.queues.ListQueue
@@ -176,6 +181,17 @@ fun OnlinePodcastScreen(
                                 podcast = podcastItem,
                                 episodeCount = episodes.size,
                                 inLibrary = libraryPodcast?.inLibrary == true,
+                                onPlayLatest =
+                                    episodes.firstOrNull()?.let {
+                                        {
+                                            playerConnection.playQueue(
+                                                ListQueue(
+                                                    title = podcastItem.title,
+                                                    items = episodes.map { episode -> episode.toMediaMetadata().toMediaItem() },
+                                                ),
+                                            )
+                                        }
+                                    },
                                 onLibraryClick = { viewModel.toggleLibrary() },
                                 onViewChannelClick = {
                                     val channelId = podcastItem.channelId ?: podcastItem.author?.id
@@ -306,101 +322,73 @@ private fun PodcastHeader(
     podcast: PodcastItem,
     episodeCount: Int,
     inLibrary: Boolean,
+    onPlayLatest: (() -> Unit)?,
     onLibraryClick: () -> Unit,
-    onViewChannelClick: () -> Unit
+    onViewChannelClick: () -> Unit,
 ) {
-    val context = LocalContext.current
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        AsyncImage(
-            model = ImageRequest.Builder(context)
-                .data(podcast.thumbnail?.resize(1080, 1080))
-                .build(),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(200.dp)
-                .clip(RoundedCornerShape(8.dp))
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = podcast.title,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-
-        podcast.author?.name?.let { authorName ->
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = authorName,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-        }
-
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = podcast.episodeCountText ?: "$episodeCount episodes",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            OutlinedButton(
-                onClick = onLibraryClick,
-                colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = if (inLibrary)
-                        MaterialTheme.colorScheme.secondaryContainer
-                    else
-                        Color.Transparent
-                ),
-                shape = RoundedCornerShape(50),
-                modifier = Modifier.height(40.dp)
+    CollectionHeader(
+        title = podcast.title,
+        thumbnailUrl = podcast.thumbnail?.resize(1080, 1080),
+        meta = podcast.episodeCountText ?: pluralStringResource(R.plurals.n_episode, episodeCount, episodeCount),
+        onPlay = {},
+        onShuffle = {},
+        byline =
+            if (podcast.author?.name != null) {
+                {
+                    Text(
+                        text = podcast.author?.name.orEmpty(),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.clickable(onClick = onViewChannelClick),
+                    )
+                }
+            } else {
+                null
+            },
+        actions = {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
             ) {
-                Icon(
-                    painter = painterResource(if (inLibrary) R.drawable.library_add_check else R.drawable.library_add),
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(
-                    text = stringResource(if (inLibrary) R.string.remove_from_library else R.string.add_to_library)
-                )
+                Button(
+                    onClick = { onPlayLatest?.invoke() },
+                    enabled = onPlayLatest != null,
+                    shape = CircleShape,
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .height(56.dp),
+                ) {
+                    Icon(painterResource(R.drawable.play), contentDescription = null, modifier = Modifier.size(22.dp))
+                    Spacer(Modifier.size(8.dp))
+                    Text(stringResource(R.string.podcast_latest), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                FilledTonalButton(
+                    onClick = onLibraryClick,
+                    shape = CircleShape,
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .height(56.dp),
+                ) {
+                    Icon(
+                        painterResource(if (inLibrary) R.drawable.library_add_check else R.drawable.library_add),
+                        contentDescription = null,
+                        modifier = Modifier.size(22.dp),
+                    )
+                    Spacer(Modifier.size(8.dp))
+                    Text(
+                        stringResource(if (inLibrary) R.string.subscribed else R.string.subscribe),
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
-
-            OutlinedButton(
-                onClick = onViewChannelClick,
-                shape = RoundedCornerShape(50),
-                modifier = Modifier.height(40.dp)
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.person),
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(
-                    text = stringResource(R.string.view_channel)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-    }
+        },
+    )
 }

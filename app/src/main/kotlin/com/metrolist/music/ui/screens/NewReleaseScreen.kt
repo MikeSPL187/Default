@@ -30,6 +30,11 @@ import androidx.navigation.NavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.derivedStateOf
+import com.metrolist.music.ui.component.LargeScreenTitle
 import com.metrolist.music.constants.GridItemSize
 import com.metrolist.music.constants.GridItemsSizeKey
 import com.metrolist.music.constants.GridThumbnailHeight
@@ -60,10 +65,16 @@ fun NewReleaseScreen(
     val coroutineScope = rememberCoroutineScope()
     val gridItemSize by rememberEnumPreference(GridItemsSizeKey, GridItemSize.BIG)
 
+    val gridState = rememberLazyGridState()
+    val scrolledPastTitle by remember { derivedStateOf { gridState.firstVisibleItemIndex > 0 } }
+
     LazyVerticalGrid(
+        state = gridState,
         columns = GridCells.Adaptive(minSize = GridThumbnailHeight + if (gridItemSize == GridItemSize.BIG) 24.dp else (-24).dp),
         contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
     ) {
+        item(key = "large_title", span = { GridItemSpan(maxLineSpan) }) { LargeScreenTitle(stringResource(R.string.new_release_albums)) }
+
         items(
             items = newReleaseAlbums.distinctBy { it.id },
             key = { "newrelease_${it.id}" },
@@ -103,7 +114,7 @@ fun NewReleaseScreen(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.new_release_albums)) },
+        title = { if (scrolledPastTitle) Text(stringResource(R.string.new_release_albums)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,

@@ -1303,4 +1303,5 @@
     <string name="search_recognize">Распознать песню</string>
     <string name="offline_flow_idle">Всё скачанное</string>
     <string name="offline_flow_live">Поток · играет</string>
+    <string name="podcast_latest">Новый выпуск</string>
 </resources>

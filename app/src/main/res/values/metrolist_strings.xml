@@ -1402,4 +1402,5 @@
     <string name="search_recognize">Recognize a song</string>
     <string name="offline_flow_idle">Everything downloaded</string>
     <string name="offline_flow_live">Flow · playing</string>
+    <string name="podcast_latest">Latest episode</string>
 </resources>

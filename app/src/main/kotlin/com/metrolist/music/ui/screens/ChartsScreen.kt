@@ -65,6 +65,8 @@ import com.metrolist.innertube.models.WatchEndpoint
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import androidx.compose.runtime.derivedStateOf
+import com.metrolist.music.ui.component.LargeScreenTitle
 import com.metrolist.music.constants.ListItemHeight
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.queues.YouTubeQueue
@@ -97,6 +99,7 @@ fun ChartsScreen(
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
     val lazyListState = rememberLazyListState()
+    val scrolledPastTitle by remember { derivedStateOf { lazyListState.firstVisibleItemIndex > 0 } }
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -108,7 +111,7 @@ fun ChartsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.charts)) },
+                title = { if (scrolledPastTitle) Text(stringResource(R.string.charts)) },
                 navigationIcon = {
                     IconButton(
                         onClick = { navController.navigateUp() },
@@ -217,6 +220,8 @@ fun ChartsScreen(
                             .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
                             .asPaddingValues(),
                 ) {
+                    item(key = "large_title") { LargeScreenTitle(stringResource(R.string.charts)) }
+
                     chartsPage?.sections?.filter { it.title != "Top music videos" }?.forEach { section ->
                         item(key = "section_title_${section.title}") {
                             NavigationTitle(
