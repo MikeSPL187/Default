@@ -1346,4 +1346,19 @@
     <string name="updates_history">Recent builds</string>
     <string name="updates_local_build_title">Local build</string>
     <string name="updates_local_build">Built locally, it does not update itself</string>
+    <string name="you">You</string>
+    <string name="you_sign_in">Sign in</string>
+    <string name="you_sign_in_sub">Sync your library and likes</string>
+    <string name="you_account_sub">Account</string>
+    <string name="you_recognized">Recognized</string>
+    <string name="you_alarm">Alarm</string>
+    <string name="you_watch">Storage</string>
+    <string name="you_this_week">This week</string>
+    <string name="you_week_delta">%1$s vs last week</string>
+    <string name="you_week_empty">Nothing played yet</string>
+    <string name="you_most_played">Top artist</string>
+    <string name="you_weekdays">Mo,Tu,We,Th,Fr,Sa,Su</string>
+    <string name="you_recap_title">Your %s</string>
+    <string name="you_recap_sub">Recap of the month in stories</string>
+    <string name="you_recap_open">Open</string>
 </resources>

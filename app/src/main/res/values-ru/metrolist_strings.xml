@@ -1247,4 +1247,19 @@
     <string name="updates_history">История сборок</string>
     <string name="updates_local_build_title">Локальная сборка</string>
     <string name="updates_local_build">Собрана локально и не обновляется сама</string>
+    <string name="you">Вы</string>
+    <string name="you_sign_in">Войти</string>
+    <string name="you_sign_in_sub">Синхронизация библиотеки и лайков</string>
+    <string name="you_account_sub">Аккаунт</string>
+    <string name="you_recognized">Распознано</string>
+    <string name="you_alarm">Будильник</string>
+    <string name="you_watch">Хранилище</string>
+    <string name="you_this_week">Эта неделя</string>
+    <string name="you_week_delta">%1$s к прошлой неделе</string>
+    <string name="you_week_empty">Пока ничего не слушали</string>
+    <string name="you_most_played">Топ-артист</string>
+    <string name="you_weekdays">Пн,Вт,Ср,Чт,Пт,Сб,Вс</string>
+    <string name="you_recap_title">Ваш %s</string>
+    <string name="you_recap_sub">Итоги месяца в историях</string>
+    <string name="you_recap_open">Открыть</string>
 </resources>

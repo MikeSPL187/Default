@@ -42,6 +42,7 @@ import com.metrolist.music.ui.screens.recognition.RecognitionHistoryScreen
 import com.metrolist.music.ui.screens.recognition.RecognitionScreen
 import com.metrolist.music.ui.screens.search.OnlineSearchResult
 import com.metrolist.music.ui.screens.search.SearchScreen
+import com.metrolist.music.ui.screens.settings.AlarmScreen
 import com.metrolist.music.ui.screens.settings.AboutScreen
 import com.metrolist.music.ui.screens.settings.AiSettings
 import com.metrolist.music.ui.screens.settings.AndroidAutoSettings
@@ -110,14 +111,18 @@ fun NavGraphBuilder.navigationBuilder(
         LibraryScreen()
     }
 
-    composable(Screens.ListenTogether.route) {
-        ListenTogetherScreen(navController, showTopBar = false)
-    }
-
     composable(
         route = "listen_together_from_topbar",
     ) {
         ListenTogetherScreen(navController, showTopBar = true)
+    }
+
+    composable(Screens.You.route) {
+        YouScreen(navController, latestVersionName)
+    }
+
+    composable("alarm") {
+        AlarmScreen(navController)
     }
 
     composable("history") {

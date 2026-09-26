@@ -36,9 +36,9 @@ appId: com.metrolist.music
 - waitForAnimationToEnd
 - takeScreenshot: 04-library
 
-- tapOn: "Account"
+- tapOn: "You"
 - waitForAnimationToEnd
-- takeScreenshot: 05-account
+- takeScreenshot: 05-you
 - tapOn: "Settings"
 - waitForAnimationToEnd
 - takeScreenshot: 06-settings
@@ -99,7 +99,7 @@ appId: com.metrolist.music
 - back
 - back
 
-- tapOn: "Stats"
+- tapOn: "THIS WEEK"
 - waitForAnimationToEnd
 - takeScreenshot: 12-stats
 - back
@@ -107,6 +107,11 @@ appId: com.metrolist.music
 - tapOn: "History"
 - waitForAnimationToEnd
 - takeScreenshot: 13-history
+- back
+
+- tapOn: "Alarm"
+- waitForAnimationToEnd
+- takeScreenshot: 13b-alarm
 - back
 
 - tapOn: "Home"
