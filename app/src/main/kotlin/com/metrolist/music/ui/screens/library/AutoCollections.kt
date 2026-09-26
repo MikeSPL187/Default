@@ -69,10 +69,10 @@ fun AutoCollectionsRow(
                     modifier =
                         Modifier
                             .size(TileSize)
-                            .clip(RoundedCornerShape(22.dp))
+                            .clip(RoundedCornerShape(20.dp))
                             .background(collection.background),
                 ) {
-                    Icon(painterResource(collection.icon), contentDescription = null, tint = collection.tint, modifier = Modifier.size(38.dp))
+                    Icon(painterResource(collection.icon), contentDescription = null, tint = collection.tint, modifier = Modifier.size(34.dp))
                 }
                 Text(
                     collection.title,
@@ -87,4 +87,4 @@ fun AutoCollectionsRow(
     }
 }
 
-private val TileSize = 100.dp
+private val TileSize = 84.dp
