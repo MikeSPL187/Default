@@ -38,6 +38,7 @@ data class AutoCollection(
     val background: Brush,
     val tint: Color,
     val route: String,
+    val subtitle: String? = null,
 )
 
 /** Liked, downloaded, top, cached and uploaded songs: always a tap away, above everything else. */
@@ -82,6 +83,16 @@ fun AutoCollectionsRow(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = 8.dp, start = 2.dp),
                 )
+                collection.subtitle?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal, letterSpacing = MaterialTheme.typography.labelMedium.letterSpacing),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(start = 2.dp),
+                    )
+                }
             }
         }
     }

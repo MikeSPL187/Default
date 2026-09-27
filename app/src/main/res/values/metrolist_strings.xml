@@ -1420,4 +1420,7 @@
     <string name="player_error_next">Next</string>
     <string name="player_error_details">Details</string>
     <string name="player_error_copy">Copy for a bug report</string>
+    <string name="you_week_start_title">The week has just begun</string>
+    <string name="you_week_start_hint">Put something on — minutes, days and your top artist will show up here.</string>
+    <string name="you_week_start_action">Go to the DJ</string>
 </resources>

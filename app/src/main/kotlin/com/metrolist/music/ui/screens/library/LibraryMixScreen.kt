@@ -63,6 +63,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.runtime.derivedStateOf
+import androidx.media3.exoplayer.offline.Download
+import com.metrolist.music.LocalDownloadUtil
+import com.metrolist.music.LocalDatabase
 import com.metrolist.music.constants.CONTENT_TYPE_HEADER
 import com.metrolist.music.constants.CONTENT_TYPE_PLAYLIST
 import com.metrolist.music.constants.GridItemSize
@@ -229,13 +234,21 @@ fun LibraryMixScreen(
     // Unsearched, the kept collections are coloured tiles at the top; a search finds them in the list.
     val showAutoRow = normalizedQuery.isEmpty()
     val colors = MaterialTheme.colorScheme
+    // How much each kept collection holds, shown under its tile.
+    val likedCount by LocalDatabase.current.likedSongsCount().collectAsStateWithLifecycle(initialValue = 0)
+    val downloadedCount by LocalDownloadUtil.current.downloads
+        .collectAsStateWithLifecycle()
+        .let { state -> remember { derivedStateOf { state.value.values.count { it.state == Download.STATE_COMPLETED } } } }
+    val songsLabel: @Composable (Int) -> String? = { n -> if (n > 0) pluralStringResource(R.plurals.n_song, n, n) else null }
+    val likedSub = songsLabel(likedCount)
+    val downloadedSub = songsLabel(downloadedCount)
     val autoCollections =
         if (!showAutoRow) {
             emptyList()
         } else {
             listOfNotNull(
-                AutoCollection("liked", likedPlaylist.playlist.name, R.drawable.favorite, LikedTileBrush, Color.White, "auto_playlist/liked").takeIf { showLiked },
-                AutoCollection("downloaded", downloadPlaylist.playlist.name, R.drawable.offline, SolidColor(colors.primaryContainer), colors.onPrimaryContainer, "auto_playlist/downloaded")
+                AutoCollection("liked", likedPlaylist.playlist.name, R.drawable.favorite, LikedTileBrush, Color.White, "auto_playlist/liked", likedSub).takeIf { showLiked },
+                AutoCollection("downloaded", downloadPlaylist.playlist.name, R.drawable.offline, SolidColor(colors.primaryContainer), colors.onPrimaryContainer, "auto_playlist/downloaded", downloadedSub)
                     .takeIf { showDownloaded },
                 AutoCollection("top", topPlaylist.playlist.name, R.drawable.trending_up, SolidColor(colors.secondaryContainer), colors.onSecondaryContainer, "top_playlist/$topSize")
                     .takeIf { showTop },

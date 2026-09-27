@@ -985,7 +985,7 @@ private fun StatsSummary(
             color = colors.onSurfaceVariant,
             modifier = Modifier.padding(top = 2.dp),
         )
-        if (timeline != null) {
+        if (timeline != null && totalMs > 0) {
             val max = timeline.bars.maxOrNull()?.coerceAtLeast(1L) ?: 1L
             val last = timeline.bars.lastIndex
             val gap = if (timeline.bars.size > 12) 3.dp else 6.dp

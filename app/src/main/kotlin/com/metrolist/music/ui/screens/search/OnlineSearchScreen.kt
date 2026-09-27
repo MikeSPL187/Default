@@ -642,6 +642,11 @@ fun OnlineSearchScreen(
     }
 }
 
+/**
+ * A past query or a suggestion: a quiet row with one icon. Tapping searches; holding removes a
+ * past query, or puts a suggestion into the field to keep typing.
+ */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SuggestionItem(
     modifier: Modifier = Modifier,
@@ -652,6 +657,7 @@ fun SuggestionItem(
     onFillTextField: () -> Unit,
     pureBlack: Boolean,
 ) {
+    val haptic = LocalHapticFeedback.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier =
@@ -659,42 +665,27 @@ fun SuggestionItem(
                 .fillMaxWidth()
                 .height(SuggestionItemHeight)
                 .background(if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface)
-                .clickable(onClick = onClick)
-                .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)),
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        if (online) onFillTextField() else onDelete()
+                    },
+                ).windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)),
     ) {
         Icon(
             painterResource(if (online) R.drawable.search else R.drawable.history),
             contentDescription = null,
-            modifier = Modifier.padding(horizontal = 16.dp).alpha(0.5f),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 20.dp, end = 18.dp),
         )
 
         Text(
             text = query,
+            style = MaterialTheme.typography.bodyLarge,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).padding(end = 20.dp),
         )
-
-        if (!online) {
-            IconButton(
-                onClick = onDelete,
-                modifier = Modifier.alpha(0.5f),
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.close),
-                    contentDescription = null,
-                )
-            }
-        }
-
-        IconButton(
-            onClick = onFillTextField,
-            modifier = Modifier.alpha(0.5f),
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.arrow_top_left),
-                contentDescription = null,
-            )
-        }
     }
 }

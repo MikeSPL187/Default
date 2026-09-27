@@ -22,6 +22,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import com.metrolist.music.ui.screens.Screens
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -143,7 +146,7 @@ fun YouScreen(
             }
         }
 
-        item(key = "week") { WeekCard(week, onClick = { go("stats") }) }
+        item(key = "week") { WeekCard(week, onClick = { go("stats") }, onStart = { go(Screens.Home.route) }) }
 
         item(key = "recap") {
             val month = YearMonth.now()
@@ -250,6 +253,7 @@ private fun ToolTile(
 private fun WeekCard(
     week: WeekSummary?,
     onClick: () -> Unit,
+    onStart: () -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
     Column(
@@ -264,12 +268,23 @@ private fun WeekCard(
         Row(verticalAlignment = Alignment.Top) {
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.you_this_week).uppercase(), style = MaterialTheme.typography.labelSmall, color = colors.onSurfaceVariant)
-                Text(
-                    week?.totalMs?.let { formatListening(it) } ?: "—",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 4.dp),
-                )
+                if (week != null && week.totalMs == 0L) {
+                    // Nothing played yet: a sentence and a way to start, not a chart of empty bars.
+                    Text(stringResource(R.string.you_week_start_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 6.dp))
+                    Text(stringResource(R.string.you_week_start_hint), style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                    FilledTonalButton(onClick = onStart, modifier = Modifier.padding(top = 12.dp)) {
+                        Icon(painterResource(R.drawable.graphic_eq), contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.you_week_start_action))
+                    }
+                } else {
+                    Text(
+                        week?.totalMs?.let { formatListening(it) } ?: "—",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
                 val delta = week?.takeIf { it.previousWeekMs > 0 }?.let { ((it.totalMs - it.previousWeekMs) * 100.0 / it.previousWeekMs).roundToInt() }
                 if (delta != null) {
                     Surface(shape = CircleShape, color = colors.tertiaryContainer, modifier = Modifier.padding(top = 8.dp)) {
@@ -280,8 +295,6 @@ private fun WeekCard(
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         )
                     }
-                } else if (week != null && week.totalMs == 0L) {
-                    Text(stringResource(R.string.you_week_empty), style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant, modifier = Modifier.padding(top = 6.dp))
                 }
             }
             week?.topArtist?.let { artist ->
@@ -299,34 +312,36 @@ private fun WeekCard(
                 }
             }
         }
-        val days = week?.perDayMs ?: List(7) { 0L }
-        val max = days.maxOrNull()?.coerceAtLeast(1L) ?: 1L
-        val today = LocalDate.now().dayOfWeek.value - 1
-        val labels = stringResource(R.string.you_weekdays).split(",")
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.Bottom,
-            modifier =
-                Modifier
-                    .padding(top = 14.dp)
-                    .fillMaxWidth()
-                    .height(70.dp),
-        ) {
-            days.forEachIndexed { i, ms ->
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.Bottom) {
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .height((4 + 44 * ms.toFloat() / max).dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(if (i == today) colors.primary else lerp(colors.surfaceContainerHighest, colors.primary, 0.28f)),
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        labels.getOrElse(i) { "" },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (i == today) colors.onSurface else colors.onSurfaceVariant,
-                    )
+        if (week == null || week.totalMs > 0L) {
+            val days = week?.perDayMs ?: List(7) { 0L }
+            val max = days.maxOrNull()?.coerceAtLeast(1L) ?: 1L
+            val today = LocalDate.now().dayOfWeek.value - 1
+            val labels = stringResource(R.string.you_weekdays).split(",")
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.Bottom,
+                modifier =
+                    Modifier
+                        .padding(top = 14.dp)
+                        .fillMaxWidth()
+                        .height(70.dp),
+            ) {
+                days.forEachIndexed { i, ms ->
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.Bottom) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .height((4 + 44 * ms.toFloat() / max).dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(if (i == today) colors.primary else lerp(colors.surfaceContainerHighest, colors.primary, 0.28f)),
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            labels.getOrElse(i) { "" },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (i == today) colors.onSurface else colors.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }

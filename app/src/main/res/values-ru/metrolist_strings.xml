@@ -1321,4 +1321,7 @@
     <string name="player_error_next">Следующий</string>
     <string name="player_error_details">Подробнее</string>
     <string name="player_error_copy">Скопировать для отчёта</string>
+    <string name="you_week_start_title">Неделя только началась</string>
+    <string name="you_week_start_hint">Включите что-нибудь — здесь появятся минуты, дни и любимый исполнитель.</string>
+    <string name="you_week_start_action">К Диджею</string>
 </resources>
