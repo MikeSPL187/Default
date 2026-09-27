@@ -1011,7 +1011,6 @@ private fun ContinueCard(
 
 // ---------------------------------------------------------------- for you
 
-@Immutable
 /** What a mix offers on a long press: play it, shuffled or as is, or put it in the queue. */
 @Composable
 private fun MixMenu(
@@ -1081,6 +1080,7 @@ private fun MixMenu(
     }
 }
 
+@Immutable
 private data class Mix(
     val title: String,
     val subtitle: String,
