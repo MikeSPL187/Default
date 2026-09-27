@@ -1023,12 +1023,27 @@ fun Queue(
                     enter = fadeIn() + slideInVertically { it },
                     exit = fadeOut() + slideOutVertically { it },
                 ) {
+                    val clearedPlayedMsg = stringResource(R.string.queue_cleared_played)
+                    val undoLabel = stringResource(R.string.undo)
                     Row {
                         // Songs already played stay above the current one; this clears them in one go.
                         IconButton(
                             onClick = {
-                                val current = playerConnection.player.currentMediaItemIndex
-                                if (current > 0) playerConnection.player.removeMediaItems(0, current)
+                                val player = playerConnection.player
+                                val current = player.currentMediaItemIndex
+                                if (current > 0) {
+                                    val played = (0 until current).map(player::getMediaItemAt)
+                                    player.removeMediaItems(0, current)
+                                    coroutineScope.launch {
+                                        val result =
+                                            snackbarHostState.showSnackbar(
+                                                message = clearedPlayedMsg.format(played.size),
+                                                actionLabel = undoLabel,
+                                                duration = SnackbarDuration.Short,
+                                            )
+                                        if (result == SnackbarResult.ActionPerformed) player.addMediaItems(0, played)
+                                    }
+                                }
                             },
                             enabled = !isListenTogetherGuest && playerConnection.player.currentMediaItemIndex > 0,
                         ) {

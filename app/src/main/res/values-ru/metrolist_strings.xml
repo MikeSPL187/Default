@@ -1351,4 +1351,5 @@
         <item quantity="many">%d треков добавлено в очередь</item>
         <item quantity="other">%d трека добавлено в очередь</item>
     </plurals>
+    <string name="queue_cleared_played">Убрано прослушанных: %d</string>
 </resources>

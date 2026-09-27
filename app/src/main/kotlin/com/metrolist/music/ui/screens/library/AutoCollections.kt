@@ -1,5 +1,15 @@
 package com.metrolist.music.ui.screens.library
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
+import com.metrolist.music.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,11 +52,14 @@ data class AutoCollection(
 )
 
 /** Liked, downloaded, top, cached and uploaded songs: always a tap away, above everything else. */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AutoCollectionsRow(
     collections: List<AutoCollection>,
     onOpen: (AutoCollection) -> Unit,
     modifier: Modifier = Modifier,
+    onPlay: ((AutoCollection, shuffled: Boolean) -> Unit)? = null,
+    playable: Set<String> = emptySet(),
 ) {
     val haptic = LocalHapticFeedback.current
     LazyRow(
@@ -55,16 +68,47 @@ fun AutoCollectionsRow(
         modifier = modifier.padding(vertical = 8.dp),
     ) {
         items(collections, key = { it.key }) { collection ->
+            // Holding a tile plays it right away, as is or shuffled, without opening it.
+            var menu by remember { mutableStateOf(false) }
             Column(
                 modifier =
                     Modifier
                         .width(TileSize)
                         .clip(RoundedCornerShape(12.dp))
-                        .clickable {
-                            haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                            onOpen(collection)
-                        },
+                        .combinedClickable(
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                                onOpen(collection)
+                            },
+                            onLongClick =
+                                if (onPlay != null && collection.key in playable) {
+                                    {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        menu = true
+                                    }
+                                } else {
+                                    null
+                                },
+                        ),
             ) {
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.collection_play)) },
+                        leadingIcon = { Icon(painterResource(R.drawable.play), contentDescription = null) },
+                        onClick = {
+                            menu = false
+                            onPlay?.invoke(collection, false)
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.shuffle)) },
+                        leadingIcon = { Icon(painterResource(R.drawable.shuffle), contentDescription = null) },
+                        onClick = {
+                            menu = false
+                            onPlay?.invoke(collection, true)
+                        },
+                    )
+                }
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier =

@@ -89,6 +89,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
@@ -332,6 +334,7 @@ fun BottomSheetPlayer(
     val isMuted by playerConnection.isMuted.collectAsStateWithLifecycle()
 
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.WAVY)
+    val transportHaptic = LocalHapticFeedback.current
     val squigglySlider by rememberPreference(SquigglySliderKey, defaultValue = false)
 
     // Listen Together state (reactive)
@@ -1194,7 +1197,10 @@ fun BottomSheetPlayer(
                                 val isEpisode = currentSong?.song?.isEpisode == true
                                 val isFavorite = if (isEpisode) currentSong?.song?.inLibrary != null else currentSong?.song?.liked == true
                                 FilledIconButton(
-                                    onClick = playerConnection::toggleLike,
+                                    onClick = {
+                                        transportHaptic.performHapticFeedback(if (isFavorite) HapticFeedbackType.ToggleOff else HapticFeedbackType.Confirm)
+                                        playerConnection.toggleLike()
+                                    },
                                     shape = CircleShape,
                                     colors =
                                         IconButtonDefaults.filledIconButtonColors(
@@ -1496,10 +1502,20 @@ fun BottomSheetPlayer(
                                 enabled = !isListenTogetherGuest,
                                 color = TextBackgroundColor,
                                 contentDescription = stringResource(R.string.shuffle),
-                                onClick = { playerConnection.player.shuffleModeEnabled = !shuffleModeEnabled },
+                                onClick = {
+                                    transportHaptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                                    playerConnection.player.shuffleModeEnabled = !shuffleModeEnabled
+                                },
                             )
                             val canGoBack = canSkipPrevious && !isListenTogetherGuest
-                            IconButton(onClick = playerConnection::seekToPrevious, enabled = canGoBack, modifier = Modifier.size(60.dp)) {
+                            IconButton(
+                                onClick = {
+                                    transportHaptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                                    playerConnection.seekToPrevious()
+                                },
+                                enabled = canGoBack,
+                                modifier = Modifier.size(60.dp),
+                            ) {
                                 Icon(
                                     painter = painterResource(R.drawable.skip_previous),
                                     contentDescription = null,
@@ -1509,6 +1525,7 @@ fun BottomSheetPlayer(
                             }
                             FilledIconButton(
                                 onClick = {
+                                    transportHaptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                     if (isListenTogetherGuest) {
                                         playerConnection.toggleMute()
                                         return@FilledIconButton
@@ -1553,7 +1570,14 @@ fun BottomSheetPlayer(
                                 )
                             }
                             val canGoNext = canSkipNext && !isListenTogetherGuest
-                            IconButton(onClick = playerConnection::seekToNext, enabled = canGoNext, modifier = Modifier.size(60.dp)) {
+                            IconButton(
+                                onClick = {
+                                    transportHaptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                                    playerConnection.seekToNext()
+                                },
+                                enabled = canGoNext,
+                                modifier = Modifier.size(60.dp),
+                            ) {
                                 Icon(
                                     painter = painterResource(R.drawable.skip_next),
                                     contentDescription = null,
@@ -1574,7 +1598,10 @@ fun BottomSheetPlayer(
                                             else -> R.string.repeat_mode_off
                                         },
                                     ),
-                                onClick = { playerConnection.player.toggleRepeatMode() },
+                                onClick = {
+                                    transportHaptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                                    playerConnection.player.toggleRepeatMode()
+                                },
                             )
                         }
 

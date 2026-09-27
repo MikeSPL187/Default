@@ -63,6 +63,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
+import com.metrolist.music.constants.SongSortType
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.runtime.derivedStateOf
 import androidx.media3.exoplayer.offline.Download
@@ -385,6 +388,23 @@ fun LibraryMixScreen(
     }
 
     val coroutineScope = rememberCoroutineScope()
+    val libraryDatabase = LocalDatabase.current
+    // A held tile plays straight away: liked or downloaded songs, newest first or shuffled.
+    val playAutoCollection: (AutoCollection, Boolean) -> Unit = { collection, shuffled ->
+        coroutineScope.launch {
+            val songs =
+                when (collection.key) {
+                    "liked" -> libraryDatabase.likedSongs(SongSortType.CREATE_DATE, true).first()
+                    "downloaded" -> libraryDatabase.downloadedSongs(SongSortType.CREATE_DATE, true).first()
+                    else -> emptyList()
+                }
+            if (songs.isNotEmpty()) {
+                playerConnection.playQueue(
+                    ListQueue(title = collection.title, items = (if (shuffled) songs.shuffled() else songs).map { it.toMediaItem() }),
+                )
+            }
+        }
+    }
 
     val lazyListState = rememberLazyListState()
     val lazyGridState = rememberLazyGridState()
@@ -511,7 +531,7 @@ fun LibraryMixScreen(
 
                     if (autoCollections.isNotEmpty()) {
                         item(key = "auto_collections", contentType = CONTENT_TYPE_HEADER) {
-                            AutoCollectionsRow(autoCollections, onOpen = { navController.navigate(it.route) })
+                            AutoCollectionsRow(autoCollections, onOpen = { navController.navigate(it.route) }, onPlay = playAutoCollection, playable = setOf("liked", "downloaded"))
                         }
                     }
 
@@ -844,7 +864,7 @@ fun LibraryMixScreen(
 
                     if (autoCollections.isNotEmpty()) {
                         item(key = "auto_collections", span = { GridItemSpan(maxLineSpan) }, contentType = CONTENT_TYPE_HEADER) {
-                            AutoCollectionsRow(autoCollections, onOpen = { navController.navigate(it.route) })
+                            AutoCollectionsRow(autoCollections, onOpen = { navController.navigate(it.route) }, onPlay = playAutoCollection, playable = setOf("liked", "downloaded"))
                         }
                     }
 
