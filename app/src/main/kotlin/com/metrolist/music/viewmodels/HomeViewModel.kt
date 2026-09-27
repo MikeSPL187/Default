@@ -149,7 +149,7 @@ class HomeViewModel @Inject constructor(
 
     fun forgetRecent(item: RecentCollection) = viewModelScope.launch { RecentCollections.remove(context, item) }
 
-    fun djQueue(title: String) = DjQueue(title, database, context)
+    fun djQueue(title: String, lead: androidx.media3.common.MediaItem? = null) = DjQueue(title, database, context, lead)
 
     /** What the DJ plays: favourites, a mix or new songs. */
     val djMode =

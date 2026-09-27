@@ -262,6 +262,7 @@ fun DjHero(
     liveLabel: String? = null,
     showTune: Boolean = true,
     next: String? = null,
+    onPreview: ((Int) -> Unit)? = null,
 ) {
     val haptic = LocalHapticFeedback.current
     val playing = active && isPlaying
@@ -297,7 +298,15 @@ fun DjHero(
                             }.size(spot.size)
                             .shadow(8.dp, RoundedCornerShape(spot.size * 0.28f))
                             .clip(RoundedCornerShape(spot.size * 0.28f))
-                            .combinedClickable(interactionSource = press, indication = null, enabled = !active, onClick = play),
+                            .combinedClickable(
+                                interactionSource = press,
+                                indication = null,
+                                enabled = !active,
+                                onClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                                    onPreview?.invoke(i) ?: onPlay()
+                                },
+                            ),
                 )
             }
             Sphere(

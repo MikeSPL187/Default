@@ -1336,4 +1336,5 @@
     <string name="auto_backup">Копия раз в неделю</string>
     <string name="auto_backup_desc">Сохраняется в «Загрузки/Metrolist backups», хранятся три последние</string>
     <string name="auto_backup_last">Последняя: %s</string>
+    <string name="queue_clear_played">Убрать прослушанные</string>
 </resources>

@@ -1024,6 +1024,19 @@ fun Queue(
                     exit = fadeOut() + slideOutVertically { it },
                 ) {
                     Row {
+                        // Songs already played stay above the current one; this clears them in one go.
+                        IconButton(
+                            onClick = {
+                                val current = playerConnection.player.currentMediaItemIndex
+                                if (current > 0) playerConnection.player.removeMediaItems(0, current)
+                            },
+                            enabled = !isListenTogetherGuest && playerConnection.player.currentMediaItemIndex > 0,
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.clear_all),
+                                contentDescription = stringResource(R.string.queue_clear_played),
+                            )
+                        }
                         IconButton(
                             onClick = { locked = !locked },
                             modifier = Modifier.padding(horizontal = 6.dp),

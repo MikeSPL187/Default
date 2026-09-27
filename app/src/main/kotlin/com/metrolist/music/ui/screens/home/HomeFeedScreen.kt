@@ -103,6 +103,7 @@ import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import androidx.media3.common.MediaItem
 import com.metrolist.music.db.entities.Album
 import com.metrolist.music.db.entities.AlbumProgress
 import com.metrolist.music.db.entities.Artist
@@ -223,14 +224,14 @@ fun HomeFeedScreen(
     // What the DJ is likely to bring: the user's own songs first, the week's chart for a new user.
     val upcoming =
         remember(onRepeat, quickPicks, chart) {
-            (onRepeat.orEmpty().map { it.song.title to it.song.thumbnailUrl } +
-                quickPicks.orEmpty().map { it.song.title to it.song.thumbnailUrl } +
-                chart.orEmpty().map { it.title to it.thumbnail })
-                .mapNotNull { (title, url) -> url?.let { title to it } }
-                .distinctBy { it.second }
+            (onRepeat.orEmpty().map { Upcoming(it.song.title, it.song.thumbnailUrl) { it.toMediaItem() } } +
+                quickPicks.orEmpty().map { Upcoming(it.song.title, it.song.thumbnailUrl) { it.toMediaItem() } } +
+                chart.orEmpty().map { Upcoming(it.title, it.thumbnail) { it.toMediaMetadata().toMediaItem() } })
+                .filter { it.cover != null }
+                .distinctBy { it.cover }
                 .take(PREVIEWS)
         }
-    val previews = upcoming.map { it.second }
+    val previews = upcoming.mapNotNull { it.cover }
     val artAccent = rememberArtworkAccent(if (djActive) mediaMetadata?.thumbnailUrl else null)
     // The idle sphere takes its colours from those covers, so each set looks like its music.
     val coverAccents = List(PREVIEWS) { i -> rememberArtworkAccent(if (djActive) null else previews.getOrNull(i)) }.filterNotNull()
@@ -242,7 +243,7 @@ fun HomeFeedScreen(
                 else -> spherePalette(colors.primary, colors.tertiary, dark)
             }
         }
-    val nextLine = upcoming.take(2).takeIf { it.isNotEmpty() }?.let { list -> stringResource(R.string.dj_next, list.joinToString(" · ") { it.first }) }
+    val nextLine = upcoming.take(2).takeIf { it.isNotEmpty() }?.let { list -> stringResource(R.string.dj_next, list.joinToString(" · ") { it.title }) }
     val dayPart = remember { DayPart.now() }
     val discovery = remember(mediaMetadata?.id, djActive) { mediaMetadata?.id?.takeIf { djActive }?.let(playerConnection.service::isDjDiscovery) }
     val djHeading = if (djActive) mediaMetadata?.title.orEmpty() else mood?.title ?: stringResource(dayPart.setTitle)
@@ -321,6 +322,13 @@ fun HomeFeedScreen(
                                     }
                                 },
                                 onTune = { tuning = true },
+                                onPreview = { index ->
+                                    // A cover around the sphere starts the set with that very song.
+                                    upcoming.getOrNull(index)?.let { pick ->
+                                        djStarting = true
+                                        playerConnection.playQueue(viewModel.djQueue(djTitle, pick.item()))
+                                    }
+                                },
                                 onDislike = { playerConnection.service.dislikeInDj() },
                                 onFavour = {
                                     if (currentSong?.song?.liked == true) playerConnection.toggleLike() else playerConnection.service.favourInDj()
@@ -723,6 +731,13 @@ private fun MoodChips(
 // ---------------------------------------------------------------- quick access
 
 @Immutable
+/** A song the DJ may bring, shown as a cover around the sphere. */
+private class Upcoming(
+    val title: String,
+    val cover: String?,
+    val item: () -> MediaItem,
+)
+
 private data class QuickItem(
     val title: String,
     val thumbnail: String?,

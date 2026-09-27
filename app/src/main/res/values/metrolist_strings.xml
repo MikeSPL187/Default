@@ -1435,4 +1435,5 @@
     <string name="auto_backup">Weekly backup</string>
     <string name="auto_backup_desc">Saved to Downloads/Metrolist backups, the last three are kept</string>
     <string name="auto_backup_last">Last one: %s</string>
+    <string name="queue_clear_played">Remove played songs</string>
 </resources>

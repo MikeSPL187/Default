@@ -40,6 +40,8 @@ class DjQueue(
     private val title: String,
     private val database: MusicDatabase,
     private val context: Context,
+    /** A song the set opens with, when the user picked it from the covers around the sphere. */
+    private val lead: MediaItem? = null,
 ) : Queue {
     override val preloadItem: MediaMetadata? = null
 
@@ -53,7 +55,11 @@ class DjQueue(
     private var favouritesSkipped = 0
     private val moodSongs = HashMap<String, List<SongItem>>()
 
-    override suspend fun getInitialStatus() = Queue.Status(title, nextBatch(FIRST_BATCH), 0)
+    override suspend fun getInitialStatus(): Queue.Status {
+        if (lead == null) return Queue.Status(title, nextBatch(FIRST_BATCH), 0)
+        synchronized(lock) { played += lead.mediaId }
+        return Queue.Status(title, listOf(lead) + nextBatch(FIRST_BATCH).filter { it.mediaId != lead.mediaId }, 0)
+    }
 
     override fun hasNextPage() = true
 
