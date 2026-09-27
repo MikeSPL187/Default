@@ -911,6 +911,12 @@ fun AppearanceSettings(
             .padding(horizontal = 16.dp),
     ) {
         LargeScreenTitle(stringResource(R.string.appearance), horizontalPadding = 4.dp)
+        PlayerStylePreview(
+            selected = playerBackground,
+            onSelect = onPlayerBackgroundChange,
+            available = availableBackgroundStyles,
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
         Material3SettingsGroup(
             title = stringResource(R.string.theme),
             items =

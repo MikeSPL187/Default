@@ -410,6 +410,11 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LTR
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        // The pages paint under the status bar themselves; the system's contrast scrim would lay a
+        // grey band over them in the light theme.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isStatusBarContrastEnforced = false
+        }
 
         // Initialize Listen Together manager
         listenTogetherManager.initialize()
