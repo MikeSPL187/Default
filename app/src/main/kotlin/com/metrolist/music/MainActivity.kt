@@ -60,7 +60,9 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -213,6 +215,7 @@ import com.metrolist.music.utils.ReleaseInfo
 import com.metrolist.music.utils.SearchRoutes
 import com.metrolist.music.utils.SyncUtils
 import com.metrolist.music.utils.ArtistNameAliases
+import com.metrolist.music.utils.UndoMessages
 import com.metrolist.music.utils.Updater
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.safeDataStoreEdit
@@ -1005,6 +1008,19 @@ class MainActivity : FragmentActivity() {
                             }
                         snackbarHostState.currentSnackbarData?.dismiss()
                         snackbarHostState.showSnackbar(message)
+                    }
+                }
+
+                LaunchedEffect(Unit) {
+                    UndoMessages.events.collect { message ->
+                        snackbarHostState.currentSnackbarData?.dismiss()
+                        val result =
+                            snackbarHostState.showSnackbar(
+                                message = message.text,
+                                actionLabel = message.undo?.let { getString(R.string.undo) },
+                                duration = SnackbarDuration.Short,
+                            )
+                        if (result == SnackbarResult.ActionPerformed) message.undo?.invoke()
                     }
                 }
 

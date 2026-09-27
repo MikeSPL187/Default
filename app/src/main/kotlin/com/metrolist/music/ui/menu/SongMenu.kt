@@ -64,6 +64,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadService
 import coil3.compose.AsyncImage
+import com.metrolist.music.utils.UndoMessages
 import com.metrolist.music.utils.songShareUrl
 import com.metrolist.music.LocalNavController
 import com.metrolist.innertube.YouTube
@@ -819,6 +820,9 @@ fun SongMenu(
                                         database.query {
                                             delete(event)
                                         }
+                                        UndoMessages.post(context.getString(R.string.removed_from_history)) {
+                                            database.query { insert(event) }
+                                        }
                                     },
                                 ),
                             )
@@ -844,6 +848,21 @@ fun SongMenu(
                                                 )
                                                 delete(ps.map.copy(position = Int.MAX_VALUE))
                                             }
+                                            // Only a local playlist can take the song back; a synced one reports the removal.
+                                            UndoMessages.post(
+                                                context.getString(R.string.removed_song_from_playlist, song.song.title),
+                                                undo =
+                                                    if (playlistBrowseId == null) {
+                                                        {
+                                                            database.transaction {
+                                                                insert(ps.map.copy(position = Int.MAX_VALUE))
+                                                                move(ps.map.playlistId, Int.MAX_VALUE, ps.map.position)
+                                                            }
+                                                        }
+                                                    } else {
+                                                        null
+                                                    },
+                                            )
                                             playlistBrowseId?.let { browseId ->
                                                 syncUtils.scheduleRemoveFromPlaylist(
                                                     browseId,

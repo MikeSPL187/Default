@@ -1450,4 +1450,5 @@
     <string name="search_empty_hint">Check the spelling or try the song, artist or album name.</string>
     <string name="search_empty_filter_hint">Nothing of this kind — try another filter.</string>
     <string name="search_failed_hint">Check the connection and try again.</string>
+    <string name="removed_from_history">Removed from history</string>
 </resources>
