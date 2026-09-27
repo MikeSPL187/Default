@@ -100,6 +100,7 @@ data class SpherePalette(
 fun spherePalette(
     accent: Color,
     partner: Color,
+    dark: Boolean = true,
 ): SpherePalette {
     val hsv = FloatArray(3)
     android.graphics.Color.colorToHSV(accent.toArgb(), hsv)
@@ -116,8 +117,26 @@ fun spherePalette(
     return SpherePalette(
         colors = listOf(tone(0f, 1f, 1.1f), tone(-28f, 1.15f, 1f), lerp(partner, tone(-110f, 1f, 1f), 0.5f), tone(12f, 0.55f, 1.25f)),
         base = lerp(tone(-20f, 1f, 0.6f), Color.Black, 0.55f),
-    )
+    ).forTheme(dark)
 }
+
+/**
+ * A palette made of the covers the DJ is about to play, so every set has its own colour. Fewer
+ * than four covers are filled with neighbours of the first one.
+ */
+fun coverPalette(
+    covers: List<Color>,
+    partner: Color,
+    dark: Boolean = true,
+): SpherePalette {
+    val filler = spherePalette(covers.first(), partner)
+    val colors = (covers + filler.colors).take(4)
+    return SpherePalette(colors = colors, base = lerp(colors[0], Color.Black, 0.72f)).forTheme(dark)
+}
+
+/** On a light page the sphere is paler and sits on a soft tint instead of a dark stone. */
+private fun SpherePalette.forTheme(dark: Boolean) =
+    if (dark) this else SpherePalette(colors.map { lerp(it, Color.White, 0.22f) }, lerp(colors[0], Color.White, 0.72f))
 
 /**
  * Seconds for the sphere, running faster while music plays. It ticks every frame only while
@@ -242,6 +261,7 @@ fun DjHero(
     label: String? = null,
     liveLabel: String? = null,
     showTune: Boolean = true,
+    next: String? = null,
 ) {
     val haptic = LocalHapticFeedback.current
     val playing = active && isPlaying
@@ -276,7 +296,8 @@ fun DjHero(
                                 alpha = 1f - energy.value
                             }.size(spot.size)
                             .shadow(8.dp, RoundedCornerShape(spot.size * 0.28f))
-                            .clip(RoundedCornerShape(spot.size * 0.28f)),
+                            .clip(RoundedCornerShape(spot.size * 0.28f))
+                            .combinedClickable(interactionSource = press, indication = null, enabled = !active, onClick = play),
                 )
             }
             Sphere(
@@ -315,7 +336,7 @@ fun DjHero(
             }
         }
 
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(2.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (active) {
                 Box(
@@ -359,6 +380,9 @@ fun DjHero(
                 )
             }
         }
+        if (!active && next != null && previews.isNotEmpty()) {
+            NextUp(covers = previews.take(3), text = next, modifier = Modifier.padding(top = 10.dp, start = 24.dp, end = 24.dp))
+        }
         Spacer(Modifier.height(14.dp))
         AnimatedContent(targetState = active, label = "dj actions") { on ->
             if (on) {
@@ -392,6 +416,42 @@ fun DjHero(
                 }
             }
         }
+    }
+}
+
+/** "Next: …" with the first covers stacked, so the idle DJ shows what it will play. */
+@Composable
+private fun NextUp(
+    covers: List<String>,
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    val ring = MaterialTheme.colorScheme.surface
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
+        Row(horizontalArrangement = Arrangement.spacedBy((-6).dp)) {
+            covers.forEach { url ->
+                AsyncImage(
+                    model = url,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier =
+                        Modifier
+                            .size(24.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(ring)
+                            .padding(2.dp)
+                            .clip(RoundedCornerShape(6.dp)),
+                )
+            }
+        }
+        Text(
+            text,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(start = 8.dp),
+        )
     }
 }
 
@@ -544,8 +604,8 @@ private val PREVIEW_SPOTS =
     )
 
 private val LiveRed = Color(0xFFFF6B5B)
-private val SPHERE_BOX = 232.dp
-private const val SPHERE_RADIUS = 0.38f
+private val SPHERE_BOX = 212.dp
+private const val SPHERE_RADIUS = 0.41f
 private const val BLOB_POINTS = 12
 private const val RINGS = 3
 private const val RING_RATE = 0.35f

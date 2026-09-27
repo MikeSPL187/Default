@@ -192,6 +192,7 @@ import com.metrolist.music.ui.component.shimmer.ShimmerTheme
 import com.metrolist.music.ui.menu.YouTubeSongMenu
 import com.metrolist.music.ui.player.BottomSheetPlayer
 import com.metrolist.music.ui.screens.Screens
+import com.metrolist.music.ui.screens.home.HomeEvents
 import com.metrolist.music.ui.screens.navigationBuilder
 import com.metrolist.music.ui.screens.settings.ChangelogScreen
 import com.metrolist.music.ui.screens.settings.DarkMode
@@ -753,7 +754,7 @@ class MainActivity : FragmentActivity() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val (previousTab, setPreviousTab) = rememberSaveable { mutableStateOf("home") }
 
-                val (listenTogetherInTopBar) = rememberPreference(ListenTogetherInTopBarKey, defaultValue = true)
+                val (listenTogetherInTopBar) = rememberPreference(ListenTogetherInTopBarKey, defaultValue = false)
                 val navigationItems = Screens.MainScreens
                 val routeIndexMap = remember(navigationItems) {
                     navigationItems.mapIndexed { i, s -> s.route to i }.toMap()
@@ -1097,6 +1098,17 @@ class MainActivity : FragmentActivity() {
                                             val offline = LocalOfflineMode.current
                                             if (offline.active) {
                                                 OfflineStatusChip(offline = offline, onTurnOff = { downloadedOnly = false })
+                                            }
+                                            // Each tab keeps its own action in the corner.
+                                            when (navBackStackEntry?.destination?.route) {
+                                                Screens.Home.route ->
+                                                    IconButton(onClick = { HomeEvents.edit.tryEmit(Unit) }) {
+                                                        Icon(painterResource(R.drawable.edit), contentDescription = stringResource(R.string.home_edit))
+                                                    }
+                                                Screens.You.route ->
+                                                    IconButton(onClick = { navController.navigate("settings") }) {
+                                                        Icon(painterResource(R.drawable.settings), contentDescription = stringResource(R.string.settings))
+                                                    }
                                             }
                                             if (listenTogetherInTopBar) {
                                                 IconButton(onClick = { navController.navigate("listen_together_from_topbar") }) {

@@ -75,6 +75,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
@@ -191,6 +192,7 @@ fun HomeFeedScreen(
     LaunchedEffect(Unit) { viewModel.loadHomeData() }
 
     var editing by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { HomeEvents.edit.collect { editing = true } }
     var tuning by remember { mutableStateOf(false) }
     val blocks = remember(order) { orderedBlocks(order) }
     val shown = blocks.filter { it.id !in hidden }
@@ -217,13 +219,30 @@ fun HomeFeedScreen(
         retune()
     }
     val colors = MaterialTheme.colorScheme
-    val artAccent = rememberArtworkAccent(if (djActive) mediaMetadata?.thumbnailUrl else null)
-    val accent = artAccent ?: colors.primary
-    val palette = remember(accent, colors.tertiary) { spherePalette(accent, colors.tertiary) }
-    val previews =
-        remember(onRepeat, quickPicks) {
-            (onRepeat.orEmpty() + quickPicks.orEmpty()).mapNotNull { it.song.thumbnailUrl }.distinct().take(PREVIEWS)
+    val dark = colors.surface.luminance() < 0.5f
+    // What the DJ is likely to bring: the user's own songs first, the week's chart for a new user.
+    val upcoming =
+        remember(onRepeat, quickPicks, chart) {
+            (onRepeat.orEmpty().map { it.song.title to it.song.thumbnailUrl } +
+                quickPicks.orEmpty().map { it.song.title to it.song.thumbnailUrl } +
+                chart.orEmpty().map { it.title to it.thumbnail })
+                .mapNotNull { (title, url) -> url?.let { title to it } }
+                .distinctBy { it.second }
+                .take(PREVIEWS)
         }
+    val previews = upcoming.map { it.second }
+    val artAccent = rememberArtworkAccent(if (djActive) mediaMetadata?.thumbnailUrl else null)
+    // The idle sphere takes its colours from those covers, so each set looks like its music.
+    val coverAccents = List(PREVIEWS) { i -> rememberArtworkAccent(if (djActive) null else previews.getOrNull(i)) }.filterNotNull()
+    val palette =
+        remember(artAccent, coverAccents, colors.primary, colors.tertiary, dark) {
+            when {
+                artAccent != null -> spherePalette(artAccent, colors.tertiary, dark)
+                coverAccents.isNotEmpty() -> coverPalette(coverAccents, colors.tertiary, dark)
+                else -> spherePalette(colors.primary, colors.tertiary, dark)
+            }
+        }
+    val nextLine = upcoming.take(2).takeIf { it.isNotEmpty() }?.let { list -> stringResource(R.string.dj_next, list.joinToString(" · ") { it.first }) }
     val dayPart = remember { DayPart.now() }
     val discovery = remember(mediaMetadata?.id, djActive) { mediaMetadata?.id?.takeIf { djActive }?.let(playerConnection.service::isDjDiscovery) }
     val djHeading = if (djActive) mediaMetadata?.title.orEmpty() else mood?.title ?: stringResource(dayPart.setTitle)
@@ -240,8 +259,9 @@ fun HomeFeedScreen(
     // ---- For you
     val likedTitle = stringResource(R.string.liked)
     val quickPicksTitle = stringResource(R.string.quick_picks)
+    val fillers = listOf(stringResource(R.string.downloaded_songs) to "auto_playlist/downloaded", stringResource(R.string.history) to "history")
     val quickItems =
-        remember(recents, keepListening, likedTitle) { quickAccessItems(recents, keepListening.orEmpty(), likedTitle) }
+        remember(recents, keepListening, likedTitle, fillers) { quickAccessItems(recents, keepListening.orEmpty(), likedTitle, fillers) }
     val mixes =
         buildList {
             daylist?.let { list ->
@@ -290,6 +310,7 @@ fun HomeFeedScreen(
                                 subtitle = djLine,
                                 palette = palette,
                                 previews = previews,
+                                next = nextLine,
                                 liked = currentSong?.song?.liked == true,
                                 onPlay = {
                                     if (djActive) {
@@ -304,7 +325,7 @@ fun HomeFeedScreen(
                                 onFavour = {
                                     if (currentSong?.song?.liked == true) playerConnection.toggleLike() else playerConnection.service.favourInDj()
                                 },
-                                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp).animateItem(),
+                                modifier = Modifier.padding(bottom = 8.dp).animateItem(),
                             )
                         }
 
@@ -638,7 +659,8 @@ private fun CoverCard(
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Medium,
             textAlign = if (round) TextAlign.Center else TextAlign.Start,
-            maxLines = 1,
+            // Album titles run long; two lines keep them whole instead of "Last Thing You Ne…".
+            maxLines = if (round) 1 else 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(top = 8.dp),
         )
@@ -708,6 +730,7 @@ private data class QuickItem(
     val round: Boolean = false,
     val liked: Boolean = false,
     val recent: RecentCollection? = null,
+    val icon: Int? = null,
 )
 
 /** Six ways back to what the user opens most: the last collections, then their liked songs and favourites. */
@@ -715,6 +738,7 @@ private fun quickAccessItems(
     recents: List<RecentCollection>,
     keepListening: List<LocalItem>,
     likedTitle: String,
+    fillers: List<Pair<String, String>>,
 ): List<QuickItem> {
     val fromRecents =
         recents.map { recent ->
@@ -735,7 +759,10 @@ private fun quickAccessItems(
                 else -> null
             }
         }
-    return (listOf(liked) + fromRecents + favourites).distinctBy { it.route }.take(QUICK_ACCESS)
+    val items = (listOf(liked) + fromRecents + favourites).distinctBy { it.route }.take(QUICK_ACCESS)
+    // Tiles come in pairs; an odd one out gets a place the user goes anyway, so no row has a hole.
+    val filler = fillers.map { (title, route) -> QuickItem(title, null, route, icon = if (route == "history") R.drawable.history else R.drawable.download) }.firstOrNull { f -> items.none { it.route == f.route } }
+    return if (items.size % 2 == 1 && filler != null) items + filler else items
 }
 
 private const val QUICK_ACCESS = 6
@@ -810,7 +837,13 @@ private fun QuickTile(
                 modifier =
                     Modifier
                         .size(56.dp)
-                        .then(if (item.liked) Modifier.background(LikedGradient) else Modifier.background(colors.surfaceContainerHighest)),
+                        .then(
+                            when {
+                                item.liked -> Modifier.background(LikedGradient)
+                                item.icon != null -> Modifier.background(colors.primaryContainer)
+                                else -> Modifier.background(colors.surfaceContainerHighest)
+                            },
+                        ),
             ) {
                 when {
                     item.liked -> Icon(painterResource(R.drawable.favorite), contentDescription = null, tint = Color.White, modifier = Modifier.size(26.dp))
@@ -824,6 +857,7 @@ private fun QuickTile(
                                     .fillMaxSize()
                                     .then(if (item.round) Modifier.padding(7.dp).clip(CircleShape) else Modifier),
                         )
+                    item.icon != null -> Icon(painterResource(item.icon), contentDescription = null, tint = colors.onPrimaryContainer, modifier = Modifier.size(24.dp))
                     else -> Icon(painterResource(R.drawable.queue_music), contentDescription = null, tint = colors.onSurfaceVariant)
                 }
             }
@@ -1091,7 +1125,7 @@ private fun ChartList(
                     "${index + 1}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = if (index == 0 || active) colors.primary else colors.onSurface,
+                    color = if (active) colors.primary else colors.onSurfaceVariant,
                     modifier = Modifier.width(26.dp),
                 )
                 Box {

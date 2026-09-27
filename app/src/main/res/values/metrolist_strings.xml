@@ -1409,4 +1409,5 @@
     <string name="stats_year">Year</string>
     <string name="stats_all_time">All time</string>
     <string name="stats_earlier">Earlier periods</string>
+    <string name="dj_next">Next: %s</string>
 </resources>
