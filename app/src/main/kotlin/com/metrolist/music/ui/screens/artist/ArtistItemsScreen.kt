@@ -6,7 +6,6 @@
 package com.metrolist.music.ui.screens.artist
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -122,6 +121,55 @@ fun ArtistItemsScreen(
                 items = itemsPage?.items.orEmpty().distinctBy { it.id },
                 key = { "artist_items_list_${it.id}" },
             ) { item ->
+                val showItemMenu = {
+                    menuState.show {
+                        when (item) {
+                            is SongItem -> {
+                                YouTubeSongMenu(
+                                    song = item,
+                                    onDismiss = menuState::dismiss,
+                                )
+                            }
+
+                            is AlbumItem -> {
+                                YouTubeAlbumMenu(
+                                    albumItem = item,
+                                    onDismiss = menuState::dismiss,
+                                )
+                            }
+
+                            is ArtistItem -> {
+                                YouTubeArtistMenu(
+                                    artist = item,
+                                    onDismiss = menuState::dismiss,
+                                )
+                            }
+
+                            is PlaylistItem -> {
+                                YouTubePlaylistMenu(
+                                    playlist = item,
+                                    coroutineScope = coroutineScope,
+                                    onDismiss = menuState::dismiss,
+                                )
+                            }
+
+                            is PodcastItem -> {
+                                YouTubePlaylistMenu(
+                                    playlist = item.asPlaylistItem(),
+                                    coroutineScope = coroutineScope,
+                                    onDismiss = menuState::dismiss,
+                                )
+                            }
+
+                            is EpisodeItem -> {
+                                YouTubeSongMenu(
+                                    song = item.asSongItem(),
+                                    onDismiss = menuState::dismiss,
+                                )
+                            }
+                        }
+                    }
+                }
                 YouTubeListItem(
                     item = item,
                     isActive =
@@ -133,55 +181,7 @@ fun ArtistItemsScreen(
                     isPlaying = isPlaying,
                     trailingContent = {
                         IconButton(
-                            onClick = {
-                                menuState.show {
-                                    when (item) {
-                                        is SongItem -> {
-                                            YouTubeSongMenu(
-                                                song = item,
-                                                onDismiss = menuState::dismiss,
-                                            )
-                                        }
-
-                                        is AlbumItem -> {
-                                            YouTubeAlbumMenu(
-                                                albumItem = item,
-                                                onDismiss = menuState::dismiss,
-                                            )
-                                        }
-
-                                        is ArtistItem -> {
-                                            YouTubeArtistMenu(
-                                                artist = item,
-                                                onDismiss = menuState::dismiss,
-                                            )
-                                        }
-
-                                        is PlaylistItem -> {
-                                            YouTubePlaylistMenu(
-                                                playlist = item,
-                                                coroutineScope = coroutineScope,
-                                                onDismiss = menuState::dismiss,
-                                            )
-                                        }
-
-                                        is PodcastItem -> {
-                                            YouTubePlaylistMenu(
-                                                playlist = item.asPlaylistItem(),
-                                                coroutineScope = coroutineScope,
-                                                onDismiss = menuState::dismiss,
-                                            )
-                                        }
-
-                                        is EpisodeItem -> {
-                                            YouTubeSongMenu(
-                                                song = item.asSongItem(),
-                                                onDismiss = menuState::dismiss,
-                                            )
-                                        }
-                                    }
-                                }
-                            },
+                            onClick = showItemMenu,
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.more_vert),
@@ -191,7 +191,9 @@ fun ArtistItemsScreen(
                     },
                     modifier =
                         Modifier
-                            .clickable {
+                            .combinedClickable(
+                                onLongClick = showItemMenu,
+                            ) {
                                 when (item) {
                                     is SongItem -> {
                                         if (item.id == mediaMetadata?.id) {

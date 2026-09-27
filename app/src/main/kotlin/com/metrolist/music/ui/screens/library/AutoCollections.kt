@@ -11,7 +11,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.metrolist.music.R
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -82,10 +81,7 @@ fun AutoCollectionsRow(
                             },
                             onLongClick =
                                 if (onPlay != null && collection.key in playable) {
-                                    {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        menu = true
-                                    }
+                                    { menu = true }
                                 } else {
                                     null
                                 },

@@ -448,10 +448,7 @@ fun HomeFeedScreen(
                                         haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                                         playerConnection.playQueue(ListQueue(title = title, items = songs.map { it.toMediaItem() }, startIndex = index))
                                     },
-                                    onMenu = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        menuState.show { SongMenu(originalSong = song, onDismiss = menuState::dismiss) }
-                                    },
+                                    onMenu = { menuState.show { SongMenu(originalSong = song, onDismiss = menuState::dismiss) } },
                                     modifier = Modifier.animateItem(),
                                 )
                             }
@@ -694,13 +691,7 @@ private fun CoverCard(
                         haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                         onClick()
                     },
-                    onLongClick =
-                        onLongClick?.let { long ->
-                            {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                long()
-                            }
-                        },
+                    onLongClick = onLongClick,
                 ),
     ) {
         Box(
