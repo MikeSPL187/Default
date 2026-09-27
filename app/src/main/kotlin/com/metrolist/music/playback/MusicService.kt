@@ -376,6 +376,10 @@ class MusicService :
     private val sleepTimerVolumeMultiplier = MutableStateFlow(1f)
     private val audioFocusVolumeMultiplier = MutableStateFlow(1f)
 
+    // An alarm starts quietly and rises to full volume, so the morning doesn't begin with a blast.
+    private val wakeVolumeMultiplier = MutableStateFlow(1f)
+    private var wakeRampJob: Job? = null
+
     fun toggleMute() {
         val newMutedState = !isMuted.value
         isMuted.value = newMutedState
@@ -392,9 +396,10 @@ class MusicService :
         muted: Boolean = isMuted.value,
         sleepTimerMultiplier: Float = sleepTimerVolumeMultiplier.value,
         focusMultiplier: Float = audioFocusVolumeMultiplier.value,
+        wakeMultiplier: Float = wakeVolumeMultiplier.value,
     ): Float {
         if (muted) return 0f
-        return (volume * sleepTimerMultiplier * focusMultiplier).coerceIn(0f, 1f)
+        return (volume * sleepTimerMultiplier * focusMultiplier * wakeMultiplier).coerceIn(0f, 1f)
     }
 
     private fun applyEffectiveVolume() {
@@ -621,10 +626,37 @@ class MusicService :
             }
         }
 
+    /**
+     * Where the sound goes now, as a stable key: a Bluetooth device by its name, wired headphones,
+     * or the phone's speaker. The equalizer remembers a profile per key.
+     */
+    private fun currentOutputKey(): String {
+        val outputs = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+        outputs.firstOrNull { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && (it.type == AudioDeviceInfo.TYPE_BLE_HEADSET || it.type == AudioDeviceInfo.TYPE_BLE_SPEAKER)) }
+            ?.let { return "bt:" + it.productName }
+        if (outputs.any { it.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES || it.type == AudioDeviceInfo.TYPE_WIRED_HEADSET || it.type == AudioDeviceInfo.TYPE_USB_HEADSET }) return "wired"
+        return "speaker"
+    }
+
+    /** On a new output, brings back the equalizer profile last used with it. */
+    private fun restoreEqForOutput() {
+        scope.launch {
+            val remembered = eqProfileRepository.profileForDevice(currentOutputKey()) ?: return@launch
+            val id = remembered.first()
+            if (id != eqProfileRepository.activeProfile.value?.id) eqProfileRepository.setActiveProfile(id)
+        }
+    }
+
     private val audioDeviceCallback =
         object : AudioDeviceCallback() {
+            override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>?) {
+                super.onAudioDevicesRemoved(removedDevices)
+                restoreEqForOutput()
+            }
+
             override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>?) {
                 super.onAudioDevicesAdded(addedDevices)
+                restoreEqForOutput()
                 val hasBluetooth =
                     addedDevices?.any {
                         it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
@@ -814,6 +846,7 @@ class MusicService :
         // 4. Watch for EQ profile changes
         scope.launch {
             eqProfileRepository.activeProfile.collect { profile ->
+                eqProfileRepository.rememberForDevice(currentOutputKey(), profile?.id)
                 if (profile != null) {
                     val result = equalizerService.applyProfile(profile)
                     if (result.isSuccess && player.playbackState == Player.STATE_READY && player.isPlaying) {
@@ -910,12 +943,14 @@ class MusicService :
             isMuted,
             sleepTimerVolumeMultiplier,
             audioFocusVolumeMultiplier,
-        ) { volume, muted, timerMultiplier, focusMultiplier ->
+            wakeVolumeMultiplier,
+        ) { volume, muted, timerMultiplier, focusMultiplier, wakeMultiplier ->
             calculateEffectiveVolume(
                 volume = volume,
                 muted = muted,
                 sleepTimerMultiplier = timerMultiplier,
                 focusMultiplier = focusMultiplier,
+                wakeMultiplier = wakeMultiplier,
             )
         }.collectLatest(scope) {
             if (!isCrossfading) {
@@ -5018,6 +5053,7 @@ class MusicService :
 
                 player.stop()
                 player.clearMediaItems()
+                startWakeRamp()
                 playQueue(
                     ListQueue(
                         title = playlistName,
@@ -5031,6 +5067,21 @@ class MusicService :
                 Timber.tag(TAG).e(t, "Failed to start alarm playback")
             }
         }
+    }
+
+    /** Raises the alarm from a tenth of the volume to full over [WAKE_RAMP_MS]. */
+    private fun startWakeRamp() {
+        wakeRampJob?.cancel()
+        wakeVolumeMultiplier.value = WAKE_START_VOLUME
+        wakeRampJob =
+            scope.launch {
+                val steps = (WAKE_RAMP_MS / WAKE_STEP_MS).toInt()
+                for (i in 1..steps) {
+                    delay(WAKE_STEP_MS)
+                    wakeVolumeMultiplier.value = WAKE_START_VOLUME + (1f - WAKE_START_VOLUME) * i / steps
+                }
+                wakeVolumeMultiplier.value = 1f
+            }
     }
 
     private fun handleForegroundServiceStartNotAllowed(error: Throwable?) {
@@ -5463,6 +5514,9 @@ class MusicService :
         const val MAX_CONSECUTIVE_ERR = 5
         const val MAX_RETRY_COUNT = 10
 
+        private const val WAKE_RAMP_MS = 60_000L
+        private const val WAKE_STEP_MS = 500L
+        private const val WAKE_START_VOLUME = 0.1f
         private const val INITIAL_BUFFER_RECOVERY_DELAY_MS = 15_000L
         private const val INITIAL_BUFFER_RECOVERY_POSITION_MS = 5_000L
         private const val TAG = "MusicService"

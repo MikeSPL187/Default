@@ -1430,4 +1430,9 @@
     <string name="cd_time_transfer">Move listening time</string>
     <string name="charts_unavailable">Charts didn\'t load</string>
     <string name="charts_unavailable_hint">YouTube Music didn\'t send the charts. Check the connection and try again.</string>
+    <string name="sleep_timer_add_ten">+10 minutes</string>
+    <string name="sleep_timer_turn_off">Turn off timer</string>
+    <string name="auto_backup">Weekly backup</string>
+    <string name="auto_backup_desc">Saved to Downloads/Metrolist backups, the last three are kept</string>
+    <string name="auto_backup_last">Last one: %s</string>
 </resources>

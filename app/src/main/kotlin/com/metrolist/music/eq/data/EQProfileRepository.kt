@@ -60,7 +60,21 @@ class EQProfileRepository @Inject constructor(
         private const val TAG = "EQProfileRepository"
         private const val KEY_PROFILES = "eq_profiles"
         private const val KEY_ACTIVE_PROFILE_ID = "active_profile_id"
+        private const val KEY_DEVICE_PREFIX = "device_profile:"
+        private const val NO_PROFILE = "__off__"
     }
+
+    /** Remembers the profile (or "off" for null) chosen while [deviceKey] was playing. */
+    fun rememberForDevice(deviceKey: String, profileId: String?) {
+        prefs.edit { putString(KEY_DEVICE_PREFIX + deviceKey, profileId ?: NO_PROFILE) }
+    }
+
+    /**
+     * The profile last used with [deviceKey]: null if that device has no memory yet, otherwise
+     * a one-element list holding the id, or null for "off".
+     */
+    fun profileForDevice(deviceKey: String): List<String?>? =
+        prefs.getString(KEY_DEVICE_PREFIX + deviceKey, null)?.let { listOf(it.takeUnless { id -> id == NO_PROFILE }) }
 
     init {
         loadProfiles()

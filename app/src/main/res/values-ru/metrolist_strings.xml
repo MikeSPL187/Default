@@ -1331,4 +1331,9 @@
     <string name="cd_time_transfer">Перенести время прослушивания</string>
     <string name="charts_unavailable">Чарты не загрузились</string>
     <string name="charts_unavailable_hint">YouTube Music не прислал чарты. Проверьте интернет и попробуйте ещё раз.</string>
+    <string name="sleep_timer_add_ten">+10 минут</string>
+    <string name="sleep_timer_turn_off">Выключить таймер</string>
+    <string name="auto_backup">Копия раз в неделю</string>
+    <string name="auto_backup_desc">Сохраняется в «Загрузки/Metrolist backups», хранятся три последние</string>
+    <string name="auto_backup_last">Последняя: %s</string>
 </resources>

@@ -55,6 +55,11 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.R
+import androidx.compose.material3.Switch
+import com.metrolist.music.utils.rememberPreference
+import com.metrolist.music.utils.AutoBackupWorker
+import com.metrolist.music.constants.LastAutoBackupKey
+import com.metrolist.music.constants.AutoBackupKey
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.ui.component.DefaultDialog
 import com.metrolist.music.ui.component.IconButton
@@ -163,6 +168,8 @@ fun BackupAndRestore(
             }
         }
 
+    val (autoBackup, onAutoBackupChange) = rememberPreference(AutoBackupKey, defaultValue = true)
+    val (lastAutoBackup) = rememberPreference(LastAutoBackupKey, defaultValue = 0L)
     val scrollState = rememberScrollState()
     val titleInBar by remember { derivedStateOf { scrollState.value > TITLE_SCROLL_PX } }
     Column(
@@ -194,6 +201,32 @@ fun BackupAndRestore(
                                     LocalDateTime.now().format(formatter)
                                 }.backup",
                             )
+                        },
+                    ),
+                    Material3SettingsItem(
+                        title = { Text(stringResource(R.string.auto_backup)) },
+                        description = {
+                            Text(
+                                if (lastAutoBackup > 0L) {
+                                    stringResource(R.string.auto_backup_last, DateTimeFormatter.ofPattern("d MMM, HH:mm").format(java.time.Instant.ofEpochMilli(lastAutoBackup).atZone(java.time.ZoneId.systemDefault())))
+                                } else {
+                                    stringResource(R.string.auto_backup_desc)
+                                },
+                            )
+                        },
+                        icon = painterResource(R.drawable.backup),
+                        trailingContent = {
+                            Switch(
+                                checked = autoBackup,
+                                onCheckedChange = {
+                                    onAutoBackupChange(it)
+                                    AutoBackupWorker.schedule(context, it)
+                                },
+                            )
+                        },
+                        onClick = {
+                            onAutoBackupChange(!autoBackup)
+                            AutoBackupWorker.schedule(context, !autoBackup)
                         },
                     ),
                     Material3SettingsItem(

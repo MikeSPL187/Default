@@ -105,6 +105,11 @@ class SleepTimer(
         }
     }
 
+    /** Adds [minute] minutes to a running countdown; "end of song" mode has nothing to extend. */
+    fun extend(minute: Int) {
+        if (triggerTime != -1L) triggerTime += minute.minutes.inWholeMilliseconds
+    }
+
     /**
      * Notify the sleep timer that a song transition has occurred outside of normal
      * player callbacks (e.g. during crossfade player swap). If "end of song" mode

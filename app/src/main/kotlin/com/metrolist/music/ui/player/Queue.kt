@@ -54,6 +54,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.FilledTonalIconToggleButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -304,23 +306,43 @@ fun Queue(
                         onClick = { onToggleLyrics() },
                         modifier = Modifier.weight(1f),
                     )
-                    PlayerTab(
-                        icon = R.drawable.bedtime,
-                        label = if (sleepTimerEnabled) makeTimeString(sleepTimerTimeLeft) else stringResource(R.string.player_tab_timer),
-                        active = sleepTimerEnabled,
-                        enabled = !isListenTogetherGuest,
-                        color = TextBackgroundColor,
-                        activeContainer = textButtonColor,
-                        activeContent = iconButtonColor,
-                        onClick = {
-                            if (sleepTimerEnabled) {
-                                playerConnection.service.sleepTimer?.clear()
-                            } else {
-                                showSleepTimerDialog = true
+                    // A running timer is not cancelled by a stray tap: it offers "+10 min" and "Turn off".
+                    var timerMenu by remember { mutableStateOf(false) }
+                    Box(Modifier.weight(1f)) {
+                        PlayerTab(
+                            icon = R.drawable.bedtime,
+                            label = if (sleepTimerEnabled) makeTimeString(sleepTimerTimeLeft) else stringResource(R.string.player_tab_timer),
+                            active = sleepTimerEnabled,
+                            enabled = !isListenTogetherGuest,
+                            color = TextBackgroundColor,
+                            activeContainer = textButtonColor,
+                            activeContent = iconButtonColor,
+                            onClick = {
+                                if (sleepTimerEnabled) timerMenu = true else showSleepTimerDialog = true
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        DropdownMenu(expanded = timerMenu, onDismissRequest = { timerMenu = false }) {
+                            if ((playerConnection.service.sleepTimer?.triggerTime ?: -1L) != -1L) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.sleep_timer_add_ten)) },
+                                    leadingIcon = { Icon(painterResource(R.drawable.add), contentDescription = null) },
+                                    onClick = {
+                                        playerConnection.service.sleepTimer?.extend(10)
+                                        timerMenu = false
+                                    },
+                                )
                             }
-                        },
-                        modifier = Modifier.weight(1f),
-                    )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.sleep_timer_turn_off)) },
+                                leadingIcon = { Icon(painterResource(R.drawable.close), contentDescription = null) },
+                                onClick = {
+                                    playerConnection.service.sleepTimer?.clear()
+                                    timerMenu = false
+                                },
+                            )
+                        }
+                    }
                 }
             } else {
                 // Old design

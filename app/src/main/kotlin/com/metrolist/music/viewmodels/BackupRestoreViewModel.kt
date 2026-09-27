@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import com.metrolist.innertube.utils.parseCookieString
 import com.metrolist.innertube.utils.sha1
 import com.metrolist.music.R
+import com.metrolist.music.utils.writeBackup
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -82,37 +83,7 @@ class BackupRestoreViewModel @Inject constructor(
     fun backup(context: Context, uri: Uri) = viewModelScope.launch(Dispatchers.IO) {
         runCatching {
             context.applicationContext.contentResolver.openOutputStream(uri)?.use {
-                it.buffered().zipOutputStream().use { outputStream ->
-                    (context.filesDir / "datastore" / SETTINGS_FILENAME).inputStream().buffered()
-                        .use { inputStream ->
-                            outputStream.putNextEntry(ZipEntry(SETTINGS_FILENAME))
-                            inputStream.copyTo(outputStream)
-                        }
-                    outputStream.putNextEntry(ZipEntry(ArtistNameAliases.BACKUP_FILENAME))
-                    outputStream.write(ArtistNameAliases.serialize().encodeToByteArray())
-                    database.checkpoint()
-                    val dbPath = database.openHelper.writableDatabase.path
-                    if (dbPath != null) {
-                        FileInputStream(dbPath).use { inputStream ->
-                            outputStream.putNextEntry(ZipEntry(InternalDatabase.DB_NAME))
-                            inputStream.copyTo(outputStream)
-                        }
-                        val walFile = File("$dbPath-wal")
-                        if (walFile.exists()) {
-                            FileInputStream(walFile).use { inputStream ->
-                                outputStream.putNextEntry(ZipEntry("${InternalDatabase.DB_NAME}-wal"))
-                                inputStream.copyTo(outputStream)
-                            }
-                        }
-                        val shmFile = File("$dbPath-shm")
-                        if (shmFile.exists()) {
-                            FileInputStream(shmFile).use { inputStream ->
-                                outputStream.putNextEntry(ZipEntry("${InternalDatabase.DB_NAME}-shm"))
-                                inputStream.copyTo(outputStream)
-                            }
-                        }
-                    }
-                }
+                writeBackup(context, database, it)
             }
         }.onSuccess {
             withContext(Dispatchers.Main) {

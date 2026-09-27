@@ -33,6 +33,8 @@ import com.metrolist.lastfm.LastFM
 import com.metrolist.music.BuildConfig
 import com.metrolist.music.constants.*
 import com.metrolist.music.update.UpdateCheckWorker
+import com.metrolist.music.utils.AutoBackupWorker
+import com.metrolist.music.constants.AutoBackupKey
 import com.metrolist.music.di.ApplicationScope
 import com.metrolist.music.extensions.toEnum
 import com.metrolist.music.extensions.toInetSocketAddress
@@ -111,6 +113,7 @@ class App :
         applicationScope.launch(Dispatchers.IO) {
             val notify = dataStore.data.first()[UpdateNotificationsEnabledKey] ?: true
             UpdateCheckWorker.schedule(this@App, notify)
+            AutoBackupWorker.schedule(this@App, dataStore.data.first()[AutoBackupKey] != false)
         }
 
         // تهيئة إعدادات التطبيق عند الإقلاع
