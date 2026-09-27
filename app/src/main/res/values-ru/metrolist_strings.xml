@@ -1337,4 +1337,18 @@
     <string name="auto_backup_desc">Сохраняется в «Загрузки/Metrolist backups», хранятся три последние</string>
     <string name="auto_backup_last">Последняя: %s</string>
     <string name="queue_clear_played">Убрать прослушанные</string>
+    <string name="queue_next_one">«%s» сыграет следующим</string>
+    <string name="queue_added_one">«%s» — в конце очереди</string>
+    <plurals name="queue_next_n">
+        <item quantity="one">%d трек сыграет следующим</item>
+        <item quantity="few">%d трека сыграют следующими</item>
+        <item quantity="many">%d треков сыграют следующими</item>
+        <item quantity="other">%d трека сыграют следующими</item>
+    </plurals>
+    <plurals name="queue_added_n">
+        <item quantity="one">%d трек добавлен в очередь</item>
+        <item quantity="few">%d трека добавлены в очередь</item>
+        <item quantity="many">%d треков добавлено в очередь</item>
+        <item quantity="other">%d трека добавлено в очередь</item>
+    </plurals>
 </resources>

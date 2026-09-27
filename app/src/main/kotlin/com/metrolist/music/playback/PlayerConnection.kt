@@ -283,6 +283,15 @@ class PlayerConnection(
         }
     }
 
+    /** What the user just put in the queue, so the screen can confirm it in a line. */
+    data class QueueEvent(
+        val next: Boolean,
+        val count: Int,
+        val title: String?,
+    )
+
+    val queueEvents = kotlinx.coroutines.flow.MutableSharedFlow<QueueEvent>(extraBufferCapacity = 4)
+
     fun playNext(item: MediaItem) = playNext(listOf(item))
 
     fun playNext(items: List<MediaItem>) {
@@ -293,6 +302,7 @@ class PlayerConnection(
         }
         try {
             service.playNext(items)
+            if (!allowInternalSync && items.isNotEmpty()) queueEvents.tryEmit(QueueEvent(next = true, count = items.size, title = items.first().mediaMetadata.title?.toString()))
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error in playNext")
             throw e
@@ -309,6 +319,7 @@ class PlayerConnection(
         }
         try {
             service.addToQueue(items)
+            if (!allowInternalSync && items.isNotEmpty()) queueEvents.tryEmit(QueueEvent(next = false, count = items.size, title = items.first().mediaMetadata.title?.toString()))
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error in addToQueue")
             throw e

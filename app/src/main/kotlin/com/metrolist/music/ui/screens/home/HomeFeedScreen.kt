@@ -103,6 +103,16 @@ import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import androidx.compose.ui.res.pluralStringResource
+import kotlinx.coroutines.flow.first
+import com.metrolist.music.ui.component.Material3MenuItemData
+import com.metrolist.music.ui.component.Material3MenuGroup
+import com.metrolist.music.ui.menu.ArtistMenu
+import com.metrolist.music.ui.menu.AlbumMenu
+import com.metrolist.music.ui.menu.YouTubeArtistMenu
+import com.metrolist.music.ui.menu.YouTubePlaylistMenu
+import com.metrolist.music.ui.menu.YouTubeAlbumMenu
+import com.metrolist.music.LocalDatabase
 import androidx.media3.common.MediaItem
 import com.metrolist.music.db.entities.Album
 import com.metrolist.music.db.entities.AlbumProgress
@@ -164,6 +174,7 @@ fun HomeFeedScreen(
     val navController = LocalNavController.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val menuState = LocalMenuState.current
+    val database = LocalDatabase.current
     val haptic = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
 
@@ -369,7 +380,13 @@ fun HomeFeedScreen(
                                                     ?: navController.navigate("album/${progress.albumId}")
                                             }
                                         },
-                                        onOpen = { navController.navigate("album/${progress.albumId}") },
+                                        onOpen = {
+                                            scope.launch {
+                                                database.album(progress.albumId).first()?.let { album ->
+                                                    menuState.show { AlbumMenu(originalAlbum = album, onDismiss = menuState::dismiss) }
+                                                } ?: navController.navigate("album/${progress.albumId}")
+                                            }
+                                        },
                                     )
                                 }
                             }
@@ -381,6 +398,19 @@ fun HomeFeedScreen(
                             item(key = "for_you", contentType = "for_you") {
                                 SnappingRow(mixes, key = { it.title }, itemWidth = 146.dp) { mix ->
                                     MixCard(
+                                        onMenu = {
+                                            menuState.show {
+                                                MixMenu(
+                                                    mix = mix,
+                                                    onPlay = { shuffled ->
+                                                        playerConnection.playQueue(ListQueue(title = mix.title, items = if (shuffled) mix.items.shuffled() else mix.items))
+                                                    },
+                                                    onPlayNext = { playerConnection.playNext(mix.items) },
+                                                    onAddToQueue = { playerConnection.addToQueue(mix.items) },
+                                                    onDismiss = menuState::dismiss,
+                                                )
+                                            }
+                                        },
                                         mix = mix,
                                         playing = queueTitle == mix.title && isPlaying,
                                         onPlay = {
@@ -433,6 +463,7 @@ fun HomeFeedScreen(
                                         artist = artist,
                                         hasNew = artist.id in releaseArtists,
                                         onOpen = { navController.navigate("artist/${artist.id}") },
+                                        onMenu = { menuState.show { ArtistMenu(originalArtist = artist, coroutineScope = scope, onDismiss = menuState::dismiss) } },
                                     )
                                 }
                             }
@@ -450,7 +481,11 @@ fun HomeFeedScreen(
                             }
                             item(key = "releases", contentType = "releases") {
                                 SnappingRow(albums.take(RELEASES), key = { it.id }, itemWidth = 128.dp) { album ->
-                                    ReleaseCard(album = album, onOpen = { navController.navigate("album/${album.browseId}") })
+                                    ReleaseCard(
+                                        album = album,
+                                        onOpen = { navController.navigate("album/${album.browseId}") },
+                                        onMenu = { menuState.show { YouTubeAlbumMenu(albumItem = album, onDismiss = menuState::dismiss) } },
+                                    )
                                 }
                             }
                         }
@@ -498,7 +533,17 @@ fun HomeFeedScreen(
                                         is EpisodeItem -> playerConnection.playQueue(ListQueue(title = item.title, items = listOf(item.toMediaMetadata().toMediaItem())))
                                     }
                                 },
-                                onMenu = { if (item is SongItem) menuState.show { YouTubeSongMenu(song = item, onDismiss = menuState::dismiss) } },
+                                onMenu = {
+                                    menuState.show {
+                                        when (item) {
+                                            is SongItem -> YouTubeSongMenu(song = item, onDismiss = menuState::dismiss)
+                                            is AlbumItem -> YouTubeAlbumMenu(albumItem = item, onDismiss = menuState::dismiss)
+                                            is PlaylistItem -> YouTubePlaylistMenu(playlist = item, coroutineScope = scope, onDismiss = menuState::dismiss)
+                                            is ArtistItem -> YouTubeArtistMenu(artist = item, onDismiss = menuState::dismiss)
+                                            else -> {}
+                                        }
+                                    }
+                                },
                             )
                         }
                     }
@@ -967,6 +1012,75 @@ private fun ContinueCard(
 // ---------------------------------------------------------------- for you
 
 @Immutable
+/** What a mix offers on a long press: play it, shuffled or as is, or put it in the queue. */
+@Composable
+private fun MixMenu(
+    mix: Mix,
+    onPlay: (shuffled: Boolean) -> Unit,
+    onPlayNext: () -> Unit,
+    onAddToQueue: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val covers = remember(mix.covers) { mix.covers.filterNotNull().distinct().take(4) }
+    Column(Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 4.dp, bottom = 12.dp)) {
+            AsyncImage(
+                model = covers.firstOrNull(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(56.dp).clip(RoundedCornerShape(14.dp)),
+            )
+            Column(Modifier.padding(start = 14.dp)) {
+                Text(mix.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    listOf(mix.subtitle, pluralStringResource(R.plurals.n_song, mix.items.size, mix.items.size)).joinToString(" · "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        Material3MenuGroup(
+            items =
+                listOf(
+                    Material3MenuItemData(
+                        icon = { Icon(painterResource(R.drawable.play), contentDescription = null) },
+                        title = { Text(stringResource(R.string.collection_play)) },
+                        onClick = {
+                            onPlay(false)
+                            onDismiss()
+                        },
+                    ),
+                    Material3MenuItemData(
+                        icon = { Icon(painterResource(R.drawable.shuffle), contentDescription = null) },
+                        title = { Text(stringResource(R.string.shuffle)) },
+                        onClick = {
+                            onPlay(true)
+                            onDismiss()
+                        },
+                    ),
+                    Material3MenuItemData(
+                        icon = { Icon(painterResource(R.drawable.playlist_play), contentDescription = null) },
+                        title = { Text(stringResource(R.string.play_next)) },
+                        onClick = {
+                            onPlayNext()
+                            onDismiss()
+                        },
+                    ),
+                    Material3MenuItemData(
+                        icon = { Icon(painterResource(R.drawable.queue_music), contentDescription = null) },
+                        title = { Text(stringResource(R.string.add_to_queue)) },
+                        onClick = {
+                            onAddToQueue()
+                            onDismiss()
+                        },
+                    ),
+                ),
+        )
+    }
+}
+
 private data class Mix(
     val title: String,
     val subtitle: String,
@@ -980,11 +1094,12 @@ private fun MixCard(
     mix: Mix,
     playing: Boolean,
     onPlay: () -> Unit,
+    onMenu: () -> Unit,
 ) {
     val covers = remember(mix.covers) { mix.covers.filterNotNull().distinct().take(4) }
     val accent = rememberArtworkAccent(covers.firstOrNull()) ?: MaterialTheme.colorScheme.primary
     val tint by animateColorAsState(accent, tween(700), label = "mix tint")
-    CoverCard(title = mix.title, subtitle = mix.subtitle, onClick = onPlay) {
+    CoverCard(title = mix.title, subtitle = mix.subtitle, onClick = onPlay, onLongClick = onMenu) {
         if (covers.size >= 4) {
             Column {
                 covers.chunked(2).forEach { pair ->
@@ -1058,9 +1173,10 @@ private fun ArtistCircle(
     artist: Artist,
     hasNew: Boolean,
     onOpen: () -> Unit,
+    onMenu: () -> Unit,
 ) {
     Box {
-        CoverCard(title = artist.artist.name, subtitle = null, round = true, onClick = onOpen) { Cover(artist.artist.thumbnailUrl) }
+        CoverCard(title = artist.artist.name, subtitle = null, round = true, onClick = onOpen, onLongClick = onMenu) { Cover(artist.artist.thumbnailUrl) }
         if (hasNew) {
             Box(
                 Modifier
@@ -1083,8 +1199,9 @@ private fun ArtistCircle(
 private fun ReleaseCard(
     album: AlbumItem,
     onOpen: () -> Unit,
+    onMenu: () -> Unit,
 ) {
-    CoverCard(title = album.title, subtitle = album.artists.orEmpty().joinToString { it.name }, onClick = onOpen) { Cover(album.thumbnail) }
+    CoverCard(title = album.title, subtitle = album.artists.orEmpty().joinToString { it.name }, onClick = onOpen, onLongClick = onMenu) { Cover(album.thumbnail) }
 }
 
 @Composable
@@ -1100,7 +1217,7 @@ private fun FeedCard(
             is PlaylistItem -> item.author?.name
             else -> null
         }
-    CoverCard(title = item.title, subtitle = subtitle, round = item is ArtistItem, onClick = onOpen, onLongClick = onMenu.takeIf { item is SongItem }) { Cover(item.thumbnail) }
+    CoverCard(title = item.title, subtitle = subtitle, round = item is ArtistItem, onClick = onOpen, onLongClick = onMenu) { Cover(item.thumbnail) }
 }
 
 // ---------------------------------------------------------------- chart

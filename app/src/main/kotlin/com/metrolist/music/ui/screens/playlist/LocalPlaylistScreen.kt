@@ -73,6 +73,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
@@ -626,16 +628,36 @@ fun LocalPlaylistScreen(
                 ) {
                     val currentItem by rememberUpdatedState(song)
 
+                    val removedMsg = stringResource(R.string.removed_song_from_playlist, currentItem.song.song.title)
+                    val undoLabel = stringResource(R.string.undo)
                     fun deleteFromPlaylist() {
                         // Capture values before deletion — DB entry will be gone afterwards
                         val browseId = playlist?.playlist?.browseId
                         val setVideoId = currentItem.map.setVideoId
                         val songId = currentItem.map.songId
                         val playlistId = currentItem.map.playlistId
+                        val removed = currentItem.map
 
                         database.transaction {
                             move(playlistId, currentItem.map.position, Int.MAX_VALUE)
                             delete(currentItem.map.copy(position = Int.MAX_VALUE))
+                        }
+
+                        // A local playlist can take the song back where it was; a synced one would
+                        // have to undo the removal on YouTube too, so it only reports it.
+                        coroutineScope.launch {
+                            val result =
+                                snackbarHostState.showSnackbar(
+                                    message = removedMsg,
+                                    actionLabel = undoLabel.takeIf { browseId == null },
+                                    duration = SnackbarDuration.Short,
+                                )
+                            if (result == SnackbarResult.ActionPerformed) {
+                                database.transaction {
+                                    insert(removed.copy(position = Int.MAX_VALUE))
+                                    move(playlistId, Int.MAX_VALUE, removed.position)
+                                }
+                            }
                         }
 
                         if (browseId != null) {

@@ -994,6 +994,20 @@ class MainActivity : FragmentActivity() {
                 }
                 val snackbarHostState = remember { SnackbarHostState() }
 
+                // Adding to the queue is confirmed in a line, so a tap in a menu never feels lost.
+                LaunchedEffect(activePlayerConnection) {
+                    activePlayerConnection?.queueEvents?.collect { event ->
+                        val message =
+                            when {
+                                event.count > 1 -> resources.getQuantityString(if (event.next) R.plurals.queue_next_n else R.plurals.queue_added_n, event.count, event.count)
+                                event.next -> getString(R.string.queue_next_one, event.title.orEmpty())
+                                else -> getString(R.string.queue_added_one, event.title.orEmpty())
+                            }
+                        snackbarHostState.currentSnackbarData?.dismiss()
+                        snackbarHostState.showSnackbar(message)
+                    }
+                }
+
                 LaunchedEffect(Unit) {
                     downloadUtil.watchExportManager.events.collect { event ->
                         val message =
