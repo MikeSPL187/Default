@@ -1423,4 +1423,9 @@
     <string name="you_week_start_title">The week has just begun</string>
     <string name="you_week_start_hint">Put something on — minutes, days and your top artist will show up here.</string>
     <string name="you_week_start_action">Go to the DJ</string>
+    <string name="cd_casting">Casting</string>
+    <string name="cd_decrease">Decrease</string>
+    <string name="cd_increase">Increase</string>
+    <string name="cd_clear_artists">Clear chosen artists</string>
+    <string name="cd_time_transfer">Move listening time</string>
 </resources>

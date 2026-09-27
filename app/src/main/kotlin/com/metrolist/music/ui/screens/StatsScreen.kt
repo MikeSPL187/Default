@@ -814,7 +814,7 @@ fun StatsScreen(
                         androidx.compose.material3.IconButton(onClick = clearArtistSelection) {
                             Icon(
                                 painter = painterResource(R.drawable.close),
-                                contentDescription = "Clear Artists",
+                                contentDescription = stringResource(R.string.cd_clear_artists),
                                 tint = MaterialTheme.colorScheme.onSurface,
                             )
                         }
@@ -829,7 +829,7 @@ fun StatsScreen(
                 androidx.compose.material3.IconButton(onClick = onExitSelectionMode) {
                     Icon(
                         painter = painterResource(R.drawable.close),
-                        contentDescription = "Select Button",
+                        contentDescription = stringResource(R.string.close),
                     )
                 }
             } else {
@@ -850,7 +850,7 @@ fun StatsScreen(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.arrow_back),
-                        contentDescription = "Back Button",
+                        contentDescription = stringResource(R.string.cd_back),
                     )
                 }
             }
@@ -869,7 +869,7 @@ fun StatsScreen(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.more_vert),
-                        contentDescription = "More Button",
+                        contentDescription = stringResource(R.string.more_options),
                     )
                 }
             } else if (!isSearching) {
@@ -878,7 +878,7 @@ fun StatsScreen(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.search),
-                        contentDescription = "Search Button",
+                        contentDescription = stringResource(R.string.search),
                     )
                 }
                 IconButton(
@@ -887,7 +887,7 @@ fun StatsScreen(
                 ) {
                     Icon(
                         painterResource(R.drawable.sync),
-                        contentDescription = "Time Transfer",
+                        contentDescription = stringResource(R.string.cd_time_transfer),
                     )
                 }
             }

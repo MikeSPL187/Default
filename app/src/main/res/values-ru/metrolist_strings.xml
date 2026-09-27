@@ -1324,4 +1324,9 @@
     <string name="you_week_start_title">Неделя только началась</string>
     <string name="you_week_start_hint">Включите что-нибудь — здесь появятся минуты, дни и любимый исполнитель.</string>
     <string name="you_week_start_action">К Диджею</string>
+    <string name="cd_casting">Трансляция</string>
+    <string name="cd_decrease">Уменьшить</string>
+    <string name="cd_increase">Увеличить</string>
+    <string name="cd_clear_artists">Сбросить выбранных исполнителей</string>
+    <string name="cd_time_transfer">Перенести время прослушивания</string>
 </resources>

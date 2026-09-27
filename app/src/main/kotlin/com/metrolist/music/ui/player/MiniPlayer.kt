@@ -460,7 +460,7 @@ private fun NewMiniPlayer(
                 if (isCasting) {
                     Icon(
                         painter = painterResource(R.drawable.cast_connected),
-                        contentDescription = "Casting",
+                        contentDescription = stringResource(R.string.cd_casting),
                         tint = primaryColor,
                         modifier = Modifier.padding(start = 8.dp).size(20.dp),
                     )

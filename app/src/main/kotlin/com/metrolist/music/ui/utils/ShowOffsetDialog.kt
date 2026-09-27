@@ -178,7 +178,7 @@ fun ShowOffsetDialog(songProvider: () -> SongEntity?) {
                     Icon(
                         painter = painterResource(R.drawable.replay),
                         tint = MaterialTheme.colorScheme.primary,
-                        contentDescription = "Reset"
+                        contentDescription = stringResource(R.string.reset)
                     )
                 }
             }
@@ -198,7 +198,7 @@ fun ShowOffsetDialog(songProvider: () -> SongEntity?) {
             ) {
                 Icon(
                     painter = painterResource(R.drawable.remove),
-                    contentDescription = "Decrease"
+                    contentDescription = stringResource(R.string.cd_decrease)
                 )
             }
 
@@ -222,7 +222,7 @@ fun ShowOffsetDialog(songProvider: () -> SongEntity?) {
             ) {
                 Icon(
                     painter = painterResource(R.drawable.add),
-                    contentDescription = "Increase"
+                    contentDescription = stringResource(R.string.cd_increase)
                 )
             }
         }
