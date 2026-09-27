@@ -6,6 +6,10 @@
 package com.metrolist.music.ui.screens.settings
 
 import android.text.format.DateUtils
+import com.metrolist.music.ui.component.TITLE_SCROLL_PX
+import com.metrolist.music.ui.component.LargeScreenTitle
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -98,15 +102,18 @@ fun UpdaterScreen(navController: NavController) {
         }
     }
 
+    val scrollState = rememberScrollState()
+    val titleInBar by remember { derivedStateOf { scrollState.value > TITLE_SCROLL_PX } }
     Column(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(horizontal = 16.dp),
     ) {
         Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
+        LargeScreenTitle(stringResource(R.string.updater), horizontalPadding = 4.dp)
         Spacer(Modifier.height(8.dp))
 
         val colors = MaterialTheme.colorScheme
@@ -279,7 +286,7 @@ fun UpdaterScreen(navController: NavController) {
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.updater)) },
+        title = { if (titleInBar) Text(stringResource(R.string.updater)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,

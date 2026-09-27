@@ -110,6 +110,7 @@ import com.metrolist.music.LocalDownloadUtil
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import com.metrolist.music.ui.screens.Screens
 import com.metrolist.music.ui.component.CollectionPlayButtons
 import com.metrolist.music.ui.component.CollectionSideAction
 import com.metrolist.music.constants.HideExplicitKey
@@ -540,15 +541,24 @@ fun AutoPlaylistScreen(
             if (songs != null) {
                 if (songs!!.isEmpty()) {
                     item(key = "empty_placeholder") {
+                        val offlineLikes = playlistType == PlaylistType.LIKE && !isOnline
                         EmptyPlaceholder(
-                            icon = R.drawable.music_note,
-                            text = stringResource(
-                                if (playlistType == PlaylistType.LIKE && !isOnline) {
-                                    R.string.no_downloaded_favorites
-                                } else {
-                                    R.string.playlist_is_empty
+                            icon =
+                                when (playlistType) {
+                                    PlaylistType.LIKE -> R.drawable.favorite
+                                    PlaylistType.DOWNLOAD -> R.drawable.download
+                                    else -> R.drawable.music_note
                                 },
-                            ),
+                            text = stringResource(if (offlineLikes) R.string.no_downloaded_favorites else R.string.empty_nothing_yet),
+                            hint =
+                                when {
+                                    offlineLikes -> null
+                                    playlistType == PlaylistType.LIKE -> stringResource(R.string.empty_liked_hint)
+                                    playlistType == PlaylistType.DOWNLOAD -> stringResource(R.string.empty_downloaded_hint)
+                                    else -> stringResource(R.string.playlist_is_empty)
+                                },
+                            action = stringResource(R.string.empty_find_music).takeIf { !offlineLikes },
+                            onAction = { navController.navigate(Screens.Search.route) },
                         )
                     }
                 } else {

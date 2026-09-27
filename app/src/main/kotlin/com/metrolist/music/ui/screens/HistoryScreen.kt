@@ -62,6 +62,7 @@ import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import com.metrolist.music.ui.component.EmptyPlaceholder
 import com.metrolist.music.ui.component.LargeScreenTitle
 import com.metrolist.music.constants.HistorySource
 import com.metrolist.music.constants.InnerTubeCookieKey
@@ -246,6 +247,17 @@ fun HistoryScreen(
                         }
                     },
                 )
+            }
+
+            if (historySource == HistorySource.LOCAL && events.isEmpty() && query.text.isEmpty()) {
+                item(key = "empty") {
+                    EmptyPlaceholder(
+                        icon = R.drawable.history,
+                        text = stringResource(R.string.empty_nothing_yet),
+                        hint = stringResource(R.string.empty_history_hint),
+                        modifier = Modifier.animateItem(),
+                    )
+                }
             }
 
             if (historySource == HistorySource.REMOTE && isLoggedIn) {

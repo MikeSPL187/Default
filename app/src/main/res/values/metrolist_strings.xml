@@ -1410,4 +1410,9 @@
     <string name="stats_all_time">All time</string>
     <string name="stats_earlier">Earlier periods</string>
     <string name="dj_next">Next: %s</string>
+    <string name="empty_nothing_yet">Nothing here yet</string>
+    <string name="empty_liked_hint">Tap ♡ on any song and it will appear here.</string>
+    <string name="empty_downloaded_hint">Download songs and playlists to listen without internet.</string>
+    <string name="empty_find_music">Find music</string>
+    <string name="empty_history_hint">What you listen to will show up here, day by day.</string>
 </resources>

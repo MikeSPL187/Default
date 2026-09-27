@@ -6,6 +6,9 @@
 package com.metrolist.music.ui.screens.settings
 
 import androidx.compose.foundation.Image
+import com.metrolist.music.ui.component.TITLE_SCROLL_PX
+import com.metrolist.music.ui.component.LargeScreenTitle
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -227,11 +230,13 @@ fun AboutScreen(
     
     val windowInsets = LocalPlayerAwareWindowInsets.current
 
+    val scrollState = rememberScrollState()
+    val titleInBar by remember { derivedStateOf { scrollState.value > TITLE_SCROLL_PX } }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .windowInsetsPadding(windowInsets.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -240,6 +245,7 @@ fun AboutScreen(
                 windowInsets.only(WindowInsetsSides.Top)
             )
         )
+        LargeScreenTitle(stringResource(R.string.about), horizontalPadding = 4.dp)
 
         Spacer(Modifier.height(16.dp))
 
@@ -506,7 +512,7 @@ fun AboutScreen(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.about)) },
+        title = { if (titleInBar) Text(stringResource(R.string.about)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,

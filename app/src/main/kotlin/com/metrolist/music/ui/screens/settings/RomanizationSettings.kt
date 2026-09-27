@@ -6,6 +6,10 @@
 package com.metrolist.music.ui.screens.settings
 
 import androidx.compose.foundation.layout.Column
+import com.metrolist.music.ui.component.TITLE_SCROLL_PX
+import com.metrolist.music.ui.component.LargeScreenTitle
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -102,12 +106,15 @@ fun RomanizationSettings(
 
     val checkboxesList: MutableList<Material3SettingsItem> = mutableListOf()
 
+    val scrollState = rememberScrollState()
+    val titleInBar by remember { derivedStateOf { scrollState.value > TITLE_SCROLL_PX } }
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp)
     ) {
+        LargeScreenTitle(stringResource(R.string.lyrics_romanize_title), horizontalPadding = 4.dp)
         Material3SettingsGroup(
             title = stringResource(R.string.options),
             items = listOf(
@@ -194,7 +201,7 @@ fun RomanizationSettings(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.lyrics_romanize_title)) },
+        title = { if (titleInBar) Text(stringResource(R.string.lyrics_romanize_title)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,

@@ -6,6 +6,10 @@
 package com.metrolist.music.ui.screens.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import com.metrolist.music.ui.component.TITLE_SCROLL_PX
+import com.metrolist.music.ui.component.LargeScreenTitle
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -474,13 +478,15 @@ fun AiSettings(navController: NavController) {
         )
     }
 
+    val scrollState = rememberScrollState()
+    val titleInBar by remember { derivedStateOf { scrollState.value > TITLE_SCROLL_PX } }
     Column(
         Modifier
             .windowInsetsPadding(
                 LocalPlayerAwareWindowInsets.current.only(
                     WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom,
                 ),
-            ).verticalScroll(rememberScrollState())
+            ).verticalScroll(scrollState)
             .padding(horizontal = 16.dp),
     ) {
         Spacer(
@@ -490,6 +496,7 @@ fun AiSettings(navController: NavController) {
                 ),
             ),
         )
+        LargeScreenTitle(stringResource(R.string.ai_lyrics_translation), horizontalPadding = 4.dp)
 
         Material3SettingsGroup(
             title = stringResource(R.string.ai_provider),
@@ -658,7 +665,7 @@ fun AiSettings(navController: NavController) {
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.ai_lyrics_translation)) },
+        title = { if (titleInBar) Text(stringResource(R.string.ai_lyrics_translation)) },
         navigationIcon = {
             IconButton(onClick = { navController.navigateUp() }) {
                 Icon(

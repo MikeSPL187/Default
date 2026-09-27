@@ -1,6 +1,9 @@
 package com.metrolist.music.ui.screens.settings
 
 import android.app.AlarmManager
+import com.metrolist.music.ui.component.TITLE_SCROLL_PX
+import com.metrolist.music.ui.component.LargeScreenTitle
+import androidx.compose.runtime.derivedStateOf
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Build
@@ -81,17 +84,20 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlarmScreen(navController: NavController) {
+    val scrollState = rememberScrollState()
+    val titleInBar by remember { derivedStateOf { scrollState.value > TITLE_SCROLL_PX } }
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp),
     ) {
         Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
+        LargeScreenTitle(stringResource(R.string.alarm), horizontalPadding = 4.dp)
         AlarmSettingsSection(showTitle = false)
     }
     TopAppBar(
-        title = { Text(stringResource(R.string.alarm)) },
+        title = { if (titleInBar) Text(stringResource(R.string.alarm)) },
         navigationIcon = {
             IconButton(onClick = navController::navigateUp) {
                 Icon(painterResource(R.drawable.arrow_back), contentDescription = null)

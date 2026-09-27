@@ -1311,4 +1311,9 @@
     <string name="stats_all_time">Всё время</string>
     <string name="stats_earlier">Прошлые периоды</string>
     <string name="dj_next">Далее: %s</string>
+    <string name="empty_nothing_yet">Пока ничего</string>
+    <string name="empty_liked_hint">Нажмите ♡ у любого трека — он появится здесь.</string>
+    <string name="empty_downloaded_hint">Скачивайте треки и плейлисты, чтобы слушать без интернета.</string>
+    <string name="empty_find_music">Найти музыку</string>
+    <string name="empty_history_hint">Здесь по дням появится всё, что вы слушали.</string>
 </resources>

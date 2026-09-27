@@ -6,6 +6,9 @@
 package com.metrolist.music.ui.screens.settings
 
 import androidx.activity.compose.rememberLauncherForActivityResult
+import com.metrolist.music.ui.component.TITLE_SCROLL_PX
+import com.metrolist.music.ui.component.LargeScreenTitle
+import androidx.compose.runtime.derivedStateOf
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -160,10 +163,12 @@ fun BackupAndRestore(
             }
         }
 
+    val scrollState = rememberScrollState()
+    val titleInBar by remember { derivedStateOf { scrollState.value > TITLE_SCROLL_PX } }
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp),
     ) {
         Spacer(
@@ -173,6 +178,7 @@ fun BackupAndRestore(
                 ),
             ),
         )
+        LargeScreenTitle(stringResource(R.string.backup_restore), horizontalPadding = 4.dp)
 
         val appName = stringResource(R.string.app_name)
         Material3SettingsGroup(
@@ -224,7 +230,7 @@ fun BackupAndRestore(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.backup_restore)) },
+        title = { if (titleInBar) Text(stringResource(R.string.backup_restore)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,

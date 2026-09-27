@@ -18,35 +18,69 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 
+/**
+ * An empty screen that says what will appear here and, when there is one, the way to fill it:
+ * the icon in a soft tile of the accent, a short title, one line of hint and a button.
+ */
 @Composable
 fun EmptyPlaceholder(
     @DrawableRes icon: Int,
     text: String,
     modifier: Modifier = Modifier,
+    hint: String? = null,
+    action: String? = null,
+    onAction: (() -> Unit)? = null,
 ) {
+    val colors = MaterialTheme.colorScheme
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier =
-        modifier
-            .fillMaxSize()
-            .padding(12.dp),
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 36.dp, vertical = 48.dp),
     ) {
-        Image(
-            painter = painterResource(icon),
-            contentDescription = null,
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
-            modifier = Modifier.size(64.dp),
-        )
-
-        Spacer(Modifier.height(12.dp))
-
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier =
+                Modifier
+                    .size(96.dp)
+                    .clip(RoundedCornerShape(32.dp))
+                    .background(lerp(colors.surfaceContainerHigh, colors.primary, 0.18f)),
+        ) {
+            Icon(painterResource(icon), contentDescription = null, tint = colors.primary, modifier = Modifier.size(44.dp))
+        }
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 22.dp),
         )
+        hint?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
+        if (action != null && onAction != null) {
+            Button(onClick = onAction, modifier = Modifier.padding(top = 22.dp)) { Text(action) }
+        }
     }
 }

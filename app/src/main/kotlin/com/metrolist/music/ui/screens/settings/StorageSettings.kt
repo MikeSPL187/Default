@@ -6,6 +6,9 @@
 package com.metrolist.music.ui.screens.settings
 
 import androidx.compose.runtime.mutableFloatStateOf
+import com.metrolist.music.ui.component.TITLE_SCROLL_PX
+import com.metrolist.music.ui.component.LargeScreenTitle
+import androidx.compose.runtime.derivedStateOf
 import com.metrolist.music.utils.safeDataStoreEdit
 import com.metrolist.music.playback.smartDownloads
 import com.metrolist.music.playback.SmartDownloads
@@ -360,13 +363,15 @@ fun StorageSettings(
         )
     }
 
+    val scrollState = rememberScrollState()
+    val titleInBar by remember { derivedStateOf { scrollState.value > TITLE_SCROLL_PX } }
     Column(
         Modifier
             .windowInsetsPadding(
                 LocalPlayerAwareWindowInsets.current.only(
                     WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom,
                 ),
-            ).verticalScroll(rememberScrollState())
+            ).verticalScroll(scrollState)
             .padding(horizontal = 16.dp),
     ) {
         Spacer(
@@ -376,6 +381,7 @@ fun StorageSettings(
                 ),
             ),
         )
+        LargeScreenTitle(stringResource(R.string.storage), horizontalPadding = 4.dp)
         Material3SettingsGroup(
             title = stringResource(R.string.storage),
             items =
@@ -680,7 +686,7 @@ fun StorageSettings(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.storage)) },
+        title = { if (titleInBar) Text(stringResource(R.string.storage)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,

@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.metrolist.music.R
 
@@ -90,12 +91,13 @@ fun LargeScreenTitle(
     title: String,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
+    horizontalPadding: Dp = 20.dp,
 ) {
     Column(
         modifier
             .fillMaxWidth()
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
-            .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 12.dp),
+            .padding(start = horizontalPadding, end = horizontalPadding, top = 4.dp, bottom = 12.dp),
     ) {
         Text(
             title,
@@ -109,3 +111,6 @@ fun LargeScreenTitle(
         }
     }
 }
+
+/** How far a screen scrolls before its large title moves into the top bar, in pixels. */
+const val TITLE_SCROLL_PX = 160
