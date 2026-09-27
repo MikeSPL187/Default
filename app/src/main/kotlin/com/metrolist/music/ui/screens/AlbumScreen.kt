@@ -260,9 +260,13 @@ fun AlbumScreen(
                         }
                     }
 
+                    // The album's own artist is in the header; a row names only guests, then the length.
+                    val albumArtistIds = albumWithSongs.artists.mapTo(HashSet()) { it.id }
+                    val guests = song.artists.filter { it.id !in albumArtistIds }.joinToString { it.name }
                     SongListItem(
                         song = song,
                         albumIndex = index + 1,
+                        subtitleOverride = listOf(guests, makeTimeString(song.song.duration * 1000L)).filter { it.isNotBlank() }.joinToString(" · "),
                         isActive = song.id == mediaMetadata?.id,
                         isPlaying = isPlaying,
                         showInLibraryIcon = true,

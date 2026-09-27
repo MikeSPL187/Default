@@ -383,7 +383,6 @@ fun AlbumMenu(
                         if (!isGuest) {
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.play_next)) },
-                                description = { Text(text = stringResource(R.string.play_next_desc)) },
                                 icon = {
                                     Icon(
                                         painter = painterResource(R.drawable.playlist_play),
@@ -401,7 +400,6 @@ fun AlbumMenu(
                         if (!isGuest) {
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.add_to_queue)) },
-                                description = { Text(text = stringResource(R.string.add_to_queue_desc)) },
                                 icon = {
                                     Icon(
                                         painter = painterResource(R.drawable.queue_music),
@@ -418,7 +416,6 @@ fun AlbumMenu(
                         },
                         Material3MenuItemData(
                             title = { Text(text = stringResource(R.string.add_to_playlist)) },
-                            description = { Text(text = stringResource(R.string.add_to_playlist_desc)) },
                             icon = {
                                 Icon(
                                     painter = painterResource(R.drawable.playlist_add),
@@ -525,7 +522,6 @@ fun AlbumMenu(
                             else -> {
                                 Material3MenuItemData(
                                     title = { Text(text = stringResource(R.string.action_download)) },
-                                    description = { Text(text = stringResource(R.string.download_desc)) },
                                     icon = {
                                         Icon(
                                             painter = painterResource(R.drawable.download),
@@ -664,7 +660,6 @@ fun AlbumMenu(
                         ),
                         Material3MenuItemData(
                             title = { Text(text = stringResource(R.string.refetch)) },
-                            description = { Text(text = stringResource(R.string.refetch_desc)) },
                             icon = {
                                 Icon(
                                     painter = painterResource(R.drawable.sync),

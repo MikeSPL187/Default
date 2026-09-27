@@ -608,7 +608,6 @@ fun SongMenu(
                         if (!isGuest) {
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.start_radio)) },
-                                description = { Text(text = stringResource(R.string.start_radio_desc)) },
                                 icon = {
                                     Icon(
                                         painter = painterResource(R.drawable.radio),
@@ -626,7 +625,6 @@ fun SongMenu(
                         if (!isGuest) {
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.play_next)) },
-                                description = { Text(text = stringResource(R.string.play_next_desc)) },
                                 icon = {
                                     Icon(
                                         painter = painterResource(R.drawable.playlist_play),
@@ -644,7 +642,6 @@ fun SongMenu(
                         if (!isGuest) {
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.add_to_queue)) },
-                                description = { Text(text = stringResource(R.string.add_to_queue_desc)) },
                                 icon = {
                                     Icon(
                                         painter = painterResource(R.drawable.queue_music),
@@ -775,7 +772,6 @@ fun SongMenu(
                                                 ),
                                         )
                                     },
-                                    description = { Text(text = stringResource(R.string.add_to_library_desc)) },
                                     icon = {
                                         Icon(
                                             painter =
@@ -955,7 +951,6 @@ fun SongMenu(
                             else -> {
                                 Material3MenuItemData(
                                     title = { Text(text = stringResource(R.string.action_download)) },
-                                    description = { Text(text = stringResource(R.string.download_desc)) },
                                     icon = {
                                         Icon(
                                             painter = painterResource(R.drawable.download),
@@ -1108,7 +1103,6 @@ fun SongMenu(
                         add(
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.refetch)) },
-                                description = { Text(text = stringResource(R.string.refetch_desc)) },
                                 icon = {
                                     Icon(
                                         painter = painterResource(R.drawable.sync),
@@ -1134,7 +1128,6 @@ fun SongMenu(
                         add(
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.details)) },
-                                description = { Text(text = stringResource(R.string.details_desc)) },
                                 icon = {
                                     Icon(
                                         painter = painterResource(R.drawable.info),

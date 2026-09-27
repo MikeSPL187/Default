@@ -479,7 +479,6 @@ fun YouTubePlaylistMenu(
                         if (!isGuest) {
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.play_next)) },
-                                description = { Text(text = stringResource(R.string.play_next_desc)) },
                                 icon = {
                                     Icon(
                                         painter = painterResource(R.drawable.playlist_play),
@@ -517,7 +516,6 @@ fun YouTubePlaylistMenu(
                         if (!isGuest) {
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.add_to_queue)) },
-                                description = { Text(text = stringResource(R.string.add_to_queue_desc)) },
                                 icon = {
                                     Icon(
                                         painter = painterResource(R.drawable.queue_music),
@@ -548,7 +546,6 @@ fun YouTubePlaylistMenu(
                         },
                         Material3MenuItemData(
                             title = { Text(text = stringResource(R.string.add_to_playlist)) },
-                            description = { Text(text = stringResource(R.string.add_to_playlist_desc)) },
                             icon = {
                                 Icon(
                                     painter = painterResource(R.drawable.playlist_add),
@@ -632,7 +629,6 @@ fun YouTubePlaylistMenu(
                                     else -> {
                                         Material3MenuItemData(
                                             title = { Text(text = stringResource(R.string.action_download)) },
-                                            description = { Text(text = stringResource(R.string.download_desc)) },
                                             icon = {
                                                 Icon(
                                                     painter = painterResource(R.drawable.download),
@@ -662,7 +658,6 @@ fun YouTubePlaylistMenu(
                         add(
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.share)) },
-                                description = { Text(text = stringResource(R.string.share_desc)) },
                                 icon = {
                                     Icon(
                                         painter = painterResource(R.drawable.share),

@@ -660,7 +660,6 @@ fun PlayerMenu(
                         add(
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.details)) },
-                                description = { Text(text = stringResource(R.string.details_desc)) },
                                 icon = {
                                     Icon(
                                         painter = painterResource(R.drawable.info),
@@ -695,7 +694,6 @@ fun PlayerMenu(
                             add(
                                 Material3MenuItemData(
                                     title = { Text(text = stringResource(R.string.equalizer)) },
-                                    description = { Text(text = stringResource(R.string.equalizer_desc)) },
                                     icon = {
                                         Icon(
                                             painter = painterResource(R.drawable.equalizer),
@@ -712,7 +710,6 @@ fun PlayerMenu(
                             add(
                                 Material3MenuItemData(
                                     title = { Text(text = stringResource(R.string.system_equalizer)) },
-                                    description = { Text(text = stringResource(R.string.system_equalizer_desc)) },
                                     icon = {
                                         Icon(
                                             painter = painterResource(R.drawable.graphic_eq),
@@ -739,7 +736,6 @@ fun PlayerMenu(
                             add(
                                 Material3MenuItemData(
                                     title = { Text(text = stringResource(R.string.advanced)) },
-                                    description = { Text(text = stringResource(R.string.advanced_desc)) },
                                     icon = {
                                         Icon(
                                             painter = painterResource(R.drawable.tune),

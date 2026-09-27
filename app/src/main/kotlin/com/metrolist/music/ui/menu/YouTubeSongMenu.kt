@@ -383,7 +383,6 @@ fun YouTubeSongMenu(
                     if (!isGuest) {
                         Material3MenuItemData(
                             title = { Text(text = stringResource(R.string.start_radio)) },
-                            description = { Text(text = stringResource(R.string.start_radio_desc)) },
                             icon = {
                                 Icon(
                                     painter = painterResource(R.drawable.radio),
@@ -399,7 +398,6 @@ fun YouTubeSongMenu(
                     if (!isGuest) {
                         Material3MenuItemData(
                             title = { Text(text = stringResource(R.string.add_to_queue)) },
-                            description = { Text(text = stringResource(R.string.add_to_queue_desc)) },
                             icon = {
                                 Icon(
                                     painter = painterResource(R.drawable.queue_music),
@@ -450,7 +448,6 @@ fun YouTubeSongMenu(
                             add(
                                 Material3MenuItemData(
                                     title = { Text(text = stringResource(R.string.save_episode_for_later)) },
-                                    description = { Text(text = stringResource(R.string.save_episode_for_later_desc)) },
                                     icon = {
                                         Icon(
                                             painter = painterResource(R.drawable.playlist_add),
@@ -532,7 +529,6 @@ fun YouTubeSongMenu(
                             title = {
                                 Text(text = if (librarySong?.song?.inLibrary != null) stringResource(R.string.remove_from_library) else stringResource(R.string.add_to_library))
                             },
-                            description = { Text(text = stringResource(R.string.add_to_library_desc)) },
                             icon = {
                                 Icon(
                                     painter = painterResource(if (librarySong?.song?.inLibrary != null) R.drawable.library_add_check else R.drawable.library_add),
@@ -620,7 +616,6 @@ fun YouTubeSongMenu(
                         else -> {
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.action_download)) },
-                                description = { Text(text = stringResource(R.string.download_desc)) },
                                 icon = {
                                     Icon(
                                         painter = painterResource(R.drawable.download),
@@ -709,7 +704,6 @@ fun YouTubeSongMenu(
                     add(
                         Material3MenuItemData(
                             title = { Text(text = stringResource(R.string.details)) },
-                            description = { Text(text = stringResource(R.string.details_desc)) },
                             icon = {
                                 Icon(
                                     painter = painterResource(R.drawable.info),

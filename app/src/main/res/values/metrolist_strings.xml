@@ -1415,4 +1415,9 @@
     <string name="empty_downloaded_hint">Download songs and playlists to listen without internet.</string>
     <string name="empty_find_music">Find music</string>
     <string name="empty_history_hint">What you listen to will show up here, day by day.</string>
+    <string name="player_error_title">Couldn\'t play this track</string>
+    <string name="player_error_hint">YouTube didn\'t give us this track. Try again or skip to the next one.</string>
+    <string name="player_error_next">Next</string>
+    <string name="player_error_details">Details</string>
+    <string name="player_error_copy">Copy for a bug report</string>
 </resources>

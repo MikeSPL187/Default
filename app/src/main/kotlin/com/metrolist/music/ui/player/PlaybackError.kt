@@ -10,6 +10,14 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -103,109 +111,114 @@ fun PlaybackError(
             buildPlaybackErrorReport(error, mediaMetadata, streamClient, reportedAt)
         }
 
+    var details by remember(error) { mutableStateOf(false) }
+    val colors = MaterialTheme.colorScheme
+
+    // Takt: what happened and what to do in one sentence; the technical part stays folded away
+    // for a bug report.
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
         modifier =
-        Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .clip(RoundedCornerShape(30.dp))
+                .background(colors.surfaceContainerHigh.copy(alpha = 0.92f))
+                .padding(horizontal = 22.dp, vertical = 20.dp),
     ) {
-        Icon(
-            painter = painterResource(R.drawable.error),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.error,
-            modifier = Modifier.size(48.dp),
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = stringResource(
-                if (isOnline) R.string.error_playback_failed else R.string.error_no_internet_connection,
-            ),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center,
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = errorMessage,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            maxLines = 3,
-            overflow = TextOverflow.Ellipsis,
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = "Code: $errorCodeName (${error.errorCode})",
-            style =
-            MaterialTheme.typography.bodySmall.copy(
-                fontFamily = FontFamily.Monospace,
-                fontSize = 11.sp,
-            ),
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center,
-        )
-
-        if (causeSummary.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = causeSummary,
-                style =
-                MaterialTheme.typography.bodySmall.copy(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp,
-                ),
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier =
+                Modifier
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(colors.errorContainer),
+        ) {
+            Icon(
+                painter = painterResource(if (isOnline) R.drawable.error else R.drawable.cloud_off),
+                contentDescription = null,
+                tint = colors.onErrorContainer,
+                modifier = Modifier.size(30.dp),
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = stringResource(if (isOnline) R.string.player_error_title else R.string.error_no_internet_connection),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 14.dp),
+        )
+        Text(
+            text =
+                when {
+                    !isOnline -> stringResource(R.string.error_offline_playback)
+                    guidance != null -> guidance
+                    else -> stringResource(R.string.player_error_hint)
+                },
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(top = 6.dp),
+        )
 
         Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(top = 16.dp),
         ) {
-            Button(
-                onClick = retry,
-                shape = RoundedCornerShape(20.dp),
-                colors =
-                ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                ),
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.replay),
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
+            Button(onClick = retry) {
+                Icon(painterResource(R.drawable.replay), contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(text = stringResource(R.string.retry))
             }
-
-            OutlinedButton(
-                onClick = {
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    clipboard.setPrimaryClip(ClipData.newPlainText("Metrolist Playback Error", errorReport))
-                },
-                shape = RoundedCornerShape(20.dp),
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.content_copy),
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
+            OutlinedButton(onClick = { playerConnection.player.seekToNext() }) {
+                Icon(painterResource(R.drawable.skip_next), contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(text = stringResource(R.string.copy))
+                Text(text = stringResource(R.string.player_error_next))
+            }
+        }
+
+        TextButton(onClick = { details = !details }, modifier = Modifier.padding(top = 4.dp)) {
+            Text(stringResource(R.string.player_error_details), style = MaterialTheme.typography.labelMedium)
+            Icon(
+                painterResource(if (details) R.drawable.expand_less else R.drawable.expand_more),
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+
+        AnimatedVisibility(visible = details) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = errorMessage,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    maxLines = 4,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = listOf("$errorCodeName (${error.errorCode})", causeSummary).filter { it.isNotEmpty() }.joinToString("\n"),
+                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace, fontSize = 10.sp),
+                    color = colors.onSurfaceVariant.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+                TextButton(
+                    onClick = {
+                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        clipboard.setPrimaryClip(ClipData.newPlainText("Metrolist Playback Error", errorReport))
+                    },
+                ) {
+                    Icon(painterResource(R.drawable.content_copy), contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(stringResource(R.string.player_error_copy))
+                }
             }
         }
     }

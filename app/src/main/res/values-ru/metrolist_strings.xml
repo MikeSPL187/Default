@@ -1316,4 +1316,9 @@
     <string name="empty_downloaded_hint">Скачивайте треки и плейлисты, чтобы слушать без интернета.</string>
     <string name="empty_find_music">Найти музыку</string>
     <string name="empty_history_hint">Здесь по дням появится всё, что вы слушали.</string>
+    <string name="player_error_title">Не удалось включить трек</string>
+    <string name="player_error_hint">YouTube не отдал этот трек. Попробуйте ещё раз или включите следующий.</string>
+    <string name="player_error_next">Следующий</string>
+    <string name="player_error_details">Подробнее</string>
+    <string name="player_error_copy">Скопировать для отчёта</string>
 </resources>

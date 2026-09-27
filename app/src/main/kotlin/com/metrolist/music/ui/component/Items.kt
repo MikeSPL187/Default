@@ -1103,7 +1103,7 @@ fun MediaMetadataListItem(
                     )
                     append(base)
                     if (mediaMetadata.suggestedBy != null && base.isNotEmpty()) {
-                        append(" • ")
+                        append(" · ")
                         withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
                             append(mediaMetadata.suggestedBy)
                         }
