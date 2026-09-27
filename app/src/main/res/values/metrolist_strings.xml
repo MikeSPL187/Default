@@ -1428,4 +1428,6 @@
     <string name="cd_increase">Increase</string>
     <string name="cd_clear_artists">Clear chosen artists</string>
     <string name="cd_time_transfer">Move listening time</string>
+    <string name="charts_unavailable">Charts didn\'t load</string>
+    <string name="charts_unavailable_hint">YouTube Music didn\'t send the charts. Check the connection and try again.</string>
 </resources>

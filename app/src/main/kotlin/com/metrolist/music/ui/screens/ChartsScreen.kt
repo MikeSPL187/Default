@@ -76,6 +76,7 @@ import com.metrolist.music.ui.component.NavigationTitle
 import com.metrolist.music.ui.component.YouTubeGridItem
 import com.metrolist.music.ui.component.YouTubeListItem
 import com.metrolist.music.ui.component.shimmer.GridItemPlaceHolder
+import com.metrolist.music.ui.component.EmptyPlaceholder
 import com.metrolist.music.ui.component.shimmer.ShimmerHost
 import com.metrolist.music.ui.component.shimmer.TextPlaceholder
 import com.metrolist.music.ui.menu.YouTubeSongMenu
@@ -97,6 +98,7 @@ fun ChartsScreen(
 
     val chartsPage by viewModel.chartsPage.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
 
     val lazyListState = rememberLazyListState()
     val scrolledPastTitle by remember { derivedStateOf { lazyListState.firstVisibleItemIndex > 0 } }
@@ -132,7 +134,15 @@ fun ChartsScreen(
                     .fillMaxSize()
                     .padding(paddingValues),
         ) {
-            if (isLoading || chartsPage == null) {
+            if (error != null && chartsPage == null && !isLoading) {
+                EmptyPlaceholder(
+                    icon = R.drawable.cloud_off,
+                    text = stringResource(R.string.charts_unavailable),
+                    hint = stringResource(R.string.charts_unavailable_hint),
+                    action = stringResource(R.string.retry),
+                    onAction = viewModel::loadCharts,
+                )
+            } else if (isLoading || chartsPage == null) {
                 ShimmerHost(
                     modifier = Modifier.fillMaxSize(),
                 ) {
@@ -221,6 +231,17 @@ fun ChartsScreen(
                             .asPaddingValues(),
                 ) {
                     item(key = "large_title") { LargeScreenTitle(stringResource(R.string.charts)) }
+                    if (chartsPage?.sections.isNullOrEmpty()) {
+                        item(key = "empty") {
+                            EmptyPlaceholder(
+                                icon = R.drawable.trending_up,
+                                text = stringResource(R.string.charts_unavailable),
+                                hint = stringResource(R.string.charts_unavailable_hint),
+                                action = stringResource(R.string.retry),
+                                onAction = viewModel::loadCharts,
+                            )
+                        }
+                    }
 
                     chartsPage?.sections?.filter { it.title != "Top music videos" }?.forEach { section ->
                         item(key = "section_title_${section.title}") {

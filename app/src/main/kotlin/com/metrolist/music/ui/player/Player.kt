@@ -1578,7 +1578,8 @@ fun BottomSheetPlayer(
                             )
                         }
 
-                        Row(
+                        // With lyrics open the words get the room; where it plays and sharing wait on the cover view.
+                        if (!showInlineLyrics) Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier =
                                 Modifier

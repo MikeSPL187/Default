@@ -1329,4 +1329,6 @@
     <string name="cd_increase">Увеличить</string>
     <string name="cd_clear_artists">Сбросить выбранных исполнителей</string>
     <string name="cd_time_transfer">Перенести время прослушивания</string>
+    <string name="charts_unavailable">Чарты не загрузились</string>
+    <string name="charts_unavailable_hint">YouTube Music не прислал чарты. Проверьте интернет и попробуйте ещё раз.</string>
 </resources>
