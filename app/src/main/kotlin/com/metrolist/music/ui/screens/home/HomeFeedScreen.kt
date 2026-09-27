@@ -448,7 +448,10 @@ fun HomeFeedScreen(
                                         haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                                         playerConnection.playQueue(ListQueue(title = title, items = songs.map { it.toMediaItem() }, startIndex = index))
                                     },
-                                    onMenu = { menuState.show { SongMenu(originalSong = song, onDismiss = menuState::dismiss) } },
+                                    onMenu = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        menuState.show { SongMenu(originalSong = song, onDismiss = menuState::dismiss) }
+                                    },
                                     modifier = Modifier.animateItem(),
                                 )
                             }
@@ -1142,6 +1145,7 @@ private fun MixCard(
 
 // ---------------------------------------------------------------- quick picks
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun QuickPickRow(
     song: Song,
@@ -1162,7 +1166,7 @@ private fun QuickPickRow(
         modifier =
             modifier
                 .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
-                .clickable(onClick = onPlay),
+                .combinedClickable(onClick = onPlay, onLongClick = onMenu),
     )
 }
 
