@@ -1352,4 +1352,7 @@
         <item quantity="other">%d трека добавлено в очередь</item>
     </plurals>
     <string name="queue_cleared_played">Убрано прослушанных: %d</string>
+    <string name="search_empty_hint">Проверьте написание или попробуйте название трека, исполнителя или альбома.</string>
+    <string name="search_empty_filter_hint">Среди этого ничего нет — попробуйте другой фильтр.</string>
+    <string name="search_failed_hint">Проверьте интернет и попробуйте ещё раз.</string>
 </resources>

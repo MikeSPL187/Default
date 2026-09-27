@@ -1447,4 +1447,7 @@
         <item quantity="other">%d songs added to the queue</item>
     </plurals>
     <string name="queue_cleared_played">Removed %d played songs</string>
+    <string name="search_empty_hint">Check the spelling or try the song, artist or album name.</string>
+    <string name="search_empty_filter_hint">Nothing of this kind — try another filter.</string>
+    <string name="search_failed_hint">Check the connection and try again.</string>
 </resources>

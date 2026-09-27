@@ -522,6 +522,7 @@ fun OnlineSearchResult(
                                 EmptyPlaceholder(
                                     icon = R.drawable.search,
                                     text = stringResource(R.string.no_results_found),
+                                    hint = stringResource(R.string.search_empty_hint),
                                 )
                             }
                         }
@@ -547,6 +548,7 @@ fun OnlineSearchResult(
                                 EmptyPlaceholder(
                                     icon = R.drawable.search,
                                     text = stringResource(R.string.no_results_found),
+                                    hint = stringResource(R.string.search_empty_filter_hint),
                                 )
                             }
                         }
@@ -555,9 +557,11 @@ fun OnlineSearchResult(
                     if (loadFailed) {
                         item(key = "load_failed") {
                             EmptyPlaceholder(
-                                icon = R.drawable.replay,
+                                icon = R.drawable.cloud_off,
                                 text = stringResource(R.string.search_failed),
-                                modifier = Modifier.clickable { viewModel.retry() },
+                                hint = stringResource(R.string.search_failed_hint),
+                                action = stringResource(R.string.retry),
+                                onAction = { viewModel.retry() },
                             )
                         }
                     } else if (searchFilter == null && searchSummary == null || searchFilter != null && itemsPage == null) {
