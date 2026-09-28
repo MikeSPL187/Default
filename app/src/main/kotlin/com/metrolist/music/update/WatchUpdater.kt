@@ -2,7 +2,6 @@ package com.metrolist.music.update
 
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.provider.Settings
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -257,10 +256,9 @@ object WatchUpdater {
     ) = File(context.cacheDir, UPDATES_DIR).apply { mkdirs() }.resolve("MetrolistWatch-b${release.build}.apk")
 
     /** Whether Android lets this app open the installer; asked once, in system settings. */
-    fun canInstall(context: Context) = Build.VERSION.SDK_INT < Build.VERSION_CODES.O || context.packageManager.canRequestPackageInstalls()
+    fun canInstall(context: Context) = context.packageManager.canRequestPackageInstalls()
 
     fun requestInstallPermission(context: Context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         context.startActivity(
             Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, "package:${context.packageName}".toUri())
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),

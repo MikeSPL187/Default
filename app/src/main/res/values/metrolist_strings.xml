@@ -917,8 +917,8 @@
     <string name="delete_uploaded_song_success">Uploaded song deleted</string>
     <string name="delete_uploaded_song_failed">Failed to delete uploaded song</string>
     <string name="delete_uploaded_songs">Delete uploaded songs</string>
-    <string name="delete_uploaded_songs_confirm">Are you sure you want to delete %1$d uploaded songs? This action cannot be undone</string>
-    <string name="deleted_n_songs">Deleted %1$d songs</string>
+    <string name="delete_uploaded_songs_confirm">Delete uploaded songs (%1$d)? This can\'t be undone</string>
+    <string name="deleted_n_songs">Songs deleted: %1$d</string>
     <string name="deleting">Deleting…</string>
 
     <!-- Android Auto settings -->
@@ -1031,9 +1031,9 @@
 
     <!-- Playlists -->
     <string name="remove_playlist_duplicates">Remove duplicate songs</string>
-    <string name="remove_playlist_duplicates_desc">Found %1$d duplicate songs</string>
-    <string name="remove_playlist_duplicates_confirm">Remove %1$d duplicate songs while keeping their first occurrence?</string>
-    <string name="playlist_duplicates_removed">Removed %1$d duplicate songs</string>
+    <string name="remove_playlist_duplicates_desc">Duplicates found: %1$d</string>
+    <string name="remove_playlist_duplicates_confirm">Remove duplicates (%1$d), keeping the first of each?</string>
+    <string name="playlist_duplicates_removed">Duplicates removed: %1$d</string>
 
     <!-- Huawei Watch export (automation) -->
     <string name="auto_export_for_watch">Export new downloads automatically</string>
@@ -1067,7 +1067,7 @@
     <string name="not_recommended_song_toast">This song won\'t be recommended</string>
     <string name="not_recommended_artist_toast">This artist won\'t be recommended</string>
     <string name="not_recommended_title">Not recommended</string>
-    <string name="not_recommended_summary">%1$d songs, %2$d artists. Tap to reset</string>
+    <string name="not_recommended_summary">Songs: %1$d, artists: %2$d. Tap to reset</string>
     <string name="not_recommended_empty">Nothing hidden from recommendations</string>
     <string name="not_recommended_cleared">Recommendations reset</string>
 
@@ -1352,7 +1352,6 @@
     <string name="you_watch">Storage</string>
     <string name="you_this_week">This week</string>
     <string name="you_week_delta">%1$s vs last week</string>
-    <string name="you_week_empty">Nothing played yet</string>
     <string name="you_most_played">Top artist</string>
     <string name="you_weekdays">Mo,Tu,We,Th,Fr,Sa,Su</string>
     <string name="you_recap_title">Your %s</string>
@@ -1401,7 +1400,6 @@
     <string name="output_bluetooth">Bluetooth</string>
     <string name="collection_play">Play</string>
     <string name="collection_album">Album</string>
-    <string name="collection_playlist">Playlist</string>
     <string name="search_recognize">Recognize a song</string>
     <string name="offline_flow_idle">Everything downloaded</string>
     <string name="offline_flow_live">Flow · playing</string>
@@ -1449,7 +1447,7 @@
         <item quantity="one">%d song added to the queue</item>
         <item quantity="other">%d songs added to the queue</item>
     </plurals>
-    <string name="queue_cleared_played">Removed %d played songs</string>
+    <string name="queue_cleared_played">Played songs removed: %d</string>
     <string name="search_empty_hint">Check the spelling or try the song, artist or album name.</string>
     <string name="search_empty_filter_hint">Nothing of this kind — try another filter.</string>
     <string name="search_failed_hint">Check the connection and try again.</string>

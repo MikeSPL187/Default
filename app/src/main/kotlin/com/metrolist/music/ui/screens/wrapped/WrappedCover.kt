@@ -12,6 +12,7 @@ import android.graphics.Shader
 import android.graphics.Typeface
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.createBitmap
 import com.metrolist.music.R
 
 /**
@@ -24,7 +25,7 @@ fun renderWrappedCover(
     accent: Int,
     size: Int = 1024,
 ): Bitmap {
-    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val bitmap = createBitmap(size, size)
     val canvas = Canvas(bitmap)
     val scale = size / 1024f
     val center = size / 2f

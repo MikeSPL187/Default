@@ -923,7 +923,7 @@
     <!-- Playlists -->
     <string name="remove_playlist_duplicates">Удалить повторяющиеся треки</string>
     <string name="remove_playlist_duplicates_desc">Найдено повторов: %1$d</string>
-    <string name="remove_playlist_duplicates_confirm">Удалить %1$d повторяющихся треков, оставив первое вхождение каждого?</string>
+    <string name="remove_playlist_duplicates_confirm">Удалить повторы (%1$d), оставив первое вхождение каждого?</string>
     <string name="playlist_duplicates_removed">Удалено повторяющихся треков: %1$d</string>
 
     <!-- Huawei Watch export (automation) -->
@@ -1253,7 +1253,6 @@
     <string name="you_watch">Хранилище</string>
     <string name="you_this_week">Эта неделя</string>
     <string name="you_week_delta">%1$s к прошлой неделе</string>
-    <string name="you_week_empty">Пока ничего не слушали</string>
     <string name="you_most_played">Топ-артист</string>
     <string name="you_weekdays">Пн,Вт,Ср,Чт,Пт,Сб,Вс</string>
     <string name="you_recap_title">Ваш %s</string>
@@ -1302,7 +1301,6 @@
     <string name="output_bluetooth">Bluetooth</string>
     <string name="collection_play">Слушать</string>
     <string name="collection_album">Альбом</string>
-    <string name="collection_playlist">Плейлист</string>
     <string name="search_recognize">Распознать песню</string>
     <string name="offline_flow_idle">Всё скачанное</string>
     <string name="offline_flow_live">Поток · играет</string>
