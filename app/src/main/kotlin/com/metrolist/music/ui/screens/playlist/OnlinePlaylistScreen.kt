@@ -43,6 +43,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -365,6 +367,10 @@ fun OnlinePlaylistScreen(
             }
         }
 
+        val topBarColor by animateColorAsState(
+            if (isScrolledPastHeader || inSelectMode || isSearching) MaterialTheme.colorScheme.surface else Color.Transparent,
+            label = "playlist top bar",
+        )
         TopAppBar(
             title = {
                 if (inSelectMode) {
@@ -502,6 +508,12 @@ fun OnlinePlaylistScreen(
                     }
                 }
             },
+            // See-through over the cover's glow; solid once the list scrolls under it.
+            colors =
+                TopAppBarDefaults.topAppBarColors(
+                    containerColor = topBarColor,
+                    scrolledContainerColor = topBarColor,
+                ),
         )
 
         SnackbarHost(

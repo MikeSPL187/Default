@@ -87,15 +87,23 @@ class OnboardingViewModel
                                 .map { artist ->
                                     async {
                                         lookups.withPermit {
+                                            // Only this very artist, or one of the same name: the first hit
+                                            // for an unusual name is often someone else, with someone else's face.
                                             searchArtists(artist.name)?.let { found ->
-                                                found.firstOrNull { it.id == artist.id } ?: found.firstOrNull()
+                                                found.firstOrNull { it.id == artist.id }
+                                                    ?: found.firstOrNull { it.title.equals(artist.name, ignoreCase = true) }
                                             }
                                         }
                                     }
                                 }.awaitAll()
                                 .filterNotNull()
                         }
-                    popular = (listed + fromSongs).distinctBy { it.id }.take(MAX_ARTISTS)
+                    // Two names sharing one picture (a label's page found for both) would look like a mistake.
+                    popular =
+                        (listed + fromSongs)
+                            .distinctBy { it.id }
+                            .distinctBy { it.thumbnail ?: it.id }
+                            .take(MAX_ARTISTS)
                     _artists.value = popular
                     _failed.value = popular.isEmpty()
                 }

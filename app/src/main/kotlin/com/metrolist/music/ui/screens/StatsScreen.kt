@@ -90,6 +90,7 @@ import com.metrolist.innertube.utils.parseCookieString
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import com.metrolist.music.ui.component.SegmentLabel
 import com.metrolist.music.ui.component.LargeScreenTitle
 import com.metrolist.music.constants.CONTENT_TYPE_ARTIST
 import com.metrolist.music.constants.InnerTubeCookieKey
@@ -920,8 +921,10 @@ private fun StatsPeriodRow(
                         onSelect(period)
                     },
                     shape = SegmentedButtonDefaults.itemShape(index = index, count = StatsPeriods.size),
+                    // Four segments leave no room for a check mark; the fill already shows the choice.
+                    icon = {},
                     label = {
-                        Text(
+                        SegmentLabel(
                             stringResource(
                                 when (period) {
                                     StatPeriod.WEEK_1 -> R.string.stats_week
@@ -930,8 +933,6 @@ private fun StatsPeriodRow(
                                     else -> R.string.stats_all_time
                                 },
                             ),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
                         )
                     },
                 )

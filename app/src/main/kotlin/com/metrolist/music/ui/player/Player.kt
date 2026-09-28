@@ -1328,11 +1328,15 @@ fun BottomSheetPlayer(
 
             Spacer(Modifier.height(24.dp))
 
+            // Before the length is known (loading, or a track that failed) the bar must read empty;
+            // a 0..0 range made the wavy bar draw full, as if the song had played out.
+            val sliderRangeOrEmpty = if (duration == C.TIME_UNSET || duration <= 0L) 0f..1f else 0f..duration.toFloat()
+
             when (sliderStyle) {
                 SliderStyle.DEFAULT -> {
                     Slider(
-                        value = (sliderPosition ?: effectivePosition).toFloat(),
-                        valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
+                        value = (sliderPosition ?: effectivePosition).toFloat().coerceIn(sliderRangeOrEmpty),
+                        valueRange = sliderRangeOrEmpty,
                         onValueChange = {
                             if (!isListenTogetherGuest) {
                                 sliderPosition = it.toLong()
@@ -1361,8 +1365,8 @@ fun BottomSheetPlayer(
                 SliderStyle.WAVY -> {
                     if (squigglySlider) {
                         SquigglySlider(
-                            value = (sliderPosition ?: effectivePosition).toFloat(),
-                            valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
+                            value = (sliderPosition ?: effectivePosition).toFloat().coerceIn(sliderRangeOrEmpty),
+                            valueRange = sliderRangeOrEmpty,
                             onValueChange = {
                                 sliderPosition = it.toLong()
                             },
@@ -1384,8 +1388,8 @@ fun BottomSheetPlayer(
                         )
                     } else {
                         WavySlider(
-                            value = (sliderPosition ?: effectivePosition).toFloat(),
-                            valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
+                            value = (sliderPosition ?: effectivePosition).toFloat().coerceIn(sliderRangeOrEmpty),
+                            valueRange = sliderRangeOrEmpty,
                             onValueChange = {
                                 sliderPosition = it.toLong()
                             },
@@ -1409,8 +1413,8 @@ fun BottomSheetPlayer(
                 }
 
                 SliderStyle.SLIM -> {
-                    val sliderValue = (sliderPosition ?: effectivePosition).toFloat()
-                    val sliderRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat())
+                    val sliderValue = (sliderPosition ?: effectivePosition).toFloat().coerceIn(sliderRangeOrEmpty)
+                    val sliderRange = sliderRangeOrEmpty
                     val sliderState = remember(sliderRange) {
                         SliderState(value = sliderValue, trackRange = sliderRange)
                     }
@@ -1468,7 +1472,7 @@ fun BottomSheetPlayer(
                 )
 
                 Text(
-                    text = if (duration != C.TIME_UNSET) "−" + makeTimeString((duration - (sliderPosition ?: effectivePosition)).coerceAtLeast(0L)) else "",
+                    text = if (duration != C.TIME_UNSET && duration > 0L) "−" + makeTimeString((duration - (sliderPosition ?: effectivePosition)).coerceAtLeast(0L)) else "",
                     style = MaterialTheme.typography.labelMedium,
                     color = TextBackgroundColor,
                     maxLines = 1,

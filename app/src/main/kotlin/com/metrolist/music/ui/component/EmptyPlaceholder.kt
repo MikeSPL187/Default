@@ -27,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
@@ -65,7 +66,8 @@ fun EmptyPlaceholder(
         }
         Text(
             text = text,
-            style = MaterialTheme.typography.titleLarge,
+            // Balanced lines, so a centred heading never leaves one word alone on the last line.
+            style = MaterialTheme.typography.titleLarge.copy(lineBreak = LineBreak.Heading),
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 22.dp),
@@ -73,7 +75,7 @@ fun EmptyPlaceholder(
         hint?.let {
             Text(
                 text = it,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium.copy(lineBreak = LineBreak.Heading),
                 color = colors.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 8.dp),

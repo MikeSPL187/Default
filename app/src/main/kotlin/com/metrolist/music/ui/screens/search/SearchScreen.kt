@@ -19,7 +19,9 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -251,7 +253,9 @@ fun SearchScreen(
                                 singleLine = true,
                                 decorationBox = { innerTextField ->
                                     if (query.text.isEmpty()) {
-                                        Text(
+                                        // The bar also holds up to three buttons, so the hint shrinks to stay whole
+                                        // at a large font size before it ever falls back to "…".
+                                        BasicText(
                                             text =
                                                 stringResource(
                                                     when (searchSource) {
@@ -265,7 +269,9 @@ fun SearchScreen(
                                                     fontSize = 16.sp,
                                                 ),
                                             maxLines = 1,
+                                            softWrap = false,
                                             overflow = TextOverflow.Ellipsis,
+                                            autoSize = TextAutoSize.StepBased(minFontSize = 11.sp, maxFontSize = 16.sp, stepSize = 0.5.sp),
                                         )
                                     }
                                     innerTextField()

@@ -50,6 +50,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
@@ -94,7 +96,8 @@ fun OnboardingScreen(
         Box(Modifier.fillMaxSize()) {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(104.dp),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 120.dp),
+                // Room for the last row to scroll clear of the button and its fade.
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 160.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
                 modifier =
@@ -180,9 +183,15 @@ fun OnboardingScreen(
                     Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface)
-                        .windowInsetsPadding(WindowInsets.navigationBars)
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                        // The grid fades out under the button instead of stopping at a hard edge.
+                        .background(
+                            Brush.verticalGradient(
+                                0f to Color.Transparent,
+                                0.35f to MaterialTheme.colorScheme.surface,
+                                1f to MaterialTheme.colorScheme.surface,
+                            ),
+                        ).windowInsetsPadding(WindowInsets.navigationBars)
+                        .padding(start = 20.dp, end = 20.dp, top = 40.dp, bottom = 16.dp),
             ) {
                 Button(
                     onClick = { viewModel.finish(onDone) },

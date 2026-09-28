@@ -37,6 +37,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -239,7 +241,7 @@ fun OnlinePodcastScreen(
                                         YouTubeSongMenu(episode.asSongItem(), menuState::dismiss)
                                     }
                                 }) {
-                                    Icon(painterResource(R.drawable.more_vert), null)
+                                    Icon(painterResource(R.drawable.more_vert), stringResource(R.string.more_options))
                                 }
                             }
                         )
@@ -248,6 +250,10 @@ fun OnlinePodcastScreen(
             }
         }
 
+        val topBarColor by animateColorAsState(
+            if (isScrolledPastHeader || isSearching) MaterialTheme.colorScheme.surface else Color.Transparent,
+            label = "podcast top bar",
+        )
         TopAppBar(
             title = {
                 if (isSearching) {
@@ -308,6 +314,12 @@ fun OnlinePodcastScreen(
                     }
                 }
             },
+            // See-through over the cover's glow; solid once the list scrolls under it.
+            colors =
+                TopAppBarDefaults.topAppBarColors(
+                    containerColor = topBarColor,
+                    scrolledContainerColor = topBarColor,
+                ),
             scrollBehavior = scrollBehavior
         )
     }

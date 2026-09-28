@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -166,7 +167,7 @@ fun YouScreen(
                     Tool(R.drawable.group_outlined, R.string.together, Color(0xFFC9A2F5), "listen_together_from_topbar"),
                     Tool(R.drawable.alarm, R.string.you_alarm, Color(0xFFE6D35A), "alarm"),
                     Tool(R.drawable.equalizer, R.string.equalizer, Color(0xFF9DD3A8), "equalizer"),
-                    Tool(R.drawable.watch, R.string.you_watch, Color(0xFFF59A9A), "settings/storage"),
+                    Tool(R.drawable.storage, R.string.you_watch, Color(0xFFF59A9A), "settings/storage"),
                 )
             Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(horizontal = 16.dp)) {
                 tools.chunked(3).forEach { row ->
@@ -222,6 +223,9 @@ private fun ToolTile(
     onClick: () -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
+    // The pastel tints are made for a dark surface; on a light one the icon takes a deeper shade
+    // of its colour, or it all but vanishes into its disc.
+    val iconTint = if (colors.surface.luminance() > 0.5f) lerp(tool.tint, Color.Black, 0.45f) else tool.tint
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -239,7 +243,7 @@ private fun ToolTile(
                     .size(38.dp)
                     .clip(CircleShape)
                     .background(lerp(colors.surfaceContainerHigh, tool.tint, 0.26f)),
-        ) { Icon(painterResource(tool.icon), null, tint = tool.tint, modifier = Modifier.size(21.dp)) }
+        ) { Icon(painterResource(tool.icon), null, tint = iconTint, modifier = Modifier.size(21.dp)) }
         Text(
             stringResource(tool.label),
             style = MaterialTheme.typography.labelLarge,

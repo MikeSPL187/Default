@@ -41,6 +41,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -1005,16 +1006,26 @@ fun ArtistScreen(
         )
     }
 
+    // Over the photo the buttons sit on a soft dark disc, so they read on a light or a busy image.
+    val overPhoto =
+        if (transparentAppBar) {
+            Modifier.drawBehind { drawCircle(Color.Black.copy(alpha = 0.32f), radius = 20.dp.toPx()) }
+        } else {
+            Modifier
+        }
+    val iconTint = if (transparentAppBar) Color.White else LocalContentColor.current
     TopAppBar(
         title = { if (!transparentAppBar) Text(displayArtistName.orEmpty()) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
                 onLongClick = navController::backToMain,
+                modifier = overPhoto,
             ) {
                 Icon(
                     painterResource(R.drawable.arrow_back),
                     contentDescription = stringResource(R.string.back),
+                    tint = iconTint,
                 )
             }
         },
@@ -1028,10 +1039,12 @@ fun ArtistScreen(
                         Toast.makeText(context, R.string.link_copied, Toast.LENGTH_SHORT).show()
                     }
                 },
+                modifier = overPhoto,
             ) {
                 Icon(
                     painterResource(R.drawable.link),
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.copy_link),
+                    tint = iconTint,
                 )
             }
         },

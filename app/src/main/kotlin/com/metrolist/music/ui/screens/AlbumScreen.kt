@@ -42,6 +42,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -375,6 +378,10 @@ fun AlbumScreen(
         }
     }
 
+    val topBarColor by animateColorAsState(
+        if (isScrolledPastHeader || inSelectMode) MaterialTheme.colorScheme.surface else Color.Transparent,
+        label = "album top bar",
+    )
     TopAppBar(
         title = {
             if (inSelectMode) {
@@ -466,5 +473,11 @@ fun AlbumScreen(
                 }
             }
         },
+        // See-through over the cover's glow; solid once the list scrolls under it.
+        colors =
+            TopAppBarDefaults.topAppBarColors(
+                containerColor = topBarColor,
+                scrolledContainerColor = topBarColor,
+            ),
     )
 }

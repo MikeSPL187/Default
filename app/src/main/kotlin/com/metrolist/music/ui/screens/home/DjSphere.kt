@@ -82,6 +82,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.metrolist.innertube.pages.HomePage
 import com.metrolist.music.R
+import com.metrolist.music.ui.component.SegmentLabel
 import com.metrolist.music.dj.DjMode
 import com.metrolist.music.dj.DjMood
 import com.metrolist.music.ui.component.PlayPauseIcon
@@ -535,7 +536,7 @@ fun DjTuneSheet(
                             onMode(option)
                         },
                         shape = SegmentedButtonDefaults.itemShape(index = index, count = DjMode.entries.size),
-                        label = { Text(stringResource(option.label), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        label = { SegmentLabel(stringResource(option.label)) },
                     )
                 }
             }

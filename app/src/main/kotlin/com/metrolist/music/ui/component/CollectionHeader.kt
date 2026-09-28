@@ -27,6 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalDensity
+import com.metrolist.music.LocalPlayerAwareWindowInsets
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -62,6 +65,10 @@ fun CollectionHeader(
 ) {
     val accent = rememberArtworkAccent(thumbnailUrl) ?: MaterialTheme.colorScheme.primary
     val glow by animateColorAsState(accent, tween(700), label = "collection glow")
+    // The header opens the list, under the status and top bars; the glow reaches up behind them so
+    // there is no seam where the bar ends.
+    val density = LocalDensity.current
+    val extendUp = LocalPlayerAwareWindowInsets.current.getTop(density).toFloat()
     Box(modifier.fillMaxWidth()) {
         Canvas(Modifier.matchParentSize()) {
             drawRect(
@@ -70,6 +77,8 @@ fun CollectionHeader(
                     center = Offset(size.width / 2, size.height * 0.18f),
                     radius = size.width * 0.85f,
                 ),
+                topLeft = Offset(0f, -extendUp),
+                size = Size(size.width, size.height + extendUp),
             )
         }
         Column(

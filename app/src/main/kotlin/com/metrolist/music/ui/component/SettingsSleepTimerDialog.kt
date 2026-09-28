@@ -259,7 +259,7 @@ fun SleepTimerDialog(
                     selected = selectedRepeat == "daily",
                     onClick = { selectedRepeat = "daily" },
                     shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3),
-                    label = { Text(stringResource(R.string.sleep_timer_daily)) },
+                    label = { SegmentLabel(stringResource(R.string.sleep_timer_daily)) },
                 )
                 SegmentedButton(
                     selected = selectedRepeat == "weekdays_weekends",
@@ -268,13 +268,13 @@ fun SleepTimerDialog(
                         if (!weekdaysEnabled && !weekendsEnabled) weekdaysEnabled = true
                     },
                     shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3),
-                    label = { Text(stringResource(R.string.sleep_timer_weekdays_weekends)) },
+                    label = { SegmentLabel(stringResource(R.string.sleep_timer_weekdays_weekends)) },
                 )
                 SegmentedButton(
                     selected = selectedRepeat == "custom",
                     onClick = { selectedRepeat = "custom" },
                     shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3),
-                    label = { Text(stringResource(R.string.sleep_timer_custom)) },
+                    label = { SegmentLabel(stringResource(R.string.sleep_timer_custom)) },
                 )
             }
         }

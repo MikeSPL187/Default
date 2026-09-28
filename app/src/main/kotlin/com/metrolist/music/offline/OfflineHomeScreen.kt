@@ -88,6 +88,7 @@ import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import com.metrolist.music.ui.component.SegmentLabel
 import com.metrolist.music.ui.screens.home.DjHero
 import com.metrolist.music.ui.screens.home.spherePalette
 import com.metrolist.music.constants.FlowCharacterKey
@@ -473,7 +474,7 @@ private fun FlowTuning(
                     selected = option == character,
                     onClick = { onCharacter(option) },
                     shape = SegmentedButtonDefaults.itemShape(index = index, count = characters.size),
-                    label = { Text(stringResource(label), maxLines = 1) },
+                    label = { SegmentLabel(stringResource(label)) },
                 )
             }
         }

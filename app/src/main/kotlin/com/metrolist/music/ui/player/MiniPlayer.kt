@@ -114,6 +114,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 import com.metrolist.music.ui.component.Icon as MIcon
+import com.metrolist.music.ui.component.fadeEnd
 import androidx.compose.ui.draw.blur
 import com.metrolist.music.constants.MiniPlayerBackgroundStyle
 import com.metrolist.music.constants.MiniPlayerBackgroundStyleKey
@@ -616,7 +617,12 @@ private fun NewMiniPlayerSongInfo(
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Clip,
-                modifier = Modifier.basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp),
+                // Once the scroll stops, a long title fades out at the edge instead of ending mid-letter.
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .fadeEnd()
+                        .basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp),
             )
             // A failed track says so in place of the artist, so the bar keeps its height.
             if (error != null) {
@@ -629,18 +635,22 @@ private fun NewMiniPlayerSongInfo(
                 )
             } else {
                 Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     if (metadata.explicit) MIcon.Explicit()
-                     if (metadata.artists.any { it.name.isNotBlank() }) {
-                         Text(
-                             text = metadata.artists.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name },
-                             color = onSurfaceColor.copy(alpha = 0.7f),
+                    if (metadata.artists.any { it.name.isNotBlank() }) {
+                        Text(
+                            text = metadata.artists.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name },
+                            color = onSurfaceColor.copy(alpha = 0.7f),
                             fontSize = 12.5.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Clip,
-                            modifier = Modifier.basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp),
+                            modifier =
+                                Modifier
+                                    .weight(1f)
+                                    .fadeEnd()
+                                    .basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp),
                         )
                     }
                 }

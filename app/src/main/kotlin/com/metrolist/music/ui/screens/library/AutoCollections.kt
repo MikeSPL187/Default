@@ -37,6 +37,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.metrolist.music.ui.component.FitText
 
 /** A collection the app keeps by itself, shown as a coloured tile at the top of the library. */
 @Immutable
@@ -115,12 +117,11 @@ fun AutoCollectionsRow(
                 ) {
                     Icon(painterResource(collection.icon), contentDescription = null, tint = collection.tint, modifier = Modifier.size(34.dp))
                 }
-                Text(
+                // A tile is narrow; "Downloaded" at a large font shrinks a little rather than end in "…".
+                FitText(
                     collection.title,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                    minFontSize = 10.sp,
                     modifier = Modifier.padding(top = 8.dp, start = 2.dp),
                 )
                 collection.subtitle?.let {

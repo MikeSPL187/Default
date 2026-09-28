@@ -44,6 +44,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -157,11 +158,10 @@ fun PlaybackError(
                     guidance != null -> guidance
                     else -> stringResource(R.string.player_error_hint)
                 },
-            style = MaterialTheme.typography.bodyMedium,
+            // What to do is the point of the card, so it is never cut; lines are balanced.
+            style = MaterialTheme.typography.bodyMedium.copy(lineBreak = LineBreak.Heading),
             color = colors.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            maxLines = 3,
-            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(top = 6.dp),
         )
 
