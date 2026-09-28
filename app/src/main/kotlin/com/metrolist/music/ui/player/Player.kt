@@ -109,6 +109,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
@@ -1148,7 +1150,7 @@ fun BottomSheetPlayer(
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.fullscreen),
-                                        contentDescription = null,
+                                        contentDescription = stringResource(R.string.lyrics_fullscreen),
                                         modifier = Modifier.size(24.dp),
                                     )
                                 }
@@ -1504,7 +1506,7 @@ fun BottomSheetPlayer(
                                 color = TextBackgroundColor,
                                 contentDescription = stringResource(R.string.shuffle),
                                 onClick = {
-                                    transportHaptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                                    transportHaptic.performHapticFeedback(if (shuffleModeEnabled) HapticFeedbackType.ToggleOff else HapticFeedbackType.ToggleOn)
                                     playerConnection.player.shuffleModeEnabled = !shuffleModeEnabled
                                 },
                             )
@@ -1519,7 +1521,7 @@ fun BottomSheetPlayer(
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.skip_previous),
-                                    contentDescription = null,
+                                    contentDescription = stringResource(R.string.previous),
                                     tint = TextBackgroundColor.copy(alpha = if (canGoBack) 1f else 0.4f),
                                     modifier = Modifier.size(40.dp),
                                 )
@@ -1581,7 +1583,7 @@ fun BottomSheetPlayer(
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.skip_next),
-                                    contentDescription = null,
+                                    contentDescription = stringResource(R.string.next),
                                     tint = TextBackgroundColor.copy(alpha = if (canGoNext) 1f else 0.4f),
                                     modifier = Modifier.size(40.dp),
                                 )
@@ -1600,7 +1602,10 @@ fun BottomSheetPlayer(
                                         },
                                     ),
                                 onClick = {
-                                    transportHaptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                                    // Repeat cycles off → all → one → off; the last step turns it off.
+                                    transportHaptic.performHapticFeedback(
+                                        if (repeatMode == Player.REPEAT_MODE_ONE) HapticFeedbackType.ToggleOff else HapticFeedbackType.ToggleOn,
+                                    )
                                     playerConnection.player.toggleRepeatMode()
                                 },
                             )
@@ -2140,7 +2145,8 @@ private fun TransportToggle(
     contentDescription: String,
     onClick: () -> Unit,
 ) {
-    Box(contentAlignment = Alignment.Center) {
+    // Announced as on or off, not only by its name.
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.semantics(mergeDescendants = true) { selected = active }) {
         IconButton(onClick = onClick, enabled = enabled) {
             Icon(
                 painter = painterResource(icon),

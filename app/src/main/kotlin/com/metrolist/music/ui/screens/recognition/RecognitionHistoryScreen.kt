@@ -157,7 +157,7 @@ fun RecognitionHistoryScreen(navController: NavController) {
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.arrow_back),
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.back),
                         )
                     }
                 },

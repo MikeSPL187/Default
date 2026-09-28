@@ -293,7 +293,7 @@ fun HistoryScreen(
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.more_vert),
-                                        contentDescription = null,
+                                        contentDescription = stringResource(R.string.more_options),
                                     )
                                 }
                             },
@@ -375,7 +375,7 @@ fun HistoryScreen(
                                     ) {
                                         Icon(
                                             painter = painterResource(R.drawable.more_vert),
-                                            contentDescription = null,
+                                            contentDescription = stringResource(R.string.more_options),
                                         )
                                     }
                                 }
@@ -506,7 +506,7 @@ fun HistoryScreen(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.arrow_back),
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.back),
                     )
                 }
             }
@@ -546,7 +546,7 @@ fun HistoryScreen(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.more_vert),
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.more_options),
                     )
                 }
             } else if (!isSearching) {
@@ -555,7 +555,7 @@ fun HistoryScreen(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.search),
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.search),
                     )
                 }
             }

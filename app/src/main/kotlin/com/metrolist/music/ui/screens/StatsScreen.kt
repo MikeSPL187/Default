@@ -33,6 +33,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -985,7 +986,8 @@ private fun StatsSummary(
         if (timeline != null && totalMs > 0) {
             val max = timeline.bars.maxOrNull()?.coerceAtLeast(1L) ?: 1L
             val last = timeline.bars.lastIndex
-            val gap = if (timeline.bars.size > 12) 3.dp else 6.dp
+            val dense = timeline.bars.size > 12
+            val gap = if (dense) 3.dp else 6.dp
             Row(
                 horizontalArrangement = Arrangement.spacedBy(gap),
                 verticalAlignment = Alignment.Bottom,
@@ -993,7 +995,7 @@ private fun StatsSummary(
                     Modifier
                         .padding(top = 18.dp)
                         .fillMaxWidth()
-                        .height(96.dp),
+                        .height(if (dense) 72.dp else 96.dp),
             ) {
                 timeline.bars.forEachIndexed { i, ms ->
                     Column(
@@ -1008,18 +1010,28 @@ private fun StatsSummary(
                             Modifier
                                 .fillMaxWidth()
                                 .height((4 + 64 * ms.toFloat() / max).dp)
-                                .clip(RoundedCornerShape(if (timeline.bars.size > 12) 3.dp else 8.dp))
+                                .clip(RoundedCornerShape(if (dense) 3.dp else 8.dp))
                                 .background(if (i == last) colors.primary else lerp(colors.surfaceContainerHighest, colors.primary, 0.28f)),
                         )
-                        Text(
-                            timeline.labels.getOrElse(i) { "" },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (i == last) colors.onSurface else colors.onSurfaceVariant,
-                            maxLines = 1,
-                            softWrap = false,
-                            modifier = Modifier.padding(top = 6.dp),
-                        )
+                        if (!dense) {
+                            Text(
+                                timeline.labels.getOrElse(i) { "" },
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (i == last) colors.onSurface else colors.onSurfaceVariant,
+                                maxLines = 1,
+                                softWrap = false,
+                                modifier = Modifier.padding(top = 6.dp),
+                            )
+                        }
                     }
+                }
+            }
+            // A month of days leaves each bar too narrow for a date, so only the ends are named, under the row.
+            if (dense) {
+                Row(Modifier.fillMaxWidth().padding(top = 6.dp)) {
+                    Text(timeline.labels.firstOrNull().orEmpty(), style = MaterialTheme.typography.labelSmall, color = colors.onSurfaceVariant, maxLines = 1)
+                    Spacer(Modifier.weight(1f))
+                    Text(timeline.labels.lastOrNull().orEmpty(), style = MaterialTheme.typography.labelSmall, color = colors.onSurface, maxLines = 1)
                 }
             }
         }

@@ -578,7 +578,14 @@ private fun NewMiniPlayerPlayButton(
                         else -> R.drawable.play
                     },
                 ),
-            contentDescription = null,
+            contentDescription =
+                stringResource(
+                    when {
+                        isListenTogetherGuest -> if (isMuted) R.string.unmute else R.string.mute
+                        effectiveIsPlaying -> R.string.pause
+                        else -> R.string.play
+                    },
+                ),
             tint = iconColor,
             modifier = Modifier.size(24.dp),
         )
@@ -828,7 +835,7 @@ private fun LegacyMiniPlayer(
                 enabled = canSkipNext && !isListenTogetherGuest,
                 onClick = if (isListenTogetherGuest) ({}) else ({ playerConnection.seekToNext() }),
             ) {
-                Icon(painter = painterResource(R.drawable.skip_next), contentDescription = null)
+                Icon(painter = painterResource(R.drawable.skip_next), contentDescription = stringResource(R.string.next))
             }
         }
 
@@ -897,7 +904,14 @@ private fun LegacyPlayPauseButton(
                         else -> R.drawable.play
                     },
                 ),
-            contentDescription = null,
+            contentDescription =
+                stringResource(
+                    when {
+                        isListenTogetherGuest -> if (isMuted) R.string.unmute else R.string.mute
+                        effectiveIsPlaying -> R.string.pause
+                        else -> R.string.play
+                    },
+                ),
         )
     }
 }
@@ -1018,7 +1032,7 @@ private fun FavoriteButton(
     ) {
         Icon(
             painter = painterResource(if (isLiked) R.drawable.favorite else R.drawable.favorite_border),
-            contentDescription = null,
+            contentDescription = stringResource(if (isLiked) R.string.liked else R.string.like),
             tint = if (isLiked) likedColor else onSurfaceColor.copy(alpha = 0.7f),
             modifier = Modifier.size(22.dp),
         )

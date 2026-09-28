@@ -409,7 +409,7 @@ fun OnlineSearchResult(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.close),
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.close),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }

@@ -75,6 +75,7 @@
     <string name="new_player_design">Новый дизайн плеера</string>
     <string name="default_style">По умолчанию</string>
     <string name="lyrics_click_change">Менять текст песни по касанию</string>
+    <string name="lyrics_fullscreen">Текст на весь экран</string>
     <string name="lyrics_auto_scroll">Автопрокрутка текста</string>
     <string name="auto_playlists">Автоматически созданные плейлисты</string>
     <string name="show_liked_playlist">Показывать плейлист «Понравившиеся»</string>

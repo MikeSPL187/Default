@@ -430,7 +430,7 @@ fun OnlinePlaylistScreen(
                             painterResource(
                                 if (inSelectMode) R.drawable.close else R.drawable.arrow_back,
                             ),
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.close),
                     )
                 }
             },
@@ -464,7 +464,7 @@ fun OnlinePlaylistScreen(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.more_vert),
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.more_options),
                         )
                     }
                 } else if (!isSearching) {
@@ -473,7 +473,7 @@ fun OnlinePlaylistScreen(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.search),
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.search),
                         )
                     }
                     playlist?.let { current ->
@@ -481,7 +481,7 @@ fun OnlinePlaylistScreen(
                         IconButton(onClick = { toggleSavedPlaylist(current, songs, dbPlaylist, database, coroutineScope) }) {
                             Icon(
                                 painter = painterResource(if (saved) R.drawable.favorite else R.drawable.favorite_border),
-                                contentDescription = null,
+                                contentDescription = stringResource(if (saved) R.string.remove_from_library else R.string.add_to_library),
                                 tint = if (saved) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
@@ -497,7 +497,7 @@ fun OnlinePlaylistScreen(
                                 }
                             },
                         ) {
-                            Icon(painter = painterResource(R.drawable.more_vert), contentDescription = null)
+                            Icon(painter = painterResource(R.drawable.more_vert), contentDescription = stringResource(R.string.more_options))
                         }
                     }
                 }

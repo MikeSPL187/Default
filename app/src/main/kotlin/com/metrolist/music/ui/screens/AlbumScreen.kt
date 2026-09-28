@@ -287,7 +287,7 @@ fun AlbumScreen(
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.more_vert),
-                                        contentDescription = null,
+                                        contentDescription = stringResource(R.string.more_options),
                                     )
                                 }
                             }
@@ -403,7 +403,7 @@ fun AlbumScreen(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.arrow_back),
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.back),
                     )
                 }
             }
@@ -438,7 +438,7 @@ fun AlbumScreen(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.more_vert),
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.more_options),
                     )
                 }
             } else {
@@ -461,7 +461,7 @@ fun AlbumScreen(
                             }
                         },
                     ) {
-                        Icon(painter = painterResource(R.drawable.more_vert), contentDescription = null)
+                        Icon(painter = painterResource(R.drawable.more_vert), contentDescription = stringResource(R.string.more_options))
                     }
                 }
             }

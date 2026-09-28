@@ -225,7 +225,7 @@ fun ArtistScreen(
                     if (librarySongs.isNotEmpty()) {
                         playerConnection.playQueue(
                             ListQueue(
-                                title = displayArtistName ?: "Unknown Artist",
+                                title = displayArtistName.orEmpty(),
                                 items = librarySongs.map { it.toMediaItem() },
                             ),
                         )
@@ -624,7 +624,7 @@ fun ArtistScreen(
                                     ) {
                                         Icon(
                                             painter = painterResource(R.drawable.more_vert),
-                                            contentDescription = null,
+                                            contentDescription = stringResource(R.string.more_options),
                                         )
                                     }
                                 },
@@ -639,7 +639,7 @@ fun ArtistScreen(
                                                     } else {
                                                         playerConnection.playQueue(
                                                             ListQueue(
-                                                                title = displayArtistName ?: "Unknown Artist",
+                                                                title = displayArtistName.orEmpty(),
                                                                 items = librarySongs.map { it.toMediaItem() },
                                                                 startIndex = index,
                                                             ),
@@ -751,7 +751,7 @@ fun ArtistScreen(
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.more_vert),
-                                                contentDescription = null,
+                                                contentDescription = stringResource(R.string.more_options),
                                             )
                                         }
                                     },

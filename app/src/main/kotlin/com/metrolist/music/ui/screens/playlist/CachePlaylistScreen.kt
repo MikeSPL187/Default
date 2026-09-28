@@ -282,7 +282,7 @@ fun CachePlaylistScreen(
                                 }) {
                                     Icon(
                                         painter = painterResource(R.drawable.more_vert),
-                                        contentDescription = null
+                                        contentDescription = stringResource(R.string.more_options)
                                     )
                                 }
                             }
@@ -414,7 +414,7 @@ fun CachePlaylistScreen(
                         painter = painterResource(
                             if (inSelectMode) R.drawable.close else R.drawable.arrow_back
                         ),
-                        contentDescription = null
+                        contentDescription = stringResource(R.string.close)
                     )
                 }
             },
@@ -449,14 +449,14 @@ fun CachePlaylistScreen(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.more_vert),
-                            contentDescription = null
+                            contentDescription = stringResource(R.string.more_options)
                         )
                     }
                 } else if (!isSearching) {
                     IconButton(onClick = { isSearching = true }) {
                         Icon(
                             painter = painterResource(R.drawable.search),
-                            contentDescription = null
+                            contentDescription = stringResource(R.string.search)
                         )
                     }
                 }

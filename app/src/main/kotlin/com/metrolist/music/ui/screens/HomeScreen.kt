@@ -1837,7 +1837,7 @@ fun HomeScreen(
                                                     ) {
                                                         Icon(
                                                             painter = painterResource(R.drawable.more_vert),
-                                                            contentDescription = null,
+                                                            contentDescription = stringResource(R.string.more_options),
                                                         )
                                                     }
                                                 },
@@ -2161,7 +2161,7 @@ fun HomeScreen(
                                                     ) {
                                                         Icon(
                                                             painter = painterResource(R.drawable.more_vert),
-                                                            contentDescription = null,
+                                                            contentDescription = stringResource(R.string.more_options),
                                                         )
                                                     }
                                                 },
@@ -2275,7 +2275,7 @@ fun HomeScreen(
                                                     ) {
                                                         Icon(
                                                             painter = painterResource(R.drawable.more_vert),
-                                                            contentDescription = null,
+                                                            contentDescription = stringResource(R.string.more_options),
                                                         )
                                                     }
                                                 },
@@ -2504,7 +2504,7 @@ fun HomeScreen(
                                                         ) {
                                                             Icon(
                                                                 painter = painterResource(R.drawable.more_vert),
-                                                                contentDescription = null,
+                                                                contentDescription = stringResource(R.string.more_options),
                                                             )
                                                         }
                                                     },

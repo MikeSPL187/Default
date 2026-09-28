@@ -34,6 +34,7 @@ import com.metrolist.music.utils.read
 import com.metrolist.music.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -133,6 +134,8 @@ constructor(
                         .filterVideoSongs(hideVideoSongs)
                         .filterYoutubeShorts(hideYoutubeShorts)
             }.onFailure {
+                // Leaving the tab cancels its load; that is not a failure to show or report.
+                if (it is CancellationException) throw it
                 summaryLoadFailed = true
                 reportException(it)
             }
@@ -188,6 +191,7 @@ constructor(
                         result.continuation,
                     )
             }.onFailure {
+                if (it is CancellationException) throw it
                 filterLoadFailures[filterValue] = true
                 reportException(it)
             }

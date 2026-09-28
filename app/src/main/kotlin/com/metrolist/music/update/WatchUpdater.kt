@@ -279,12 +279,14 @@ object WatchUpdater {
         runCatching { context.startActivity(intent) }.onFailure { Timber.tag("Update").w(it, "No installer") }
     }
 
-    /** Deletes downloaded builds that are installed already. */
-    fun cleanUp(context: Context) {
+    /** Deletes downloaded builds that are installed already; off the main thread, as it touches files. */
+    suspend fun cleanUp(context: Context) {
         val current = currentBuild ?: return
-        File(context.cacheDir, UPDATES_DIR).listFiles()?.forEach { file ->
-            val build = Regex("""-b(\d+)\.apk""").find(file.name)?.groupValues?.get(1)?.toIntOrNull()
-            if (build == null || build <= current) file.delete()
+        withContext(Dispatchers.IO) {
+            File(context.cacheDir, UPDATES_DIR).listFiles()?.forEach { file ->
+                val build = Regex("""-b(\d+)\.apk""").find(file.name)?.groupValues?.get(1)?.toIntOrNull()
+                if (build == null || build <= current) file.delete()
+            }
         }
     }
 

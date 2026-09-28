@@ -811,7 +811,7 @@ fun Queue(
                                                 ) {
                                                     Icon(
                                                         painter = painterResource(R.drawable.more_vert),
-                                                        contentDescription = null,
+                                                        contentDescription = stringResource(R.string.more_options),
                                                     )
                                                 }
                                             }
@@ -1044,7 +1044,7 @@ fun Queue(
                                     }
                                 }
                             },
-                            enabled = !isListenTogetherGuest && playerConnection.player.currentMediaItemIndex > 0,
+                            enabled = !isListenTogetherGuest && currentWindowIndex > 0,
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.clear_all),
@@ -1127,7 +1127,7 @@ fun Queue(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.more_vert),
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.more_options),
                             tint = LocalContentColor.current,
                         )
                     }

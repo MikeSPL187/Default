@@ -6,6 +6,7 @@
 package com.metrolist.music.ui.component
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -50,7 +51,7 @@ fun LibraryArtistListItem(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.more_vert),
-                    contentDescription = null
+                    contentDescription = stringResource(R.string.more_options)
                 )
             }
         },
@@ -119,7 +120,7 @@ fun LibraryAlbumListItem(
         ) {
             Icon(
                 painter = painterResource(R.drawable.more_vert),
-                contentDescription = null
+                contentDescription = stringResource(R.string.more_options)
             )
         }
     },
@@ -219,7 +220,7 @@ fun LibraryPlaylistListItem(
         ) {
             Icon(
                 painter = painterResource(R.drawable.more_vert),
-                contentDescription = null
+                contentDescription = stringResource(R.string.more_options)
             )
         }
     },
