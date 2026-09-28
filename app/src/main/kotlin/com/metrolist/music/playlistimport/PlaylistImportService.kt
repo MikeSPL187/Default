@@ -103,7 +103,8 @@ object PlaylistImportService {
 
     /** Songs for a query typed by hand, when the automatic match was wrong or missing. */
     suspend fun searchSongs(query: String): List<SongItem> =
-        YouTube.search(query, YouTube.SearchFilter.FILTER_SONG).getOrNull()?.items.orEmpty().filterIsInstance<SongItem>()
+        // Distinct, as the picker lists them by song.
+        YouTube.search(query, YouTube.SearchFilter.FILTER_SONG).getOrNull()?.items.orEmpty().filterIsInstance<SongItem>().distinctBy { it.id }
 
     /**
      * The YouTube Music song for [track], or null when nothing is close enough. Songs are searched

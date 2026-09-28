@@ -61,7 +61,8 @@ class OnlinePodcastViewModel @Inject constructor(
                 .onSuccess { podcastPage ->
                     Timber.d("Success! Podcast: ${podcastPage.podcast.title}, Episodes: ${podcastPage.episodes.size}")
                     podcast.value = podcastPage.podcast
-                    episodes.value = podcastPage.episodes
+                    // The list is keyed by episode, and a repeated one would crash it.
+                    episodes.value = podcastPage.episodes.distinctBy { it.id }
                     _isLoading.value = false
                 }.onFailure { throwable ->
                     Timber.e(throwable, "Failed to load podcast: ${throwable.message}")

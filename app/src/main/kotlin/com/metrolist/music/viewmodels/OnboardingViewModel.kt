@@ -135,7 +135,8 @@ class OnboardingViewModel
                     YouTube
                         .search(query.trim(), YouTube.SearchFilter.FILTER_ARTIST)
                         .onSuccess { result ->
-                            _artists.value = result.items.filterIsInstance<ArtistItem>().take(MAX_ARTISTS)
+                            // The grid is keyed by artist, so an artist listed twice must show once.
+                            _artists.value = result.items.filterIsInstance<ArtistItem>().distinctBy { it.id }.take(MAX_ARTISTS)
                             _failed.value = false
                         }.onFailure { _failed.value = true }
                     _loading.value = false
