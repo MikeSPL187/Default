@@ -1,9 +1,12 @@
 package com.metrolist.music.ui.screens.home
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.animation.animateColorAsState
@@ -502,7 +505,12 @@ fun HomeFeedScreen(
                                     isPlaying = isPlaying,
                                     onPlay = {
                                         haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                                        playerConnection.playQueue(ListQueue(title = title, items = songs.map { it.toMediaItem() }, startIndex = index))
+                                        // The song already on pauses or resumes, as in albums and playlists.
+                                        if (song.id == mediaMetadata?.id) {
+                                            playerConnection.togglePlayPause()
+                                        } else {
+                                            playerConnection.playQueue(ListQueue(title = title, items = songs.map { it.toMediaItem() }, startIndex = index))
+                                        }
                                     },
                                     onMenu = { menuState.show { SongMenu(originalSong = song, onDismiss = menuState::dismiss) } },
                                     modifier = Modifier.animateItem(),
@@ -562,9 +570,13 @@ fun HomeFeedScreen(
                                     currentId = mediaMetadata?.id,
                                     isPlaying = isPlaying,
                                     onPlay = { index ->
-                                        playerConnection.playQueue(
-                                            ListQueue(title = chartTitle, items = songs.map { it.toMediaItem() }, startIndex = index),
-                                        )
+                                        if (songs[index].id == mediaMetadata?.id) {
+                                            playerConnection.togglePlayPause()
+                                        } else {
+                                            playerConnection.playQueue(
+                                                ListQueue(title = chartTitle, items = songs.map { it.toMediaItem() }, startIndex = index),
+                                            )
+                                        }
                                     },
                                     modifier = Modifier.animateItem(),
                                 )
@@ -907,6 +919,8 @@ private fun QuickTile(
             modifier =
                 Modifier
                     .fillMaxWidth()
+                    // The cover runs the tile's full height even when a large font wraps the title.
+                    .height(IntrinsicSize.Min)
                     .heightIn(min = 56.dp)
                     .scale(scale)
                     .clip(RoundedCornerShape(14.dp))
@@ -926,7 +940,8 @@ private fun QuickTile(
                 contentAlignment = Alignment.Center,
                 modifier =
                     Modifier
-                        .size(56.dp)
+                        .width(56.dp)
+                        .fillMaxHeight()
                         .then(
                             when {
                                 item.liked -> Modifier.background(LikedGradient)
@@ -945,7 +960,7 @@ private fun QuickTile(
                             modifier =
                                 Modifier
                                     .fillMaxSize()
-                                    .then(if (item.round) Modifier.padding(7.dp).clip(CircleShape) else Modifier),
+                                    .then(if (item.round) Modifier.padding(7.dp).aspectRatio(1f).clip(CircleShape) else Modifier),
                         )
                     item.icon != null -> Icon(painterResource(item.icon), contentDescription = null, tint = colors.onPrimaryContainer, modifier = Modifier.size(24.dp))
                     else -> Icon(painterResource(R.drawable.queue_music), contentDescription = null, tint = colors.onSurfaceVariant)
@@ -1403,7 +1418,11 @@ private fun EditHomeSheet(
                                 .padding(horizontal = 8.dp)
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(if (dragging) MaterialTheme.colorScheme.surfaceContainerHigh else Color.Transparent)
-                                .padding(end = 16.dp)
+                                // The whole row switches the block, not just the small switch at its end.
+                                .toggleable(value = visible, role = Role.Switch) { show ->
+                                    haptic.performHapticFeedback(if (show) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff)
+                                    onToggle(block, show)
+                                }.padding(end = 16.dp)
                                 .height(56.dp),
                     ) {
                         IconButton(
@@ -1432,13 +1451,7 @@ private fun EditHomeSheet(
                                     .weight(1f)
                                     .padding(horizontal = 14.dp),
                         )
-                        Switch(
-                            checked = visible,
-                            onCheckedChange = { show ->
-                                haptic.performHapticFeedback(if (show) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff)
-                                onToggle(block, show)
-                            },
-                        )
+                        Switch(checked = visible, onCheckedChange = null)
                     }
                 }
             }
