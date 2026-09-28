@@ -40,6 +40,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 
 /** A story-sized picture of a song or album — cover, title, artist — to send along with its link. */
@@ -61,7 +62,11 @@ object ShareCard {
         val appContext = context.applicationContext
         scope.launch {
             runCatching { shareNow(appContext, coverUrl, title, subtitle, link) }
-                .onFailure { Toast.makeText(appContext, appContext.getString(R.string.failed_to_create_image, it.message), Toast.LENGTH_SHORT).show() }
+                .onFailure {
+                    // The reason is for the log; the listener gets a plain sentence, not an exception's text.
+                    Timber.tag("ShareCard").w(it, "Could not share a card")
+                    Toast.makeText(appContext, R.string.share_card_failed, Toast.LENGTH_SHORT).show()
+                }
         }
     }
 

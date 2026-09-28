@@ -1457,6 +1457,7 @@
     <string name="voice_search">Voice search</string>
     <string name="voice_search_prompt">Say what to look for</string>
     <string name="share_card">Share as a card</string>
+    <string name="share_card_failed">Couldn\'t make the card. Try again.</string>
     <string name="onboarding_title">Who do you listen to?</string>
     <string name="onboarding_subtitle">Pick a few artists, and home, new releases and the DJ will start from your taste.</string>
     <string name="onboarding_search">Find an artist</string>

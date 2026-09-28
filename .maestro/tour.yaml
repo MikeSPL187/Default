@@ -134,6 +134,20 @@ appId: com.metrolist.music
 - waitForAnimationToEnd
 - takeScreenshot: ${P}18-liked
 - back
+- tapOn:
+    text: "Playlists"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ${P}18b-playlists
+- tapOn:
+    text: "Transfer playlists"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ${P}18c-import
+- back
+- tapOn:
+    text: "Playlists"
+    optional: true
 - tapOn: "You"
 - waitForAnimationToEnd
 - takeScreenshot: ${P}19-you
@@ -142,7 +156,25 @@ appId: com.metrolist.music
     optional: true
 - waitForAnimationToEnd
 - takeScreenshot: ${P}20-stats
+- tapOn:
+    text: "Month"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ${P}20b-stats-month
+- tapOn:
+    text: "Year"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ${P}20c-stats-year
 - back
+- tapOn:
+    text: "Open"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: ${P}20d-recap
+- back
+- waitForAnimationToEnd
 - tapOn:
     text: "History"
     optional: true
@@ -156,6 +188,15 @@ appId: com.metrolist.music
 - takeScreenshot: ${P}22-settings
 - scroll
 - takeScreenshot: ${P}23-settings-2
+- scrollUntilVisible:
+    element: "Updater"
+    optional: true
+- tapOn:
+    text: "Updater"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ${P}23b-updater
+- back
 - scrollUntilVisible:
     element: "Appearance"
     direction: UP
