@@ -110,6 +110,7 @@ import com.metrolist.music.ui.component.AlbumGridItem
 import com.metrolist.music.ui.component.ExpandableText
 import com.metrolist.music.ui.component.HideOnScrollFAB
 import com.metrolist.music.ui.component.IconButton
+import com.metrolist.music.ui.component.FitText
 import com.metrolist.music.ui.component.LinkSegment
 import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.component.NavigationTitle
@@ -475,7 +476,7 @@ fun ArtistScreen(
                                     ) {
                                         Icon(painterResource(R.drawable.play), contentDescription = null, modifier = Modifier.size(22.dp))
                                         Spacer(Modifier.width(8.dp))
-                                        Text(stringResource(R.string.collection_play), style = MaterialTheme.typography.titleMedium)
+                                        FitText(stringResource(R.string.collection_play), style = MaterialTheme.typography.titleMedium, minFontSize = 12.sp)
                                     }
                                     FilledTonalButton(
                                         onClick = {
@@ -499,7 +500,7 @@ fun ArtistScreen(
                                     ) {
                                         Icon(painterResource(R.drawable.shuffle), contentDescription = null, modifier = Modifier.size(22.dp))
                                         Spacer(Modifier.width(8.dp))
-                                        Text(stringResource(R.string.shuffle), style = MaterialTheme.typography.titleMedium, maxLines = 1)
+                                        FitText(stringResource(R.string.shuffle), style = MaterialTheme.typography.titleMedium, minFontSize = 12.sp)
                                     }
                                 }
 

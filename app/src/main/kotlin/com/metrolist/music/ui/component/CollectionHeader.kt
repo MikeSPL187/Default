@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.metrolist.music.R
 import com.metrolist.music.ui.screens.wrapped.components.rememberArtworkAccent
@@ -182,7 +183,8 @@ fun CollectionPlayButtons(
         ) {
             Icon(painterResource(if (playing) R.drawable.pause else R.drawable.play), contentDescription = null, modifier = Modifier.size(22.dp))
             Spacer(Modifier.width(8.dp))
-            Text(stringResource(if (playing) R.string.player_pause else R.string.collection_play), style = MaterialTheme.typography.titleMedium)
+            // Half the width each: "Перемешать" at a large font shrinks rather than end in "…".
+            FitText(stringResource(if (playing) R.string.player_pause else R.string.collection_play), style = MaterialTheme.typography.titleMedium, minFontSize = 12.sp)
         }
         FilledTonalButton(
             onClick = {
@@ -198,7 +200,7 @@ fun CollectionPlayButtons(
         ) {
             Icon(painterResource(R.drawable.shuffle), contentDescription = null, modifier = Modifier.size(22.dp))
             Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.shuffle), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            FitText(stringResource(R.string.shuffle), style = MaterialTheme.typography.titleMedium, minFontSize = 12.sp)
         }
     }
 }

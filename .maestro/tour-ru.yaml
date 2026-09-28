@@ -1,0 +1,101 @@
+# The main screens in Russian at a large font: the longest labels at the largest size, to catch
+# text that is cut or wraps badly. Every step is optional: it never fails the build.
+appId: com.metrolist.music
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Главная|ИГРАЕТ ИЗ"
+    timeout: 60000
+    optional: true
+- runFlow:
+    when:
+      visible: "ИГРАЕТ ИЗ"
+    commands:
+      - back
+      - waitForAnimationToEnd
+- waitForAnimationToEnd:
+    timeout: 15000
+- takeScreenshot: ru-01-home
+- scroll
+- takeScreenshot: ru-02-home-2
+- scroll
+- takeScreenshot: ru-03-home-3
+- scrollUntilVisible:
+    element: "Изменить Главную"
+    timeout: 20000
+    optional: true
+- tapOn:
+    text: "Изменить Главную"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ru-04-edit-home
+- back
+- scrollUntilVisible:
+    element: "Настроить"
+    direction: UP
+    timeout: 20000
+    optional: true
+- tapOn:
+    text: "Настроить"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ru-05-dj-tune
+- back
+
+- tapOn:
+    text: "Поиск"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ru-06-search
+- back
+
+# The player and its queue
+- tapOn:
+    point: "50%,85%"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: ru-07-player
+- tapOn:
+    text: "Очередь"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ru-08-queue
+- back
+- back
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "Библиотека"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ru-09-library
+- tapOn:
+    text: "Вы"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ru-10-you
+- tapOn:
+    text: "ЭТА НЕДЕЛЯ"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ru-11-stats
+- back
+- tapOn:
+    text: "Настройки"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ru-12-settings
+- tapOn:
+    text: "Внешний вид"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ru-13-appearance
+- back
+- tapOn:
+    text: "Контент"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ru-14-content
+- back
+- back

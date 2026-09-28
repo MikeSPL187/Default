@@ -45,6 +45,10 @@ if [ $status -eq 0 ]; then
   adb shell cmd uimode night no || true
   adb shell settings put system font_scale 1.3 || true
   maestro test .maestro/tour.yaml -e P=big- --test-output-dir smoke-output/tour-big > smoke-output/tour-big.log 2>&1 || true
+  # Russian at that size: its words are the longest the app ships, so cut labels show up here first.
+  adb shell cmd locale set-app-locales com.metrolist.music --locales ru-RU || true
+  maestro test .maestro/tour-ru.yaml --test-output-dir smoke-output/tour-ru > smoke-output/tour-ru.log 2>&1 || true
+  adb shell cmd locale set-app-locales com.metrolist.music --locales "" || true
   adb shell settings put system font_scale 1.0 || true
   # The in-place language switch, there and back; a crash here is still caught from logcat below.
   maestro test .maestro/language.yaml --test-output-dir smoke-output/language > smoke-output/language.log 2>&1 || echo "::warning::Language switch flow did not finish, see language.log"

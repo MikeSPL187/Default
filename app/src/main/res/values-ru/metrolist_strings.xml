@@ -948,7 +948,7 @@
     <string name="share_youtube_links_desc">Отправленные треки откроются у всех, даже без YouTube Music</string>
 
     <!-- Queue -->
-    <string name="save_queue_as_playlist">Сохранить очередь как плейлист</string>
+    <string name="save_queue_as_playlist">Сохранить как плейлист</string>
 
     <!-- Not recommended -->
     <string name="dont_recommend_song">Не рекомендовать трек</string>

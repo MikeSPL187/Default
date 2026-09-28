@@ -103,6 +103,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.metrolist.music.ui.component.FitText
 import androidx.datastore.preferences.core.edit
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
@@ -1169,10 +1170,9 @@ fun Queue(
                         .height(44.dp),
             ) {
                 Icon(painterResource(R.drawable.playlist_add), contentDescription = null, modifier = Modifier.size(20.dp))
-                Text(
+                FitText(
                     stringResource(R.string.save_queue_as_playlist),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    minFontSize = 11.sp,
                     modifier = Modifier.padding(start = 8.dp),
                 )
             }
