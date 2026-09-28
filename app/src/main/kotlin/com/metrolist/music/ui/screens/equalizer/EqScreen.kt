@@ -192,7 +192,7 @@ private fun EqScreenContent(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             painter = painterResource(R.drawable.arrow_back),
-                            contentDescription = null
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 },

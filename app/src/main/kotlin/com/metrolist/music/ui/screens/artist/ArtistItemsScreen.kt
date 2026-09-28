@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.screens.artist
 
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.asPaddingValues
@@ -185,7 +186,7 @@ fun ArtistItemsScreen(
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.more_vert),
-                                contentDescription = null,
+                                contentDescription = stringResource(R.string.more_options),
                             )
                         }
                     },
@@ -385,7 +386,7 @@ fun ArtistItemsScreen(
             ) {
                 Icon(
                     painterResource(R.drawable.arrow_back),
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.back),
                 )
             }
         },

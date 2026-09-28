@@ -125,7 +125,7 @@ fun AccountSettings(
             )
             Spacer(modifier = Modifier.weight(1f))
             IconButton(onClick = onClose) {
-                Icon(painterResource(R.drawable.close), contentDescription = null)
+                Icon(painterResource(R.drawable.close), contentDescription = stringResource(R.string.close))
             }
         }
 

@@ -499,7 +499,7 @@ private fun ThumbnailHeader(
         }
         if (onMore != null) {
             IconButton(onClick = onMore) {
-                Icon(painterResource(R.drawable.more_vert), contentDescription = null, tint = textColor)
+                Icon(painterResource(R.drawable.more_vert), contentDescription = stringResource(R.string.more_options), tint = textColor)
             }
         } else {
             Spacer(Modifier.size(48.dp))

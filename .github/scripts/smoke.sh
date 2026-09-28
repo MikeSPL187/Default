@@ -41,6 +41,11 @@ if [ $status -eq 0 ]; then
     prefix=$([ "$night" = yes ] && echo dark- || echo light-)
     maestro test .maestro/tour.yaml -e P=$prefix --test-output-dir smoke-output/tour-$night > smoke-output/tour-$night.log 2>&1 || true
   done
+  # The same tour with the largest common font size, to catch clipped or overlapping text.
+  adb shell cmd uimode night no || true
+  adb shell settings put system font_scale 1.3 || true
+  maestro test .maestro/tour.yaml -e P=big- --test-output-dir smoke-output/tour-big > smoke-output/tour-big.log 2>&1 || true
+  adb shell settings put system font_scale 1.0 || true
   adb logcat -d > smoke-output/logcat.txt
 fi
 

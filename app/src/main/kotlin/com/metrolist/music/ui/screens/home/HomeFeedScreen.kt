@@ -1155,7 +1155,7 @@ private fun QuickPickRow(
         isPlaying = isPlaying,
         isSwipeable = false,
         trailingContent = {
-            IconButton(onClick = onMenu) { Icon(painterResource(R.drawable.more_vert), contentDescription = null) }
+            IconButton(onClick = onMenu) { Icon(painterResource(R.drawable.more_vert), contentDescription = stringResource(R.string.more_options)) }
         },
         modifier =
             modifier

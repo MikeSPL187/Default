@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.screens.artist
 
+import androidx.compose.ui.res.stringResource
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
@@ -150,7 +151,7 @@ fun ArtistAlbumsScreen(
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.arrow_back),
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.back),
                     )
                 }
             },

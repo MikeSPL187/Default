@@ -292,7 +292,7 @@ fun UpdaterScreen(navController: NavController) {
                 onClick = navController::navigateUp,
                 onLongClick = navController::backToMain,
             ) {
-                Icon(painter = painterResource(R.drawable.arrow_back), contentDescription = null)
+                Icon(painter = painterResource(R.drawable.arrow_back), contentDescription = stringResource(R.string.back))
             }
         },
     )

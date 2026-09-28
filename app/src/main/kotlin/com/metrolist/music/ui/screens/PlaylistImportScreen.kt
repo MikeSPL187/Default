@@ -270,7 +270,7 @@ fun PlaylistImportScreen(
                     onClick = navController::navigateUp,
                     onLongClick = navController::backToMain,
                 ) {
-                    Icon(painterResource(R.drawable.arrow_back), contentDescription = null)
+                    Icon(painterResource(R.drawable.arrow_back), contentDescription = stringResource(R.string.back))
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
