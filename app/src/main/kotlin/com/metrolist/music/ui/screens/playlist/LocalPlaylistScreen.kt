@@ -448,7 +448,7 @@ fun LocalPlaylistScreen(
                         navController.popBackStack()
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.ok))
+                    Text(text = stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
         )
