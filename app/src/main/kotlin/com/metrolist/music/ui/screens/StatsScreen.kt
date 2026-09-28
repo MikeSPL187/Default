@@ -70,6 +70,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -727,26 +729,21 @@ fun StatsScreen(
                 ) { artist ->
                     val uiArtist = Artist(name = artist.artist.name, id = artist.id)
                     val isChecked = sArtists.any { it.id == uiArtist.id }
-                    Row( // Use a row to arrange the checkbox and ArtistListItem horizontally
+                    // The whole row is one checkbox, so it is also read and toggled as one.
+                    Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .clickable {
+                                .toggleable(value = isChecked, role = Role.Checkbox) {
                                     toggleArtistSelection(uiArtist)
                                 }.padding(8.dp),
                     ) {
                         ArtistListItem(
                             artist = artist,
-                            modifier = Modifier.weight(1f), // Allow ArtistListItem to take remaining space
+                            modifier = Modifier.weight(1f),
                         )
-
-                        Checkbox(
-                            checked = sArtists.contains(Artist(name = artist.artist.name, id = artist.id)), // Get the current checked state
-                            onCheckedChange = {
-                                toggleArtistSelection(uiArtist)
-                            },
-                        )
+                        Checkbox(checked = isChecked, onCheckedChange = null)
                     }
                 }
             }
