@@ -1376,6 +1376,7 @@
     <string name="dj_tune_sub">Changes apply right away, even while playing</string>
     <string name="dj_tune_what">What to play</string>
     <string name="dj_tune_mood">Mood</string>
+    <string name="home_mood_load_failed">Couldn\'t load music for this mood</string>
     <string name="dj_mood_any">Any</string>
     <string name="dj_mode_favourites">Favorites</string>
     <string name="dj_mode_mixed">Mixed</string>

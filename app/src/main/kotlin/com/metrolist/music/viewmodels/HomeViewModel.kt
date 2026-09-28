@@ -72,6 +72,8 @@ import com.metrolist.music.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -230,6 +232,13 @@ class HomeViewModel @Inject constructor(
     val explorePage = MutableStateFlow<ExplorePage?>(null)
     val communityPlaylists = MutableStateFlow<List<CommunityPlaylistItem>?>(null)
     val selectedChip = MutableStateFlow<HomePage.Chip?>(null)
+
+    /** A mood's music is on its way; home shows a thin bar under the chips. */
+    val moodLoading = MutableStateFlow(false)
+
+    /** A mood's music could not be fetched; home says so instead of silently keeping the old feed. */
+    val moodLoadFailed = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    private var chipJob: Job? = null
     private val previousHomePage = MutableStateFlow<HomePage?>(null)
 
     // Official API data for podcast sections
@@ -802,6 +811,9 @@ class HomeViewModel @Inject constructor(
     }
 
     fun toggleChip(chip: HomePage.Chip?) {
+        // A later tap wins: an earlier mood still loading must not land on top of it.
+        chipJob?.cancel()
+        moodLoading.value = false
         if (chip == null || chip == selectedChip.value && previousHomePage.value != null) {
             homePage.value = previousHomePage.value
             previousHomePage.value = null
@@ -813,12 +825,18 @@ class HomeViewModel @Inject constructor(
             previousHomePage.value = homePage.value
         }
 
-        viewModelScope.launch(Dispatchers.IO) {
+        moodLoading.value = true
+        chipJob = viewModelScope.launch(Dispatchers.IO) {
             val hideExplicit = context.dataStore.read(HideExplicitKey, false)
             val hideVideoSongs = context.dataStore.read(HideVideoSongsKey, false)
             val hideYoutubeShorts = context.dataStore.read(HideYoutubeShortsKey, false)
             val notRecommended = context.notRecommended()
-            val nextSections = YouTube.home(params = chip.endpoint?.params).getOrNull() ?: return@launch
+            val nextSections = YouTube.home(params = chip.endpoint?.params).getOrNull()
+            moodLoading.value = false
+            if (nextSections == null) {
+                moodLoadFailed.tryEmit(Unit)
+                return@launch
+            }
 
             homePage.value = nextSections.copy(
                 chips = homePage.value?.chips,

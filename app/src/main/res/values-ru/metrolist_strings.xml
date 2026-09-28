@@ -1277,6 +1277,7 @@
     <string name="dj_tune_sub">Меняется сразу, даже во время игры</string>
     <string name="dj_tune_what">Что играть</string>
     <string name="dj_tune_mood">Настроение</string>
+    <string name="home_mood_load_failed">Не удалось загрузить музыку для этого настроения</string>
     <string name="dj_mood_any">Любое</string>
     <string name="dj_mode_favourites">Любимое</string>
     <string name="dj_mode_mixed">Вперемешку</string>

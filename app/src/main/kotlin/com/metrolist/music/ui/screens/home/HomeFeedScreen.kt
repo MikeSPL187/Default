@@ -1,5 +1,7 @@
 package com.metrolist.music.ui.screens.home
 
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.foundation.layout.heightIn
@@ -203,6 +205,7 @@ fun HomeFeedScreen(
     val chart by viewModel.chart.collectAsStateWithLifecycle()
     val homePage by viewModel.homePage.collectAsStateWithLifecycle()
     val selectedChip by viewModel.selectedChip.collectAsStateWithLifecycle()
+    val moodLoading by viewModel.moodLoading.collectAsStateWithLifecycle()
     val inProgress by viewModel.albumsInProgress.collectAsStateWithLifecycle()
     val artists by viewModel.yourArtists.collectAsStateWithLifecycle()
     val djMode by viewModel.djMode.collectAsStateWithLifecycle()
@@ -213,6 +216,9 @@ fun HomeFeedScreen(
     val currentSong by playerConnection.currentSong.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { viewModel.loadHomeData() }
+
+    val moodFailedMessage = stringResource(R.string.home_mood_load_failed)
+    LaunchedEffect(Unit) { viewModel.moodLoadFailed.collect { snackbarHostState.showSnackbar(moodFailedMessage) } }
 
     var editing by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { HomeEvents.edit.collect { editing = true } }
@@ -343,7 +349,18 @@ fun HomeFeedScreen(
         ) {
             if (moods.isNotEmpty()) {
                 item(key = "moods", contentType = "moods") {
-                    MoodChips(moods = moods, selected = mood?.title, onSelect = pickMood)
+                    Column {
+                        MoodChips(moods = moods, selected = mood?.title, onSelect = pickMood)
+                        // A mood's music comes from YouTube; a thin bar says it is on its way.
+                        AnimatedVisibility(visible = moodLoading) {
+                            LinearProgressIndicator(
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                            )
+                        }
+                    }
                 }
             }
 
