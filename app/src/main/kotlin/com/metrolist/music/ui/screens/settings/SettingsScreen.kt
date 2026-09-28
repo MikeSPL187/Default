@@ -128,7 +128,7 @@ fun SettingsScreen(
         // Android Auto Section — only shown if Android Auto is installed
         if (hasAndroidAuto) {
             Material3SettingsGroup(
-                title = "Android Auto",
+                title = stringResource(R.string.android_auto),
                 accent = SettingsTintSound,
                 items = listOf(
                     Material3SettingsItem(

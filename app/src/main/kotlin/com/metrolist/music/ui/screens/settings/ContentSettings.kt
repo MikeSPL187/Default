@@ -1093,7 +1093,7 @@ fun ContentSettings(
         Spacer(modifier = Modifier.height(27.dp))
 
         Material3SettingsGroup(
-            title = "Wrapped",
+            title = stringResource(R.string.settings_section_recap),
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.stats),
