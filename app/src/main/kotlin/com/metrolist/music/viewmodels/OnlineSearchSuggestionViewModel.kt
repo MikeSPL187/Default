@@ -90,7 +90,8 @@ class OnlineSearchSuggestionViewModel
                                                     ?.queries
                                                     ?.filter { suggestionQuery ->
                                                         history.none { it.query == suggestionQuery }
-                                                    }.orEmpty(),
+                                                    }?.distinct() // Keyed by text in the list.
+                                                    .orEmpty(),
                                             items =
                                                 result
                                                     ?.recommendedItems
