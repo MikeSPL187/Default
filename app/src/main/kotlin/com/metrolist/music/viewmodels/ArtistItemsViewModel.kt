@@ -39,7 +39,19 @@ constructor(
     val title = MutableStateFlow("")
     val itemsPage = MutableStateFlow<ItemsPage?>(null)
 
+    /** The first page failed; the screen trades its placeholders for a retry card. */
+    val loadFailed = MutableStateFlow(false)
+
     init {
+        load()
+    }
+
+    fun retry() {
+        loadFailed.value = false
+        load()
+    }
+
+    private fun load() {
         viewModelScope.launch {
             YouTube
                 .artistItems(
@@ -47,7 +59,7 @@ constructor(
                         browseId = browseId,
                         params = params,
                     ),
-                )                .onSuccess { artistItemsPage ->
+                ).onSuccess { artistItemsPage ->
                     val resolvedItems = YouTube.resolveArtistIds(artistItemsPage.items)
                     val hideExplicit = context.dataStore.read(HideExplicitKey, false)
                     val hideVideoSongs = context.dataStore.read(HideVideoSongsKey, false)
@@ -62,6 +74,7 @@ constructor(
                         )
                 }.onFailure {
                     reportException(it)
+                    loadFailed.value = true
                 }
         }
     }

@@ -51,6 +51,7 @@ import com.metrolist.music.constants.GridItemSize
 import com.metrolist.music.constants.GridItemsSizeKey
 import com.metrolist.music.constants.GridThumbnailHeight
 import com.metrolist.music.db.entities.PodcastEntity
+import com.metrolist.music.ui.component.EmptyPlaceholder
 import com.metrolist.music.ui.component.ChipsRow
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.LocalMenuState
@@ -84,6 +85,7 @@ fun AccountScreen(
     val podcastPlaylists by viewModel.podcastPlaylists.collectAsStateWithLifecycle()
     val podcastChannels by viewModel.podcastChannels.collectAsStateWithLifecycle()
     val selectedContentType by viewModel.selectedContentType.collectAsStateWithLifecycle()
+    val loadFailed by viewModel.loadFailed.collectAsStateWithLifecycle()
     val gridItemSize by rememberEnumPreference(GridItemsSizeKey, GridItemSize.BIG)
 
     LazyVerticalGrid(
@@ -132,7 +134,17 @@ fun AccountScreen(
                     )
                 }
 
-                if (playlists == null) {
+                if (playlists == null && loadFailed) {
+                    item(key = "load_failed", span = { GridItemSpan(maxLineSpan) }) {
+                        EmptyPlaceholder(
+                            icon = R.drawable.cloud_off,
+                            text = stringResource(R.string.page_load_failed),
+                            hint = stringResource(R.string.search_failed_hint),
+                            action = stringResource(R.string.retry),
+                            onAction = viewModel::retry,
+                        )
+                    }
+                } else if (playlists == null) {
                     items(8) {
                         ShimmerHost {
                             GridItemPlaceHolder(fillMaxWidth = true)
@@ -167,7 +179,17 @@ fun AccountScreen(
                     )
                 }
 
-                if (albums == null) {
+                if (albums == null && loadFailed) {
+                    item(key = "load_failed", span = { GridItemSpan(maxLineSpan) }) {
+                        EmptyPlaceholder(
+                            icon = R.drawable.cloud_off,
+                            text = stringResource(R.string.page_load_failed),
+                            hint = stringResource(R.string.search_failed_hint),
+                            action = stringResource(R.string.retry),
+                            onAction = viewModel::retry,
+                        )
+                    }
+                } else if (albums == null) {
                     items(8) {
                         ShimmerHost {
                             GridItemPlaceHolder(fillMaxWidth = true)
@@ -202,7 +224,17 @@ fun AccountScreen(
                     )
                 }
 
-                if (artists == null) {
+                if (artists == null && loadFailed) {
+                    item(key = "load_failed", span = { GridItemSpan(maxLineSpan) }) {
+                        EmptyPlaceholder(
+                            icon = R.drawable.cloud_off,
+                            text = stringResource(R.string.page_load_failed),
+                            hint = stringResource(R.string.search_failed_hint),
+                            action = stringResource(R.string.retry),
+                            onAction = viewModel::retry,
+                        )
+                    }
+                } else if (artists == null) {
                     items(8) {
                         ShimmerHost {
                             GridItemPlaceHolder(fillMaxWidth = true)

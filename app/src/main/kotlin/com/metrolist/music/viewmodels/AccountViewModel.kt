@@ -44,6 +44,9 @@ class AccountViewModel @Inject constructor(
     val playlists = MutableStateFlow<List<PlaylistItem>?>(null)
     val albums = MutableStateFlow<List<AlbumItem>?>(null)
     val artists = MutableStateFlow<List<ArtistItem>?>(null)
+
+    /** A library shelf failed to load; its tab offers a retry instead of placeholders. */
+    val loadFailed = MutableStateFlow(false)
     // SE "Episodes for Later" playlist shown in Podcasts tab
     val sePlaylist = MutableStateFlow<PlaylistItem?>(null)
     // RDPN "New Episodes" playlist (real thumbnail + count from YouTube)
@@ -68,16 +71,23 @@ class AccountViewModel @Inject constructor(
                 .filterYoutubeShorts(hideYoutubeShorts)
         }.onFailure {
             reportException(it)
+            loadFailed.value = true
         }
     }
 
-    init {
+    fun retry() {
+        loadFailed.value = false
+        loadLibrary()
+    }
+
+    private fun loadLibrary() {
         viewModelScope.launch {
             loadPlaylists()
             YouTube.library("FEmusic_liked_albums").completed().onSuccess {
                 albums.value = it.items.filterIsInstance<AlbumItem>()
             }.onFailure {
                 reportException(it)
+                loadFailed.value = true
             }
             YouTube.library("FEmusic_library_corpus_artists").completed().onSuccess {
                 artists.value = it.items.filterIsInstance<ArtistItem>().map { artist ->
@@ -87,8 +97,13 @@ class AccountViewModel @Inject constructor(
                 }
             }.onFailure {
                 reportException(it)
+                loadFailed.value = true
             }
         }
+    }
+
+    init {
+        loadLibrary()
         viewModelScope.launch {
             YouTube.newEpisodesPlaylistInfo().onSuccess {
                 rdpnPlaylist.value = it

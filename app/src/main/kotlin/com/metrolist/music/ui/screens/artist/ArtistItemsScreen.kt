@@ -9,6 +9,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -48,6 +49,7 @@ import com.metrolist.music.constants.GridItemsSizeKey
 import com.metrolist.music.constants.GridThumbnailHeight
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.queues.YouTubeQueue
+import com.metrolist.music.ui.component.EmptyPlaceholder
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.component.YouTubeGridItem
@@ -81,6 +83,7 @@ fun ArtistItemsScreen(
 
     val title by viewModel.title.collectAsStateWithLifecycle()
     val itemsPage by viewModel.itemsPage.collectAsStateWithLifecycle()
+    val loadFailed by viewModel.loadFailed.collectAsStateWithLifecycle()
 
     LaunchedEffect(lazyListState) {
         snapshotFlow {
@@ -100,7 +103,16 @@ fun ArtistItemsScreen(
         }
     }
 
-    if (itemsPage == null) {
+    if (itemsPage == null && loadFailed) {
+        EmptyPlaceholder(
+            icon = R.drawable.cloud_off,
+            text = stringResource(R.string.page_load_failed),
+            hint = stringResource(R.string.search_failed_hint),
+            action = stringResource(R.string.retry),
+            onAction = viewModel::retry,
+            modifier = Modifier.fillMaxSize().windowInsetsPadding(LocalPlayerAwareWindowInsets.current),
+        )
+    } else if (itemsPage == null) {
         ShimmerHost(
             modifier = Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current),
         ) {
