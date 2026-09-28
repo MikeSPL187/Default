@@ -366,9 +366,9 @@ private fun FullscreenSeekBar(
             modifier = Modifier.fillMaxWidth().height(32.dp),
         )
         Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
-            Text(makeTimeString(if (known) (shown * duration).toLong() else position), style = MaterialTheme.typography.labelMedium, color = Color.White)
+            Text(makeTimeString(if (known) (shown * duration).toLong() else position), style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"), color = Color.White)
             Spacer(Modifier.weight(1f))
-            if (known) Text(makeTimeString(duration), style = MaterialTheme.typography.labelMedium, color = Color.White)
+            if (known) Text(makeTimeString(duration), style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"), color = Color.White)
         }
     }
 }

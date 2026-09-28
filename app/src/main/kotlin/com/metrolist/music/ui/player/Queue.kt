@@ -1257,7 +1257,8 @@ private fun PlayerTab(
         FitText(
             label,
             color = tint,
-            style = MaterialTheme.typography.labelLarge,
+            // The timer counts down in this label; even digits keep it from jittering.
+            style = MaterialTheme.typography.labelLarge.copy(fontFeatureSettings = "tnum"),
             minFontSize = 10.sp,
             modifier = Modifier.padding(start = 6.dp),
         )
