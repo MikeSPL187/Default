@@ -1214,7 +1214,7 @@ fun BottomSheetPlayer(
                                 ) {
                                     Icon(
                                         painter = painterResource(if (isFavorite) R.drawable.favorite else R.drawable.favorite_border),
-                                        contentDescription = null,
+                                        contentDescription = stringResource(if (isFavorite) R.string.liked else R.string.like),
                                         modifier = Modifier.size(24.dp),
                                     )
                                 }

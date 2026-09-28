@@ -172,7 +172,16 @@ fun DownloadRingButton(
                             else -> R.drawable.download
                         },
                     ),
-                contentDescription = stringResource(R.string.action_download),
+                // Names what a tap does in each state.
+                contentDescription =
+                    stringResource(
+                        when {
+                            state.complete -> R.string.remove_download
+                            state.downloading && state.paused -> R.string.resume_download
+                            state.downloading -> R.string.pause
+                            else -> R.string.action_download
+                        },
+                    ),
                 tint = if (state.complete || state.downloading) colors.primary else colors.onSurfaceVariant,
                 modifier = Modifier.size(24.dp),
             )

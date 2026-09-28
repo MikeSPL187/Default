@@ -1011,7 +1011,7 @@ private fun AutoPlaylistHeader(
 
             CollectionSideAction(
                 icon = R.drawable.more_vert,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.more_options),
                 onClick = {
                     menuState.show {
                         AutoPlaylistMenu(

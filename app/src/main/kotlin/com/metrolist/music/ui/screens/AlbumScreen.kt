@@ -259,7 +259,7 @@ fun AlbumScreen(
                     }
 
                     // The album's own artist is in the header; a row names only guests, then the length.
-                    val albumArtistIds = albumWithSongs.artists.mapTo(HashSet()) { it.id }
+                    val albumArtistIds = remember(albumWithSongs.artists) { albumWithSongs.artists.mapTo(HashSet()) { it.id } }
                     val guests = song.artists.filter { it.id !in albumArtistIds }.joinToString { it.name }
                     SongListItem(
                         song = song,
@@ -447,7 +447,7 @@ fun AlbumScreen(
                     IconButton(onClick = { database.query { update(album.album.toggleLike()) } }) {
                         Icon(
                             painter = painterResource(if (liked) R.drawable.favorite else R.drawable.favorite_border),
-                            contentDescription = null,
+                            contentDescription = stringResource(if (liked) R.string.remove_from_library else R.string.add_to_library),
                             tint = if (liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
