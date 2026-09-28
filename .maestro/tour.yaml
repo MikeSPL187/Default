@@ -167,13 +167,16 @@ appId: com.metrolist.music
 - waitForAnimationToEnd
 - takeScreenshot: ${P}20c-stats-year
 - back
-- tapOn:
-    text: "Open"
-    optional: true
-- waitForAnimationToEnd:
-    timeout: 8000
-- takeScreenshot: ${P}20d-recap
-- back
+# The month's recap card shows only once the month has listening in it.
+- runFlow:
+    when:
+      visible: "Open"
+    commands:
+      - tapOn: "Open"
+      - waitForAnimationToEnd:
+          timeout: 8000
+      - takeScreenshot: ${P}20d-recap
+      - back
 - waitForAnimationToEnd
 - tapOn:
     text: "History"
