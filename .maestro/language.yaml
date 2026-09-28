@@ -3,8 +3,15 @@ appId: com.metrolist.music
 ---
 - launchApp
 - extendedWaitUntil:
-    visible: "Home"
+    visible: "Home|PLAYING FROM"
     timeout: 60000
+# The player may still be open from the tour; it covers the tabs.
+- runFlow:
+    when:
+      visible: "PLAYING FROM"
+    commands:
+      - back
+      - waitForAnimationToEnd
 - tapOn: "You"
 - waitForAnimationToEnd
 - tapOn: "Settings"
