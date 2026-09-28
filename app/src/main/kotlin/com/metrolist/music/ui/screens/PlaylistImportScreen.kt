@@ -36,6 +36,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -344,6 +346,8 @@ private fun ImportForm(
                 singleLine = true,
                 enabled = !loading,
                 leadingIcon = { Icon(painterResource(R.drawable.link), contentDescription = null) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go),
+                keyboardActions = KeyboardActions(onGo = { if (link.isNotBlank() && !loading) onLoadLink(link) }),
                 trailingIcon = {
                     TextButton(
                         enabled = !loading,
@@ -374,6 +378,7 @@ private fun ImportForm(
                 label = { Text(stringResource(R.string.playlist_import_name_label)) },
                 placeholder = { Text(defaultName) },
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Next),
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
