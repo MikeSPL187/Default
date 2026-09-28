@@ -671,6 +671,8 @@ class HomeViewModel @Inject constructor(
                 val listened = database.mostPlayedArtists(LocalDateTime.now().minusMonths(6), limit = 100).first().mapTo(HashSet()) { it.id }
                 newReleases.value =
                     page.newReleaseAlbums.filterOutNulls().filterExplicit(hideExplicit)
+                        // Home keys its rail by album, so a release listed twice must appear once.
+                        .distinctBy { it.id }
                         .sortedByDescending { album -> album.artists.orEmpty().any { it.id in listened } }
             }.onFailure { reportException(it) }
         }

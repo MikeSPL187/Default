@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -217,7 +218,7 @@ fun HomeFeedScreen(
         remember(homePage) {
             homePage?.chips.orEmpty().filter { chip ->
                 chip.endpoint?.params != null && !chip.title.contains("podcast", ignoreCase = true) && !chip.title.contains("подкаст", ignoreCase = true)
-            }
+            }.distinctBy { it.title } // The chips are keyed by title.
         }
 
     // ---- DJ
@@ -552,7 +553,8 @@ fun HomeFeedScreen(
                 homePage?.sections.orEmpty().forEachIndexed { index, section ->
                     item(key = "mood_title_$index") { SectionHeader(title = section.title, subtitle = section.label, modifier = Modifier.animateItem()) }
                     item(key = "mood_$index", contentType = "mood_rail") {
-                        SnappingRow(section.items, key = { it.id }, itemWidth = 136.dp) { item ->
+                        // A rail from YouTube can list one item twice, and a repeated key crashes the row.
+                        SnappingRow(section.items.distinctBy { it.id }, key = { it.id }, itemWidth = 136.dp) { item ->
                             FeedCard(
                                 item = item,
                                 onOpen = {
@@ -740,8 +742,8 @@ private fun CoverCard(
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Medium,
             textAlign = if (round) TextAlign.Center else TextAlign.Start,
-            // Album titles run long; two lines keep them whole instead of "Last Thing You Ne…".
-            maxLines = if (round) 1 else 2,
+            // Album titles and artist names run long; two lines keep them whole instead of "Last Thing You Ne…".
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(top = 8.dp),
         )
@@ -1279,7 +1281,9 @@ private fun ChartList(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = if (active) colors.primary else colors.onSurfaceVariant,
-                    modifier = Modifier.width(26.dp),
+                    // Grows for "10" at a large font instead of wrapping it.
+                    maxLines = 1,
+                    modifier = Modifier.widthIn(min = 28.dp),
                 )
                 Box {
                     AsyncImage(
