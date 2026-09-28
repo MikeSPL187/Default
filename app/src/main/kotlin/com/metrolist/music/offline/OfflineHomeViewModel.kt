@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import java.text.Collator
 import java.time.LocalDateTime
@@ -67,9 +68,12 @@ class OfflineHomeViewModel
     constructor(
         private val database: MusicDatabase,
     ) : ViewModel() {
+        // Read once for both the library and the artists, instead of the same query running twice.
+        private val downloaded = database.downloadedSongsByCreateDateAsc().shareIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), replay = 1)
+
         /** Null until the database answers, so an empty library is not shown for a moment. */
         val library =
-            combine(database.downloadedSongsByCreateDateAsc(), database.downloadedSongStats()) { songs, stats ->
+            combine(downloaded, database.downloadedSongStats()) { songs, stats ->
                 val statsById = stats.associateBy { it.id }
                 val newestFirst = songs.asReversed()
                 val tracks =
@@ -93,7 +97,7 @@ class OfflineHomeViewModel
             }.flowOn(Dispatchers.Default).shared()
 
         val artists =
-            database.downloadedSongsByCreateDateAsc().map { songs ->
+            downloaded.map { songs ->
                 songs.asReversed()
                     .groupBy { it.artists.firstOrNull() }
                     .mapNotNull { (artist, artistSongs) -> artist?.let { OfflineArtist(it, artistSongs) } }
