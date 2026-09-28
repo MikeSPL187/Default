@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -60,7 +61,6 @@ import com.metrolist.music.viewmodels.YouViewModel
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
-import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
@@ -152,7 +152,8 @@ fun YouScreen(
         item(key = "recap") {
             val month = YearMonth.now()
             RecapCard(
-                month = month.month.getDisplayName(TextStyle.FULL_STANDALONE, Locale.getDefault()),
+                // The app's own language, which can differ from the system's.
+                month = month.month.getDisplayName(TextStyle.FULL_STANDALONE, LocalConfiguration.current.locales[0]),
                 onClick = { go(wrappedRoute(WrappedPeriod.InMonth(month))) },
             )
         }

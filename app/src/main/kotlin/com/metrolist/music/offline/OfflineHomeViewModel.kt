@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import java.text.Collator
 import java.time.LocalDateTime
 import javax.inject.Inject
 
@@ -34,7 +35,8 @@ data class OfflineLibrary(
     fun sorted(sort: OfflineSongSort): List<Song> =
         when (sort) {
             OfflineSongSort.RECENTLY_DOWNLOADED -> songs
-            OfflineSongSort.NAME -> songs.sortedBy { it.song.title.lowercase() }
+            // Collator orders by the language's own rules (ё after е, accents), ignoring case.
+            OfflineSongSort.NAME -> songs.sortedWith(compareBy(Collator.getInstance()) { it.song.title })
             OfflineSongSort.RECENTLY_PLAYED ->
                 songs.sortedWith(compareByDescending(nullsFirst()) { trackById[it.id]?.lastPlayed })
         }

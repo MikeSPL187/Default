@@ -435,7 +435,8 @@ class MainActivity : FragmentActivity() {
                 dataStore[AppLanguageKey]
                     ?.takeUnless { it == SYSTEM_DEFAULT }
                     ?.let { Locale.forLanguageTag(it) }
-                    ?: Locale.getDefault()
+                    // The system's own language: the default locale may still hold an earlier in-app choice.
+                    ?: android.content.res.Resources.getSystem().configuration.locales[0]
             setAppLocale(this, locale)
         } else {
             // The language may have been changed in the system's settings; the stored choice follows it.
@@ -1013,7 +1014,8 @@ class MainActivity : FragmentActivity() {
 
                 // Adding to the queue is confirmed in a line, so a tap in a menu never feels lost.
                 LaunchedEffect(activePlayerConnection) {
-                    activePlayerConnection?.queueEvents?.collect { event ->
+                    // The newest addition replaces the line at once; several quick adds must not queue up for seconds.
+                    activePlayerConnection?.queueEvents?.collectLatest { event ->
                         val message =
                             when {
                                 event.count > 1 -> resources.getQuantityString(if (event.next) R.plurals.queue_next_n else R.plurals.queue_added_n, event.count, event.count)

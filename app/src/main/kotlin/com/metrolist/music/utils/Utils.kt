@@ -28,6 +28,8 @@ fun reportException(throwable: Throwable) {
 
 @Suppress("DEPRECATION")
 fun setAppLocale(context: Context, locale: Locale) {
+    // Dates and month names formatted with the default locale follow the chosen language too.
+    Locale.setDefault(locale)
     val config = Configuration(context.resources.configuration)
     config.setLocale(locale)
     context.resources.updateConfiguration(config, context.resources.displayMetrics)

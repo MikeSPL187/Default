@@ -9,6 +9,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.widget.Toast
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -213,6 +214,10 @@ fun PlaybackError(
                     onClick = {
                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         clipboard.setPrimaryClip(ClipData.newPlainText("Metrolist Playback Error", errorReport))
+                        // Android 13 and later confirm a copy on their own.
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                            Toast.makeText(context, R.string.copied, Toast.LENGTH_SHORT).show()
+                        }
                     },
                 ) {
                     Icon(painterResource(R.drawable.content_copy), contentDescription = null, modifier = Modifier.size(16.dp))

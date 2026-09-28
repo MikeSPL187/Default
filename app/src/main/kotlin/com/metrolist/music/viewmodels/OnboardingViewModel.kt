@@ -25,6 +25,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import java.time.LocalDateTime
 import javax.inject.Inject
 
@@ -51,6 +53,7 @@ class OnboardingViewModel
 
         private var popular: List<ArtistItem> = emptyList()
         private var searchJob: Job? = null
+        private var finishing = false
 
         init {
             loadPopular()
@@ -73,6 +76,8 @@ class OnboardingViewModel
                         if (listed.size >= MAX_ARTISTS / 2) {
                             emptyList()
                         } else {
+                            // A few lookups at a time: dozens at once only get the requests throttled.
+                            val lookups = Semaphore(PARALLEL_LOOKUPS)
                             items
                                 .filterIsInstance<SongItem>()
                                 .flatMap { it.artists }
@@ -81,8 +86,10 @@ class OnboardingViewModel
                                 .take(MAX_ARTISTS - listed.size)
                                 .map { artist ->
                                     async {
-                                        searchArtists(artist.name)?.let { found ->
-                                            found.firstOrNull { it.id == artist.id } ?: found.firstOrNull()
+                                        lookups.withPermit {
+                                            searchArtists(artist.name)?.let { found ->
+                                                found.firstOrNull { it.id == artist.id } ?: found.firstOrNull()
+                                            }
                                         }
                                     }
                                 }.awaitAll()
@@ -130,6 +137,9 @@ class OnboardingViewModel
 
         /** Adds the picks to the library's artists, which home, new releases and the DJ build on. */
         fun finish(onDone: () -> Unit) {
+            // A second tap while the first is saving must not save and leave twice.
+            if (finishing) return
+            finishing = true
             val chosen = _picked.value.values.toList()
             viewModelScope.launch {
                 if (chosen.isNotEmpty()) {
@@ -155,5 +165,6 @@ class OnboardingViewModel
 
         private companion object {
             const val MAX_ARTISTS = 30
+            const val PARALLEL_LOOKUPS = 4
         }
     }

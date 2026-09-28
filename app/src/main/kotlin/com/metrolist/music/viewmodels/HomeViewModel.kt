@@ -586,6 +586,7 @@ class HomeViewModel @Inject constructor(
         val hideExplicit = context.dataStore.read(HideExplicitKey, false)
         val hideVideoSongs = context.dataStore.read(HideVideoSongsKey, false)
         val hideYoutubeShorts = context.dataStore.read(HideYoutubeShortsKey, false)
+        val notRecommended = context.notRecommended()
         val fromTimeStamp = LocalDateTime.now().minusWeeks(2)
 
         // Phase 1: Load essential sections in parallel — local DB (fast) + YouTube home page.
@@ -598,7 +599,7 @@ class HomeViewModel @Inject constructor(
                     database.mostPlayedSongs(LocalDateTime.now().minusDays(ON_REPEAT_DAYS), limit = ON_REPEAT_SIZE).first()
                         .filterNot { it.song.isEpisode }
                         .filterVideoSongs(hideVideoSongs).filterExplicit(hideExplicit)
-                        .filterNotRecommended(context.notRecommended())
+                        .filterNotRecommended(notRecommended)
                         .shuffled()
             }
 
@@ -614,7 +615,7 @@ class HomeViewModel @Inject constructor(
                     .filterNot { it.song.isEpisode }
                     .filterVideoSongs(hideVideoSongs)
                     .filterExplicit(hideExplicit)
-                    .filterNotRecommended(context.notRecommended())
+                    .filterNotRecommended(notRecommended)
                     .shuffled()
                     .take(DAYLIST_SIZE)
                 daylist.value = if (songs.size >= DAYLIST_MIN_SIZE) Daylist(part, songs) else null
@@ -638,7 +639,7 @@ class HomeViewModel @Inject constructor(
                                 .filterOutNulls()
                                 .filterExplicit(hideExplicit)
                                 .filterVideoSongs(hideVideoSongs)
-                                .filterYoutubeShorts(hideYoutubeShorts).filterNotRecommended(context.notRecommended())
+                                .filterYoutubeShorts(hideYoutubeShorts).filterNotRecommended(notRecommended)
                             if (filtered.isEmpty()) null else section.copy(items = filtered)
                         }
                     )
@@ -682,7 +683,7 @@ class HomeViewModel @Inject constructor(
                 chart.value =
                     section?.items.orEmpty().filterIsInstance<SongItem>()
                         .filterExplicit(hideExplicit)
-                        .filterNotRecommended(context.notRecommended())
+                        .filterNotRecommended(notRecommended)
                         .take(HOME_CHART_SIZE)
             }.onFailure { Timber.w(it, "Could not load the chart for home") }
             // Charts are not published in every country; the global chart stands in for them.
@@ -690,7 +691,7 @@ class HomeViewModel @Inject constructor(
                 YouTube.playlist(GLOBAL_CHART_PLAYLIST).onSuccess { page ->
                     chart.value =
                         page.songs.filterExplicit(hideExplicit)
-                            .filterNotRecommended(context.notRecommended())
+                            .filterNotRecommended(notRecommended)
                             .take(HOME_CHART_SIZE)
                 }.onFailure { Timber.w(it, "Could not load the global chart for home") }
             }
@@ -778,6 +779,7 @@ class HomeViewModel @Inject constructor(
                 val hideExplicit = context.dataStore.read(HideExplicitKey, false)
                 val hideVideoSongs = context.dataStore.read(HideVideoSongsKey, false)
                 val hideYoutubeShorts = context.dataStore.read(HideYoutubeShortsKey, false)
+                val notRecommended = context.notRecommended()
                 val nextSections = YouTube.home(continuation).getOrNull() ?: return@launch
 
                 homePage.value = nextSections.copy(
@@ -787,7 +789,7 @@ class HomeViewModel @Inject constructor(
                             .filterOutNulls()
                             .filterExplicit(hideExplicit)
                             .filterVideoSongs(hideVideoSongs)
-                            .filterYoutubeShorts(hideYoutubeShorts).filterNotRecommended(context.notRecommended())
+                            .filterYoutubeShorts(hideYoutubeShorts).filterNotRecommended(notRecommended)
                         if (filteredItems.isEmpty()) null else section.copy(items = filteredItems)
                     }
                 )
@@ -813,12 +815,13 @@ class HomeViewModel @Inject constructor(
             val hideExplicit = context.dataStore.read(HideExplicitKey, false)
             val hideVideoSongs = context.dataStore.read(HideVideoSongsKey, false)
             val hideYoutubeShorts = context.dataStore.read(HideYoutubeShortsKey, false)
+            val notRecommended = context.notRecommended()
             val nextSections = YouTube.home(params = chip.endpoint?.params).getOrNull() ?: return@launch
 
             homePage.value = nextSections.copy(
                 chips = homePage.value?.chips,
                 sections = nextSections.sections.mapNotNull { section ->
-                    section.copy(items = section.items.filterOutNulls().filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs).filterYoutubeShorts(hideYoutubeShorts).filterNotRecommended(context.notRecommended()))
+                    section.copy(items = section.items.filterOutNulls().filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs).filterYoutubeShorts(hideYoutubeShorts).filterNotRecommended(notRecommended))
                 }
             )
             selectedChip.value = chip
@@ -885,12 +888,13 @@ class HomeViewModel @Inject constructor(
                 val hideExplicit = context.dataStore.read(HideExplicitKey, false)
                 val hideVideoSongs = context.dataStore.read(HideVideoSongsKey, false)
                 val hideYoutubeShorts = context.dataStore.read(HideYoutubeShortsKey, false)
+                val notRecommended = context.notRecommended()
                 val nextSections = YouTube.home(params = currentChip.endpoint?.params).getOrNull()
                 if (nextSections != null) {
                     homePage.value = nextSections.copy(
                         chips = homePage.value?.chips,
                         sections = nextSections.sections.mapNotNull { section ->
-                            section.copy(items = section.items.filterOutNulls().filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs).filterYoutubeShorts(hideYoutubeShorts).filterNotRecommended(context.notRecommended()))
+                            section.copy(items = section.items.filterOutNulls().filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs).filterYoutubeShorts(hideYoutubeShorts).filterNotRecommended(notRecommended))
                         }
                     )
                 }
