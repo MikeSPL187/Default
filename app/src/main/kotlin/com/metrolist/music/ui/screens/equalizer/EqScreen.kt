@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -325,11 +326,11 @@ private fun NoEqualizationItem(
         leadingContent = {
             RadioButton(
                 selected = isSelected,
-                onClick = onSelected
+                onClick = null
             )
         },
         modifier = Modifier
-            .clickable(onClick = onSelected)
+            .selectable(selected = isSelected, role = Role.RadioButton, onClick = onSelected)
             .padding(horizontal = 8.dp) // align with design
     )
 }
@@ -362,7 +363,7 @@ private fun EQProfileItem(
         leadingContent = {
             RadioButton(
                 selected = isSelected,
-                onClick = onSelected
+                onClick = null
             )
         },
         trailingContent = {
@@ -375,7 +376,7 @@ private fun EQProfileItem(
             }
         },
         modifier = Modifier
-            .clickable(onClick = onSelected)
+            .selectable(selected = isSelected, role = Role.RadioButton, onClick = onSelected)
             .padding(horizontal = 8.dp)
     )
 
@@ -396,7 +397,7 @@ private fun EQProfileItem(
                         showDeleteDialog = false
                     }
                 ) {
-                    Text(stringResource(android.R.string.ok))
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
