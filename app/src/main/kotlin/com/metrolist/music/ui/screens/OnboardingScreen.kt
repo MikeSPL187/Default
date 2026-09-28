@@ -10,6 +10,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,8 +61,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -285,8 +284,8 @@ private fun ArtistChoice(
         modifier =
             Modifier
                 .clip(RoundedCornerShape(16.dp))
-                .clickable(role = Role.Checkbox, onClick = onClick)
-                .semantics { this.selected = selected }
+                // Read as a checkbox with its checked state, like the other pickers.
+                .toggleable(value = selected, role = Role.Checkbox, onValueChange = { onClick() })
                 .padding(vertical = 6.dp),
     ) {
         Box(
