@@ -248,7 +248,7 @@ fun AlarmSettingsSection(showTitle: Boolean = true) {
                                 ?: selectPlaylistText
                         val triggerText =
                             if (alarm.nextTriggerAt > 0L) {
-                                DateTimeFormatter.ofPattern("EEE, HH:mm", locale)
+                                DateTimeFormatter.ofPattern("EEE, ${clockPattern(context)}", locale)
                                     .format(
                                         Instant.ofEpochMilli(alarm.nextTriggerAt)
                                             .atZone(ZoneId.systemDefault())
@@ -268,7 +268,7 @@ fun AlarmSettingsSection(showTitle: Boolean = true) {
                             icon = painterResource(R.drawable.bedtime),
                             title = {
                                 Text(
-                                    String.format(locale, "%02d:%02d", alarm.hour, alarm.minute) +
+                                    clockText(context, locale, alarm.hour, alarm.minute) +
                                         if (alarm.enabled) {
                                             ""
                                         } else {
@@ -329,7 +329,7 @@ private fun AlarmTimePickerDialog(
     val timePickerState = rememberTimePickerState(
         initialHour = initialHour,
         initialMinute = initialMinute,
-        is24Hour = true
+        is24Hour = android.text.format.DateFormat.is24HourFormat(LocalContext.current)
     )
 
     DefaultDialog(
@@ -541,7 +541,7 @@ private fun AlarmEditorDialog(
                 Text(
                     text = stringResource(
                         R.string.alarm_time_picker_value,
-                        String.format(locale, "%02d:%02d", hour, minute)
+                        clockText(context, locale, hour, minute)
                     )
                 )
             }
@@ -583,3 +583,10 @@ private fun AlarmEditorDialog(
         }
     }
 }
+
+/** The clock as the phone shows it: 24-hour or with AM/PM. */
+private fun clockPattern(context: android.content.Context) =
+    if (android.text.format.DateFormat.is24HourFormat(context)) "HH:mm" else "h:mm a"
+
+private fun clockText(context: android.content.Context, locale: java.util.Locale, hour: Int, minute: Int): String =
+    java.time.LocalTime.of(hour, minute).format(DateTimeFormatter.ofPattern(clockPattern(context), locale))
