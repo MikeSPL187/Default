@@ -50,6 +50,11 @@
         android:supportsRtl="false"
         android:theme="@style/Theme.Metrolist"
         tools:targetApi="tiramisu">
+        <!-- Lets the startup profile be recorded and measured on a release build. -->
+        <profileable
+            android:shell="true"
+            tools:targetApi="29" />
+
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />

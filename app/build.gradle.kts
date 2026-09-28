@@ -149,6 +149,14 @@ android {
                     signingConfigs.getByName("debug")
                 }
         }
+        // A release build R8 leaves readable, so the startup profile recorded on it names real classes.
+        create("profiling") {
+            initWith(getByName("release"))
+            isMinifyEnabled = false
+            isShrinkResources = false
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+        }
     }
 
     compileOptions {
