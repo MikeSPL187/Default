@@ -242,6 +242,7 @@ fun StorageSettings(
                 clearDownloads = false
             },
             onCancel = { clearDownloads = false },
+            destructiveConfirmText = stringResource(R.string.clear),
             content = {
                 Text(text = stringResource(R.string.clear_downloads_dialog))
             },
@@ -281,6 +282,7 @@ fun StorageSettings(
                 clearCacheDialog = false
             },
             onCancel = { clearCacheDialog = false },
+            destructiveConfirmText = stringResource(R.string.clear),
             content = {
                 Text(text = stringResource(R.string.clear_song_cache_dialog))
             },
@@ -298,6 +300,7 @@ fun StorageSettings(
                 clearImageCacheDialog = false
             },
             onCancel = { clearImageCacheDialog = false },
+            destructiveConfirmText = stringResource(R.string.clear),
             content = {
                 Text(text = stringResource(R.string.clear_image_cache_dialog))
             },

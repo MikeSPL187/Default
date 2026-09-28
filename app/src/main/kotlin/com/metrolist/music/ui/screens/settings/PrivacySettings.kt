@@ -96,7 +96,7 @@ fun PrivacySettings(
                         }
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.ok))
+                    Text(text = stringResource(R.string.clear), color = MaterialTheme.colorScheme.error)
                 }
             },
         )
@@ -131,7 +131,7 @@ fun PrivacySettings(
                         }
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.ok))
+                    Text(text = stringResource(R.string.clear), color = MaterialTheme.colorScheme.error)
                 }
             },
         )

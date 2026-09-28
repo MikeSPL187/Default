@@ -1892,7 +1892,7 @@ fun ListenTogetherDialog(
                             trailingIcon = {
                                 if (usernameInput.isNotBlank()) {
                                     IconButton(onClick = { usernameInput = "" }) {
-                                        Icon(painterResource(R.drawable.close), null)
+                                        Icon(painterResource(R.drawable.close), stringResource(R.string.clear))
                                     }
                                 }
                             },
