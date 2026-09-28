@@ -7,6 +7,9 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import com.metrolist.music.db.entities.Playlist
+import com.metrolist.music.db.entities.PlaylistEntity
+import java.util.UUID
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.metrolist.music.R
@@ -140,3 +143,17 @@ fun AutoCollectionsRow(
 }
 
 private val TileSize = 88.dp
+
+/**
+ * A collection the app keeps by itself, as a playlist row for the library lists. Kept across
+ * recompositions: a fresh id on every frame would redraw its row for nothing.
+ */
+@Composable
+internal fun rememberAutoPlaylist(name: String): Playlist =
+    remember(name) {
+        Playlist(
+            playlist = PlaylistEntity(id = UUID.randomUUID().toString(), name = name),
+            songCount = 0,
+            songThumbnails = emptyList(),
+        )
+    }
