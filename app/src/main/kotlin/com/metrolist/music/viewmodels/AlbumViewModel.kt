@@ -35,12 +35,26 @@ constructor(
             .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     var otherVersions = MutableStateFlow<List<AlbumItem>>(emptyList())
 
+    /** The last fetch failed; a saved album still shows, one never saved gets a retry card. */
+    val loadFailed = MutableStateFlow(false)
+
     init {
+        load()
+    }
+
+    fun retry() {
+        loadFailed.value = false
+        load()
+    }
+
+    private fun load() {
         viewModelScope.launch {
             val album = database.album(albumId).first()
             YouTube
                 .album(albumId)
                 .onSuccess {
+                    // An album with no playable songs would otherwise spin forever.
+                    if (it.songs.isEmpty() && album == null) loadFailed.value = true
                     playlistId.value = it.album.playlistId
                     otherVersions.value = it.otherVersions
                     database.transaction {
@@ -52,6 +66,7 @@ constructor(
                     }
                 }.onFailure {
                     reportException(it)
+                    loadFailed.value = true
                     if (it.message?.contains("NOT_FOUND") == true) {
                         database.query {
                             album?.album?.let(::delete)

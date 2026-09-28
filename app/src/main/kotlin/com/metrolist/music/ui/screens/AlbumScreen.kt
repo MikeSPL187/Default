@@ -87,6 +87,7 @@ import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.db.entities.Album
 import com.metrolist.music.playback.queues.LocalAlbumRadio
 import com.metrolist.music.ui.component.ClickableArtistText
+import com.metrolist.music.ui.component.EmptyPlaceholder
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.component.NavigationTitle
@@ -131,6 +132,7 @@ fun AlbumScreen(
         albumWithSongs?.album?.let { RecentCollection(RecentCollection.Kind.ALBUM, it.id, it.title, it.thumbnailUrl) },
     )
     val otherVersions by viewModel.otherVersions.collectAsStateWithLifecycle()
+    val loadFailed by viewModel.loadFailed.collectAsStateWithLifecycle()
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
     val hideVideoSongs by rememberPreference(key = HideVideoSongsKey, defaultValue = false)
 
@@ -241,14 +243,23 @@ fun AlbumScreen(
                         playerConnection.playQueue(
                             ListQueue(
                                 title = albumWithSongs.album.title,
-                                items = albumWithSongs.songs.shuffled().map { it.toMediaItem() },
+                                items = filteredSongs.shuffled().map { it.toMediaItem() },
                             ),
                         )
                     },
                 )
             }
 
-            if (filteredSongs.isNotEmpty()) {
+            if (filteredSongs.isEmpty()) {
+                item(key = "all_hidden") {
+                    EmptyPlaceholder(
+                        icon = R.drawable.music_note,
+                        text = stringResource(R.string.album_all_songs_hidden),
+                        hint = stringResource(R.string.album_all_songs_hidden_hint),
+                        modifier = Modifier.animateItem(),
+                    )
+                }
+            } else {
                 itemsIndexed(
                     items = filteredSongs,
                     key = { index, song -> "${song.id}_$index" },
@@ -308,8 +319,12 @@ fun AlbumScreen(
                                                 playerConnection.togglePlayPause()
                                             } else {
                                                 playerConnection.service.getAutomix(playlistId)
+                                                // Hidden songs shift the rows; the queue holds the whole album.
                                                 playerConnection.playQueue(
-                                                    LocalAlbumRadio(albumWithSongs, startIndex = index),
+                                                    LocalAlbumRadio(
+                                                        albumWithSongs,
+                                                        startIndex = albumWithSongs.songs.indexOfFirst { it.id == song.id }.coerceAtLeast(0),
+                                                    ),
                                                 )
                                             }
                                         }
@@ -362,6 +377,17 @@ fun AlbumScreen(
                         }
                     }
                 }
+            }
+        } else if (loadFailed) {
+            item(key = "error") {
+                EmptyPlaceholder(
+                    icon = R.drawable.cloud_off,
+                    text = stringResource(R.string.album_load_failed),
+                    hint = stringResource(R.string.search_failed_hint),
+                    action = stringResource(R.string.retry),
+                    onAction = viewModel::retry,
+                    modifier = Modifier.fillParentMaxSize(),
+                )
             }
         } else {
             item(key = "loading") {

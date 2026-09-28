@@ -1405,6 +1405,9 @@
     <string name="a11y_collapse_player">Свернуть плеер</string>
     <string name="a11y_more_info">Подробнее</string>
     <string name="a11y_open_player">Открыть плеер</string>
+    <string name="album_load_failed">Не удалось загрузить альбом</string>
+    <string name="album_all_songs_hidden">Все песни альбома скрыты</string>
+    <string name="album_all_songs_hidden_hint">Откровенные песни или клипы скрыты в Настройках › Контент</string>
     <string name="playlist_load_failed">Не удалось загрузить плейлист</string>
     <string name="podcast_load_failed">Не удалось загрузить подкаст</string>
     <string name="settings_section_recap">Итоги</string>
