@@ -330,7 +330,6 @@ class App :
     }
 
     @Volatile
-    @Volatile
     private var cachedCoilCacheSize: Int? = null
 
     // Artwork lives outside cacheDir so the system does not wipe it under storage pressure
