@@ -7,8 +7,6 @@ package com.metrolist.music.ui.screens.artist
 
 import com.metrolist.music.utils.RememberForQuickAccess
 import com.metrolist.music.utils.RecentCollection
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -1065,18 +1063,21 @@ fun ArtistScreen(
         actions = {
             IconButton(
                 onClick = {
+                    // The system sheet shares to any app and still offers Copy.
                     viewModel.artistPage?.artist?.shareLink?.let { link ->
-                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        val clip = ClipData.newPlainText("Artist Link", link)
-                        clipboard.setPrimaryClip(clip)
-                        Toast.makeText(context, R.string.link_copied, Toast.LENGTH_SHORT).show()
+                        val send =
+                            android.content.Intent(android.content.Intent.ACTION_SEND)
+                                .setType("text/plain")
+                                .putExtra(android.content.Intent.EXTRA_TEXT, link)
+                        context.startActivity(android.content.Intent.createChooser(send, null))
                     }
                 },
+                enabled = viewModel.artistPage?.artist?.shareLink != null,
                 modifier = overPhoto,
             ) {
                 Icon(
-                    painterResource(R.drawable.link),
-                    contentDescription = stringResource(R.string.copy_link),
+                    painterResource(R.drawable.share),
+                    contentDescription = stringResource(R.string.share),
                     tint = iconTint,
                 )
             }
