@@ -185,31 +185,6 @@ fun YouScreen(
                 }
             }
         }
-
-        item(key = "settings") {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier =
-                    Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(22.dp))
-                        .background(MaterialTheme.colorScheme.surfaceContainer)
-                        .clickable { go("settings") }
-                        .padding(horizontal = 14.dp, vertical = 14.dp),
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier =
-                        Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-                ) { Icon(painterResource(R.drawable.settings), null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(21.dp)) }
-                Text(stringResource(R.string.settings), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f).padding(start = 14.dp))
-                Icon(painterResource(R.drawable.navigate_next), null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
     }
 
     if (showAccount) {
