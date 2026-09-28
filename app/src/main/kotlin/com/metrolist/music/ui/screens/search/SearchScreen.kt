@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.screens.search
 
+import androidx.compose.ui.text.style.TextOverflow
 import android.app.Activity
 import android.content.Intent
 import android.speech.RecognizerIntent
@@ -263,6 +264,8 @@ fun SearchScreen(
                                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                                     fontSize = 16.sp,
                                                 ),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
                                         )
                                     }
                                     innerTextField()

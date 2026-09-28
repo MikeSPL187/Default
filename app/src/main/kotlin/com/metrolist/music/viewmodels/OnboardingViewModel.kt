@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.ArtistItem
+import com.metrolist.innertube.models.SongItem
 import com.metrolist.music.constants.OnboardingDoneKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.ArtistEntity
@@ -17,6 +18,8 @@ import com.metrolist.music.utils.safeDataStoreEdit
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -57,17 +60,36 @@ class OnboardingViewModel
             viewModelScope.launch {
                 _loading.value = true
                 _failed.value = false
-                YouTube
-                    .getChartsPage()
-                    .onSuccess { page ->
-                        popular =
-                            page.sections
-                                .flatMap { it.items }
-                                .filterIsInstance<ArtistItem>()
+                val page = YouTube.getChartsPage().getOrNull()
+                if (page == null) {
+                    _failed.value = true
+                } else {
+                    val items = page.sections.flatMap { it.items }
+                    val listed = items.filterIsInstance<ArtistItem>().distinctBy { it.id }
+                    // Some regions' charts list only songs; their artists are looked up by name to get a photo.
+                    val fromSongs =
+                        if (listed.size >= MAX_ARTISTS / 2) {
+                            emptyList()
+                        } else {
+                            items
+                                .filterIsInstance<SongItem>()
+                                .flatMap { it.artists }
+                                .filter { it.id != null && listed.none { a -> a.id == it.id } }
                                 .distinctBy { it.id }
-                                .take(MAX_ARTISTS)
-                        _artists.value = popular
-                    }.onFailure { _failed.value = true }
+                                .take(MAX_ARTISTS - listed.size)
+                                .map { artist ->
+                                    async {
+                                        searchArtists(artist.name)?.let { found ->
+                                            found.firstOrNull { it.id == artist.id } ?: found.firstOrNull()
+                                        }
+                                    }
+                                }.awaitAll()
+                                .filterNotNull()
+                        }
+                    popular = (listed + fromSongs).distinctBy { it.id }.take(MAX_ARTISTS)
+                    _artists.value = popular
+                    _failed.value = popular.isEmpty()
+                }
                 _loading.value = false
             }
         }
@@ -92,6 +114,13 @@ class OnboardingViewModel
                     _loading.value = false
                 }
         }
+
+        private suspend fun searchArtists(name: String): List<ArtistItem>? =
+            YouTube
+                .search(name, YouTube.SearchFilter.FILTER_ARTIST)
+                .getOrNull()
+                ?.items
+                ?.filterIsInstance<ArtistItem>()
 
         fun toggle(artist: ArtistItem) {
             _picked.update { if (artist.id in it) it - artist.id else it + (artist.id to artist) }

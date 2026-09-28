@@ -1,5 +1,9 @@
 package com.metrolist.music.ui.screens.home
 
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -870,7 +874,7 @@ private fun QuickTile(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .heightIn(min = 56.dp)
                     .scale(scale)
                     .clip(RoundedCornerShape(14.dp))
                     .background(colors.surfaceContainer)
@@ -918,12 +922,9 @@ private fun QuickTile(
                     else -> Icon(painterResource(R.drawable.queue_music), contentDescription = null, tint = colors.onSurfaceVariant)
                 }
             }
-            Text(
+            WholeWordsText(
                 item.title,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
                 modifier =
                     Modifier
                         .weight(1f)
@@ -1421,5 +1422,34 @@ internal fun moodIcon(title: String): Int {
         has("jazz", "blues", "classic", "джаз", "блюз", "классик", "piano") -> R.drawable.piano
         has("rock", "metal", "рок", "метал", "punk", "панк") -> R.drawable.local_fire_department
         else -> R.drawable.headphones
+    }
+}
+
+/**
+ * Two lines of a tile title that never split a word: when the longest word is wider than the
+ * tile (large font sizes, "Downloaded"), the text shrinks a little instead of breaking mid-word.
+ */
+@Composable
+private fun WholeWordsText(
+    text: String,
+    style: TextStyle,
+    modifier: Modifier = Modifier,
+) {
+    val measurer = rememberTextMeasurer()
+    BoxWithConstraints(modifier) {
+        val width = constraints.maxWidth
+        val fitted =
+            remember(text, style, width) {
+                val longest =
+                    text
+                        .split(' ')
+                        .maxOfOrNull { measurer.measure(it, style, maxLines = 1, softWrap = false).size.width } ?: 0
+                if (longest <= width || longest == 0) {
+                    style
+                } else {
+                    style.copy(fontSize = style.fontSize * (width.toFloat() / longest).coerceAtLeast(0.7f))
+                }
+            }
+        Text(text, style = fitted, maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }
