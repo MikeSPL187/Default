@@ -34,20 +34,30 @@ appId: com.metrolist.music
     element: "Настроить"
     direction: UP
     timeout: 20000
+    centerElement: true
     optional: true
 - tapOn:
     text: "Настроить"
     optional: true
 - waitForAnimationToEnd
 - takeScreenshot: ru-05-dj-tune
-- back
+# Back only closes the sheet: pressed on home it would leave the app.
+- runFlow:
+    when:
+      visible: "Что играть"
+    commands:
+      - back
+      - waitForAnimationToEnd
 
 - tapOn:
     text: "Поиск"
     optional: true
 - waitForAnimationToEnd
 - takeScreenshot: ru-06-search
-- back
+- tapOn:
+    text: "Главная"
+    optional: true
+- waitForAnimationToEnd
 
 # The player and its queue
 - tapOn:
@@ -61,9 +71,18 @@ appId: com.metrolist.music
     optional: true
 - waitForAnimationToEnd
 - takeScreenshot: ru-08-queue
-- back
-- back
-- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Сохранить как плейлист"
+    commands:
+      - back
+      - waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "ИГРАЕТ ИЗ"
+    commands:
+      - back
+      - waitForAnimationToEnd
 
 - tapOn:
     text: "Библиотека"
