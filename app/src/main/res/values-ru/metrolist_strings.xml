@@ -1359,4 +1359,16 @@
     <string name="voice_search">Голосовой поиск</string>
     <string name="voice_search_prompt">Скажите, что найти</string>
     <string name="share_card">Поделиться карточкой</string>
+    <string name="onboarding_title">Кого вы слушаете?</string>
+    <string name="onboarding_subtitle">Выберите несколько исполнителей — Главная, новинки и Диджей начнут с вашего вкуса.</string>
+    <string name="onboarding_search">Найти исполнителя</string>
+    <string name="onboarding_skip">Пропустить</string>
+    <string name="onboarding_pick_some">Выберите хотя бы одного</string>
+    <string name="onboarding_failed">Не удалось загрузить исполнителей. Проверьте интернет или пропустите.</string>
+    <plurals name="onboarding_continue">
+        <item quantity="one">Продолжить: %d исполнитель</item>
+        <item quantity="few">Продолжить: %d исполнителя</item>
+        <item quantity="many">Продолжить: %d исполнителей</item>
+        <item quantity="other">Продолжить: %d исполнителя</item>
+    </plurals>
 </resources>

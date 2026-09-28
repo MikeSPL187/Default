@@ -3,6 +3,18 @@ appId: com.metrolist.music
 ---
 - launchApp
 - extendedWaitUntil:
+    visible: "Skip"
+    timeout: 20000
+    optional: true
+- runFlow:
+    when:
+      visible: "Skip"
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 10000
+      - takeScreenshot: ${P}00-onboarding
+      - tapOn: "Skip"
+- extendedWaitUntil:
     visible: "Home"
     timeout: 60000
 - waitForAnimationToEnd:

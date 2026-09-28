@@ -1454,4 +1454,14 @@
     <string name="voice_search">Voice search</string>
     <string name="voice_search_prompt">Say what to look for</string>
     <string name="share_card">Share as a card</string>
+    <string name="onboarding_title">Who do you listen to?</string>
+    <string name="onboarding_subtitle">Pick a few artists, and home, new releases and the DJ will start from your taste.</string>
+    <string name="onboarding_search">Find an artist</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_pick_some">Pick at least one</string>
+    <string name="onboarding_failed">Couldn\'t load artists. Check the connection or skip for now.</string>
+    <plurals name="onboarding_continue">
+        <item quantity="one">Continue with %d artist</item>
+        <item quantity="other">Continue with %d artists</item>
+    </plurals>
 </resources>

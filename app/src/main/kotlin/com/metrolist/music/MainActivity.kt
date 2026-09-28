@@ -6,6 +6,8 @@
 package com.metrolist.music
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import com.metrolist.music.ui.screens.OnboardingScreen
+import com.metrolist.music.constants.OnboardingDoneKey
 import com.metrolist.music.ui.component.LocalSharedTransitionScope
 import androidx.compose.animation.SharedTransitionLayout
 import android.Manifest
@@ -1460,6 +1462,24 @@ class MainActivity : FragmentActivity() {
                         state = LocalBottomSheetPageState.current,
                         modifier = Modifier.align(Alignment.BottomCenter),
                     )
+
+                    // First launch of a new listener: pick a few artists before landing on home.
+                    var showOnboarding by remember { mutableStateOf(false) }
+                    LaunchedEffect(Unit) {
+                        if (dataStore.get(OnboardingDoneKey, false)) return@LaunchedEffect
+                        val returning =
+                            withContext(Dispatchers.IO) {
+                                database.eventCount().first() > 0 || database.bookmarkedArtistEntitiesByNameAsc().isNotEmpty()
+                            }
+                        if (returning) {
+                            safeDataStoreEdit { it[OnboardingDoneKey] = true }
+                        } else {
+                            showOnboarding = true
+                        }
+                    }
+                    if (showOnboarding) {
+                        OnboardingScreen(onDone = { showOnboarding = false })
+                    }
 
                     if (showAccountDialog) {
                         AccountSettingsDialog(

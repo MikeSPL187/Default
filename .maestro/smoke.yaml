@@ -12,6 +12,19 @@ appId: com.metrolist.music
       visible: ".*isn't responding"
     commands:
       - tapOn: "Wait"
+# A fresh install first offers to pick favourite artists.
+- extendedWaitUntil:
+    visible: "Skip"
+    timeout: 20000
+    optional: true
+- runFlow:
+    when:
+      visible: "Skip"
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 10000
+      - takeScreenshot: 00-onboarding
+      - tapOn: "Skip"
 - extendedWaitUntil:
     visible: "Home"
     timeout: 90000

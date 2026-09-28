@@ -752,3 +752,6 @@ val CountryCodeToName =
         "YE" to "Yemen",
         "ZW" to "Zimbabwe",
     )
+
+/** Set once the first-run artist picker is done or skipped. */
+val OnboardingDoneKey = booleanPreferencesKey("onboardingDone")
