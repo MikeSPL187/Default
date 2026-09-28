@@ -504,7 +504,7 @@ fun TopPlaylistScreen(
                             contentDescription = stringResource(R.string.more_options)
                         )
                     }
-                } else if (!isSearching) {
+                } else if (!isSearching && !songs.isNullOrEmpty()) {
                     IconButton(
                         onClick = { isSearching = true }
                     ) {

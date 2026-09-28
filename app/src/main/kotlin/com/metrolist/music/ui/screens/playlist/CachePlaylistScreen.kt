@@ -453,7 +453,7 @@ fun CachePlaylistScreen(
                             contentDescription = stringResource(R.string.more_options)
                         )
                     }
-                } else if (!isSearching) {
+                } else if (!isSearching && cachedSongs.isNotEmpty()) {
                     IconButton(onClick = { isSearching = true }) {
                         Icon(
                             painter = painterResource(R.drawable.search),
