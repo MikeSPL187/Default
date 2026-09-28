@@ -35,7 +35,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.metrolist.music.ui.component.FitText
@@ -81,6 +80,7 @@ fun AutoCollectionsRow(
                                 haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                                 onOpen(collection)
                             },
+                            onLongClickLabel = stringResource(R.string.collection_play),
                             onLongClick =
                                 if (onPlay != null && collection.key in playable) {
                                     { menu = true }
@@ -125,12 +125,11 @@ fun AutoCollectionsRow(
                     modifier = Modifier.padding(top = 8.dp, start = 2.dp),
                 )
                 collection.subtitle?.let {
-                    Text(
+                    FitText(
                         it,
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal, letterSpacing = MaterialTheme.typography.labelMedium.letterSpacing),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        minFontSize = 9.sp,
                         modifier = Modifier.padding(start = 2.dp),
                     )
                 }
