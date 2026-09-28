@@ -262,6 +262,19 @@ fun HistoryScreen(
                 }
             }
 
+            val noMatches =
+                query.text.isNotEmpty() &&
+                    if (historySource == HistorySource.LOCAL) filteredEvents.isEmpty() else filteredRemoteContent?.isEmpty() == true
+            if (noMatches) {
+                item(key = "no_matches") {
+                    EmptyPlaceholder(
+                        icon = R.drawable.search_off,
+                        text = stringResource(R.string.no_results_found),
+                        modifier = Modifier.animateItem(),
+                    )
+                }
+            }
+
             if (historySource == HistorySource.REMOTE && isLoggedIn) {
                 filteredRemoteContent?.forEach { section ->
                     stickyHeader {
