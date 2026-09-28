@@ -11,6 +11,7 @@ import com.metrolist.music.R
 import com.metrolist.music.db.entities.SongWithStats
 import com.metrolist.music.ui.screens.wrapped.components.RankedItem
 import com.metrolist.music.ui.screens.wrapped.components.WrappedTopListPage
+import com.metrolist.music.ui.screens.wrapped.components.minutesText
 import com.metrolist.music.utils.joinToArtistString
 
 @Composable
@@ -20,10 +21,12 @@ fun WrappedTop5SongsScreen(title: String, topSongs: List<SongWithStats>, isVisib
         title = title,
         items =
             topSongs.take(5).map { song ->
+                val artists = song.artists.joinToArtistString(" $andWord ") { it.name }.ifBlank { song.artistName.orEmpty() }
                 RankedItem(
                     imageUrl = song.thumbnailUrl,
                     title = song.title,
-                    subtitle = song.artists.joinToArtistString(" $andWord ") { it.name }.ifBlank { song.artistName.orEmpty() },
+                    // Listening time like the albums and artists pages, after who sings it.
+                    subtitle = listOf(artists, minutesText(song.timeListened)).filter { it.isNotBlank() }.joinToString(" · "),
                 )
             },
         isVisible = isVisible,
