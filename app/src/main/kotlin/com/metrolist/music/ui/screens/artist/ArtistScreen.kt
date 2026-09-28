@@ -59,7 +59,11 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -195,6 +199,18 @@ fun ArtistScreen(
         derivedStateOf {
             lazyListState.firstVisibleItemIndex == 0 && lazyListState.firstVisibleItemScrollOffset < 100
         }
+    }
+
+    // Over the artist's photo the status bar icons are white in either theme; dark ones vanish on
+    // a dark picture. Once the photo scrolls away they follow the theme again.
+    val statusBarView = LocalView.current
+    val lightSurface = MaterialTheme.colorScheme.surface.luminance() > 0.5f
+    val statusOverPhoto = transparentAppBar && (artistPage?.artist?.thumbnail ?: libraryArtist?.artist?.thumbnailUrl) != null
+    DisposableEffect(statusOverPhoto, lightSurface) {
+        val window = (statusBarView.context as? android.app.Activity)?.window
+        val controller = window?.let { WindowCompat.getInsetsController(it, statusBarView) }
+        controller?.isAppearanceLightStatusBars = lightSurface && !statusOverPhoto
+        onDispose { controller?.isAppearanceLightStatusBars = lightSurface }
     }
 
     val distinctItemsBySection = remember(artistPage?.sections) {
