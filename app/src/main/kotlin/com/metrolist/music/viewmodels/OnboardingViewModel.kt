@@ -52,24 +52,35 @@ class OnboardingViewModel
         val picked = _picked.asStateFlow()
 
         private var popular: List<ArtistItem> = emptyList()
+        private var popularJob: Job? = null
         private var searchJob: Job? = null
+        private var query = ""
         private var finishing = false
 
         init {
             loadPopular()
         }
 
+        /** Shows the chart artists, or that they are still loading or could not be loaded. */
+        private fun showPopular() {
+            val loadingPopular = popularJob?.isActive == true
+            _artists.value = popular
+            _loading.value = loadingPopular
+            _failed.value = !loadingPopular && popular.isEmpty()
+        }
+
         fun loadPopular() {
-            viewModelScope.launch {
-                _loading.value = true
-                _failed.value = false
+            if (popularJob?.isActive == true) return
+            popularJob = viewModelScope.launch {
+                if (query.isBlank()) {
+                    _loading.value = true
+                    _failed.value = false
+                }
                 // Charts are not published in every country; the global chart playlist stands in for them.
                 val items =
                     YouTube.getChartsPage().getOrNull()?.sections?.flatMap { it.items }?.takeIf { it.isNotEmpty() }
                         ?: YouTube.playlist(GLOBAL_CHART_PLAYLIST).getOrNull()?.songs
-                if (items == null) {
-                    _failed.value = true
-                } else {
+                if (items != null) {
                     val listed = items.filterIsInstance<ArtistItem>().distinctBy { it.id }
                     // Some regions' charts list only songs; their artists are looked up by name to get a photo.
                     val fromSongs =
@@ -104,18 +115,17 @@ class OnboardingViewModel
                             .distinctBy { it.id }
                             .distinctBy { it.thumbnail ?: it.id }
                             .take(MAX_ARTISTS)
-                    _artists.value = popular
-                    _failed.value = popular.isEmpty()
                 }
-                _loading.value = false
             }
+            // Typing started while the charts loaded: the search results stay on screen.
+            popularJob?.invokeOnCompletion { if (query.isBlank()) showPopular() }
         }
 
         fun search(query: String) {
+            this.query = query
             searchJob?.cancel()
             if (query.isBlank()) {
-                _artists.value = popular
-                _loading.value = false
+                showPopular()
                 return
             }
             searchJob =
