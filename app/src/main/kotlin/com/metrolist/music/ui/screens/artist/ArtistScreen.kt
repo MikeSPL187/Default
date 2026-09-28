@@ -72,6 +72,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -195,6 +199,8 @@ fun ArtistScreen(
         with(density) {
             -(systemBarsTopPadding + AppBarHeight).roundToPx()
         }
+
+    val artistTitleTop = remember { mutableFloatStateOf(Float.MAX_VALUE) }
 
     val transparentAppBar by remember {
         derivedStateOf {
@@ -474,7 +480,15 @@ fun ArtistScreen(
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
                                     fontSize = 32.sp,
-                                    modifier = Modifier.padding(bottom = 16.dp),
+                                    // Fades as it slides under the top bar, which then shows the name, so no
+                                    // sliver of it peeks out below the bar. Only redraws, never recomposes.
+                                    modifier =
+                                        Modifier
+                                            .padding(bottom = 16.dp)
+                                            .onGloballyPositioned { artistTitleTop.floatValue = it.boundsInWindow().top }
+                                            .graphicsLayer {
+                                                alpha = ((artistTitleTop.floatValue + headerOffset) / TITLE_FADE_PX).coerceIn(0f, 1f)
+                                            },
                                 )
 
                                 // Play and shuffle, the same pair as on an album
@@ -1075,3 +1089,6 @@ fun ArtistScreen(
             },
     )
 }
+
+/** How far above the top bar's edge the large artist name takes to fade out, in pixels. */
+private const val TITLE_FADE_PX = 120f
