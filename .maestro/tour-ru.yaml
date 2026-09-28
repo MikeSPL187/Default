@@ -54,6 +54,13 @@ appId: com.metrolist.music
     optional: true
 - waitForAnimationToEnd
 - takeScreenshot: ru-06-search
+- hideKeyboard
+- runFlow:
+    when:
+      visible: "Поиск музыки"
+    commands:
+      - back
+      - waitForAnimationToEnd
 - tapOn:
     text: "Главная"
     optional: true

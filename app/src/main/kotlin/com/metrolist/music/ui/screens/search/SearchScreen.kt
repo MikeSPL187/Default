@@ -260,7 +260,7 @@ fun SearchScreen(
                                                 stringResource(
                                                     when (searchSource) {
                                                         SearchSource.LOCAL -> R.string.search_library
-                                                        SearchSource.ONLINE -> R.string.search_yt_music
+                                                        SearchSource.ONLINE -> R.string.search_music_hint
                                                     },
                                                 ),
                                             style =

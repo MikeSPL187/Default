@@ -1475,4 +1475,6 @@
     <string name="video_quality">Video quality</string>
     <string name="video_quality_desc">How sharp music videos are in the player</string>
     <string name="video_quality_auto">Auto (720p on Wi-Fi, 480p on mobile data)</string>
+    <!-- Short enough for the search bar beside its three buttons, at any font size -->
+    <string name="search_music_hint">Search music</string>
 </resources>
