@@ -417,6 +417,7 @@ fun GridItem(
     thumbnailContent: @Composable BoxWithConstraintsScope.() -> Unit,
     thumbnailRatio: Float = 1f,
     fillMaxWidth: Boolean = false,
+    coverKey: String? = null,
 ) {
     val gridHeight = currentGridThumbnailHeight()
     Column(
@@ -432,12 +433,14 @@ fun GridItem(
     ) {
         BoxWithConstraints(
             contentAlignment = Alignment.Center,
-            modifier = if (fillMaxWidth) {
-                Modifier.fillMaxWidth()
-            } else {
-                Modifier.height(gridHeight)
-            }
-                .aspectRatio(thumbnailRatio)
+            modifier = Modifier.sharedCover(coverKey).then(
+                if (fillMaxWidth) {
+                    Modifier.fillMaxWidth()
+                } else {
+                    Modifier.height(gridHeight)
+                }
+                    .aspectRatio(thumbnailRatio),
+            ),
         ) {
             thumbnailContent()
         }
@@ -463,8 +466,10 @@ fun GridItem(
     thumbnailContent: @Composable BoxWithConstraintsScope.() -> Unit,
     thumbnailRatio: Float = 1f,
     fillMaxWidth: Boolean = false,
+    coverKey: String? = null,
 ) = GridItem(
     modifier = modifier,
+    coverKey = coverKey,
     title = {
         Text(
             text = title,
@@ -891,6 +896,7 @@ fun AlbumGridItem(
         )
     },
     fillMaxWidth = fillMaxWidth,
+    coverKey = album.id,
     modifier = modifier
 )
 
@@ -1351,6 +1357,7 @@ fun YouTubeGridItem(
     },
     thumbnailRatio = thumbnailRatio,
     fillMaxWidth = fillMaxWidth,
+    coverKey = (item as? AlbumItem)?.id,
     modifier = modifier
 )
 

@@ -58,6 +58,7 @@ fun CollectionHeader(
     cover: (@Composable () -> Unit)? = null,
     below: (@Composable () -> Unit)? = null,
     actions: (@Composable () -> Unit)? = null,
+    coverKey: String? = null,
 ) {
     val accent = rememberArtworkAccent(thumbnailUrl) ?: MaterialTheme.colorScheme.primary
     val glow by animateColorAsState(accent, tween(700), label = "collection glow")
@@ -80,6 +81,7 @@ fun CollectionHeader(
         ) {
             Box(
                 Modifier
+                    .sharedCover(coverKey)
                     .size(CoverSize)
                     .shadow(24.dp, RoundedCornerShape(CoverRadius))
                     .clip(RoundedCornerShape(CoverRadius)),

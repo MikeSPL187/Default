@@ -25,6 +25,7 @@ import androidx.navigation.compose.dialog
 import androidx.navigation.navArgument
 import com.metrolist.music.constants.DarkModeKey
 import com.metrolist.music.constants.PureBlackKey
+import com.metrolist.music.ui.component.WithSharedCovers
 import com.metrolist.music.ui.screens.artist.ArtistAlbumsScreen
 import com.metrolist.music.ui.screens.artist.ArtistItemsScreen
 import com.metrolist.music.ui.screens.artist.ArtistScreen
@@ -85,7 +86,7 @@ fun NavGraphBuilder.navigationBuilder(
         if (LocalOfflineMode.current.active) {
             OfflineHomeScreen()
         } else {
-            HomeFeedScreen(snackbarHostState = snackbarHostState)
+            WithSharedCovers { HomeFeedScreen(snackbarHostState = snackbarHostState) }
         }
     }
 
@@ -108,7 +109,7 @@ fun NavGraphBuilder.navigationBuilder(
     }
 
     composable(Screens.Library.route) {
-        LibraryScreen()
+        WithSharedCovers { LibraryScreen() }
     }
 
     composable(
@@ -142,7 +143,7 @@ fun NavGraphBuilder.navigationBuilder(
     }
 
     composable("new_release") {
-        NewReleaseScreen(navController)
+        WithSharedCovers { NewReleaseScreen(navController) }
     }
 
     composable("charts_screen") {
@@ -193,9 +194,11 @@ fun NavGraphBuilder.navigationBuilder(
             fadeOut(tween(200))
         },
     ) { backStackEntry ->
-        OnlineSearchResult(
-            savedStateHandle = backStackEntry.savedStateHandle
-        )
+        WithSharedCovers {
+            OnlineSearchResult(
+                savedStateHandle = backStackEntry.savedStateHandle,
+            )
+        }
 
     }
 
@@ -208,7 +211,7 @@ fun NavGraphBuilder.navigationBuilder(
                 },
             ),
     ) {
-        AlbumScreen(navController)
+        WithSharedCovers { AlbumScreen(navController) }
     }
 
     composable(
@@ -224,7 +227,7 @@ fun NavGraphBuilder.navigationBuilder(
                 },
             ),
     ) {
-        ArtistScreen(navController)
+        WithSharedCovers { ArtistScreen(navController) }
     }
 
     composable(
@@ -248,7 +251,7 @@ fun NavGraphBuilder.navigationBuilder(
                 },
             ),
     ) {
-        ArtistAlbumsScreen(navController, scrollBehavior)
+        WithSharedCovers { ArtistAlbumsScreen(navController, scrollBehavior) }
     }
 
     composable(
@@ -268,7 +271,7 @@ fun NavGraphBuilder.navigationBuilder(
                 },
             ),
     ) {
-        ArtistItemsScreen(navController)
+        WithSharedCovers { ArtistItemsScreen(navController) }
     }
 
     composable(
@@ -357,7 +360,7 @@ fun NavGraphBuilder.navigationBuilder(
                 },
             ),
     ) {
-        YouTubeBrowseScreen(navController)
+        WithSharedCovers { YouTubeBrowseScreen(navController) }
     }
 
     composable("settings") {

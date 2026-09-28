@@ -209,6 +209,7 @@ fun AlbumScreen(
             item(key = "album_header") {
                 val totalDuration = albumWithSongs.songs.sumOf { it.song.duration }
                 CollectionHeader(
+                    coverKey = albumWithSongs.album.id,
                     title = albumWithSongs.album.title,
                     thumbnailUrl = albumWithSongs.album.thumbnailUrl?.resize(1080, 1080),
                     meta =

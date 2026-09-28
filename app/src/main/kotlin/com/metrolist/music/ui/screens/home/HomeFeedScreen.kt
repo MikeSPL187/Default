@@ -113,6 +113,7 @@ import com.metrolist.music.ui.menu.YouTubeArtistMenu
 import com.metrolist.music.ui.menu.YouTubePlaylistMenu
 import com.metrolist.music.ui.menu.YouTubeAlbumMenu
 import com.metrolist.music.LocalDatabase
+import com.metrolist.music.ui.component.sharedCover
 import androidx.media3.common.MediaItem
 import com.metrolist.music.db.entities.Album
 import com.metrolist.music.db.entities.AlbumProgress
@@ -675,6 +676,7 @@ private fun CoverCard(
     modifier: Modifier = Modifier,
     round: Boolean = false,
     onLongClick: (() -> Unit)? = null,
+    coverKey: String? = null,
     cover: @Composable BoxScope.() -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
@@ -696,6 +698,7 @@ private fun CoverCard(
     ) {
         Box(
             Modifier
+                .sharedCover(coverKey)
                 .fillMaxWidth()
                 .aspectRatio(1f)
                 .clip(if (round) CircleShape else RoundedCornerShape(18.dp))
@@ -1196,7 +1199,7 @@ private fun ReleaseCard(
     onOpen: () -> Unit,
     onMenu: () -> Unit,
 ) {
-    CoverCard(title = album.title, subtitle = album.artists.orEmpty().joinToString { it.name }, onClick = onOpen, onLongClick = onMenu) { Cover(album.thumbnail) }
+    CoverCard(title = album.title, subtitle = album.artists.orEmpty().joinToString { it.name }, onClick = onOpen, onLongClick = onMenu, coverKey = album.browseId) { Cover(album.thumbnail) }
 }
 
 @Composable
@@ -1212,7 +1215,7 @@ private fun FeedCard(
             is PlaylistItem -> item.author?.name
             else -> null
         }
-    CoverCard(title = item.title, subtitle = subtitle, round = item is ArtistItem, onClick = onOpen, onLongClick = onMenu) { Cover(item.thumbnail) }
+    CoverCard(title = item.title, subtitle = subtitle, round = item is ArtistItem, onClick = onOpen, onLongClick = onMenu, coverKey = (item as? AlbumItem)?.id) { Cover(item.thumbnail) }
 }
 
 // ---------------------------------------------------------------- chart
