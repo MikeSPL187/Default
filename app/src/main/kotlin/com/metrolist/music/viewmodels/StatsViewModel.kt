@@ -449,6 +449,17 @@ constructor(
                 }.distinctBy { it.song.id }
 
         val existingPlaylist = database.playlist(playlistId).first()?.playlist
+        // A "most played" list with nothing in it is only clutter in the library; it appears once
+        // there is listening to fill it, and goes when there is none.
+        if (songs.isEmpty()) {
+            if (existingPlaylist != null) {
+                database.withTransaction {
+                    clearPlaylist(playlistId)
+                    delete(existingPlaylist)
+                }
+            }
+            return
+        }
         val playlistEntity =
             existingPlaylist?.copy(
                 name = playlistName,
