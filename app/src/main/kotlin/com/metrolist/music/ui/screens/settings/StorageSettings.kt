@@ -52,8 +52,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import coil3.SingletonImageLoader
-import coil3.annotation.DelicateCoilApi
 import coil3.annotation.ExperimentalCoilApi
 import coil3.imageLoader
 import android.widget.Toast
@@ -85,11 +83,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okio.ByteString.Companion.encodeUtf8
 import java.io.File
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalCoilApi::class, ExperimentalMaterial3Api::class, DelicateCoilApi::class)
+@OptIn(ExperimentalCoilApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun StorageSettings(
     navController: NavController
@@ -191,8 +188,8 @@ fun StorageSettings(
         label = "playerCacheProgress",
     )
 
+    // The app rebuilds the image loader itself when the size changes.
     LaunchedEffect(maxImageCacheSize) {
-        SingletonImageLoader.reset()
         if (maxImageCacheSize == 0) {
             coroutineScope.launch(Dispatchers.IO) {
                 imageDiskCache.clear()
@@ -294,29 +291,8 @@ fun StorageSettings(
             title = stringResource(R.string.clear_image_cache),
             onDismiss = { clearImageCacheDialog = false },
             onConfirm = {
+                // Offline covers live in their own store, so the whole cache can go.
                 coroutineScope.launch(Dispatchers.IO) {
-                    val urlsToPreserve = mutableSetOf<String>()
-                    val downloadedSongs =
-                        try {
-                            database.downloadedSongsByNameAsc().first()
-                        } catch (e: Exception) {
-                            emptyList()
-                        }
-                    downloadedSongs.forEach { song ->
-                        song.song.thumbnailUrl?.let { urlsToPreserve.add(it.encodeUtf8().sha256().hex()) }
-                        song.album?.thumbnailUrl?.let { urlsToPreserve.add(it.encodeUtf8().sha256().hex()) }
-                    }
-                    val directory = imageDiskCache.directory.toFile()
-                    if (directory.exists() && directory.isDirectory) {
-                        directory.listFiles()?.forEach { file ->
-                            if (file.isFile && !file.name.startsWith("journal")) {
-                                val isPreserved = urlsToPreserve.any { hash -> file.name.startsWith(hash) }
-                                if (!isPreserved) {
-                                    file.delete()
-                                }
-                            }
-                        }
-                    }
                     imageDiskCache.clear()
                 }
                 clearImageCacheDialog = false

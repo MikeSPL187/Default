@@ -48,6 +48,7 @@ import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -76,6 +77,7 @@ class App :
     @Inject
     lateinit var database: MusicDatabase
 
+    @OptIn(coil3.annotation.DelicateCoilApi::class)
     override fun onCreate() {
         super.onCreate()
 
@@ -103,9 +105,13 @@ class App :
         Timber.plant(if (BuildConfig.DEBUG) Timber.DebugTree() else ReleaseLogTree())
         InnerTubeXPlayer.initialize(this)
 
-        // Pre-read Coil cache size on background to avoid runBlocking in newImageLoader
+        // Pre-read Coil cache size on background to avoid runBlocking in newImageLoader;
+        // a later change rebuilds the loader so the new size applies without a restart.
         applicationScope.launch(Dispatchers.IO) {
-            cachedCoilCacheSize = dataStore.data.map { it[MaxImageCacheSizeKey] ?: 512 }.first()
+            dataStore.data.map { it[MaxImageCacheSizeKey] ?: 512 }.distinctUntilChanged().collectIndexed { index, size ->
+                cachedCoilCacheSize = size
+                if (index > 0) SingletonImageLoader.reset()
+            }
         }
 
         applicationScope.launch(Dispatchers.IO) { restoreHiddenPlaylists() }
@@ -323,6 +329,7 @@ class App :
         }
     }
 
+    @Volatile
     @Volatile
     private var cachedCoilCacheSize: Int? = null
 
