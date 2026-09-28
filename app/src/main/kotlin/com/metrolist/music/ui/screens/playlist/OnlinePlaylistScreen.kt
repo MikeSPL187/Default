@@ -230,18 +230,12 @@ fun OnlinePlaylistScreen(
                     }
                 } else if (!isLoading && songs.isEmpty()) {
                     item(key = "empty_placeholder") {
-                        Box(
-                            modifier =
-                                Modifier
-                                    .fillParentMaxSize()
-                                    .padding(32.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                text = stringResource(R.string.playlist_is_empty),
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                        }
+                        // The same card as every other empty list in the app.
+                        EmptyPlaceholder(
+                            icon = R.drawable.music_note,
+                            text = stringResource(R.string.playlist_is_empty),
+                            modifier = Modifier.fillParentMaxSize(),
+                        )
                     }
                 }
             } else {
