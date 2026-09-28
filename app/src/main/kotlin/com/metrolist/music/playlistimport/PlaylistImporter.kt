@@ -133,9 +133,32 @@ class PlaylistImporter
                     resolveAll(named)
                     // The state holds the matches, including any the user picked by hand meanwhile.
                     val songs = _state.value.matches
-                    // A cancel landing while saving must not leave a half-filled playlist behind.
-                    val playlistId = withContext(NonCancellable) { save(named, songs) }
-                    _state.update { it.copy(phase = ImportState.Phase.DONE, playlistId = playlistId) }
+                    // A cancel landing while saving must not leave a half-filled playlist behind, and the
+                    // playlist it did save is still shown as done instead of offered for a second import.
+                    withContext(NonCancellable) {
+                        try {
+                            val playlistId = save(named, songs)
+                            _state.update {
+                                when {
+                                    it.phase == ImportState.Phase.IMPORTING ->
+                                        it.copy(phase = ImportState.Phase.DONE, playlistId = playlistId)
+                                    // Cancelled while saving: the review has already replaced the results.
+                                    it.phase == ImportState.Phase.PREVIEW && it.playlist?.tracks == named.tracks -> it.copy(
+                                        phase = ImportState.Phase.DONE,
+                                        playlist = named,
+                                        playlistId = playlistId,
+                                        matches = songs,
+                                        statuses = songs.map { song -> if (song != null) TrackStatus.FOUND else TrackStatus.NOT_FOUND },
+                                    )
+                                    else -> it
+                                }
+                            }
+                        } catch (e: Exception) {
+                            // Back to the review rather than a transfer that never ends; it can be started again.
+                            Timber.tag("PlaylistImport").e(e, "Could not save the imported playlist")
+                            _state.update { if (it.phase == ImportState.Phase.IMPORTING) preview(named) else it }
+                        }
+                    }
                 }
         }
 
@@ -204,7 +227,11 @@ class PlaylistImporter
             val playlistId = updated.playlistId ?: return
             if (updated.phase != ImportState.Phase.DONE) return
             scope.launch {
-                withContext(NonCancellable) { fill(playlistId, updated.matches) }
+                withContext(NonCancellable) {
+                    // This scope has no handler, so a failure here would otherwise take the app down.
+                    runCatching { fill(playlistId, updated.matches) }
+                        .onFailure { Timber.tag("PlaylistImport").e(it, "Could not update the imported playlist") }
+                }
             }
         }
 
