@@ -1390,6 +1390,8 @@
     <string name="video_quality">Качество клипов</string>
     <string name="video_quality_desc">Насколько чёткие клипы в плеере</string>
     <string name="video_quality_auto">Авто (720p по Wi-Fi, 480p в мобильной сети)</string>
+    <string name="search_start_title">Найдите любую песню, альбом или исполнителя</string>
+    <string name="search_start_hint">Введите название или вставьте ссылку из YouTube Music</string>
     <string name="search_music_hint">Поиск музыки</string>
     <string name="home_artist_new_release">Новый релиз</string>
     <string name="home_move_up">Выше</string>

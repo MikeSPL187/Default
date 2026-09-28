@@ -1476,6 +1476,8 @@
     <string name="video_quality_desc">How sharp music videos are in the player</string>
     <string name="video_quality_auto">Auto (720p on Wi-Fi, 480p on mobile data)</string>
     <!-- Short enough for the search bar beside its three buttons, at any font size -->
+    <string name="search_start_title">Find any song, album or artist</string>
+    <string name="search_start_hint">Type a name or paste a link from YouTube Music</string>
     <string name="search_music_hint">Search music</string>
     <string name="home_artist_new_release">New release</string>
     <string name="home_move_up">Move up</string>

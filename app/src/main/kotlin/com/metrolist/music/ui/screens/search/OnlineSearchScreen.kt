@@ -71,6 +71,7 @@ import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.playback.queues.YouTubeQueue
+import com.metrolist.music.ui.component.EmptyPlaceholder
 import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.component.YouTubeListItem
 import com.metrolist.music.ui.menu.YouTubeAlbumMenu
@@ -262,6 +263,18 @@ fun OnlineSearchScreen(
         }
 
         items(viewState.items, key = { "item_${it.id}" }) { item -> ResultRow(item, Modifier.animateItem()) }
+
+        // A first visit has no history yet; say what the field takes instead of a blank page.
+        if (query.isEmpty() && viewState.history.isEmpty()) {
+            item(key = "start_hint") {
+                EmptyPlaceholder(
+                    icon = R.drawable.search,
+                    text = stringResource(R.string.search_start_title),
+                    hint = stringResource(R.string.search_start_hint),
+                    modifier = Modifier.animateItem(),
+                )
+            }
+        }
     }
 }
 

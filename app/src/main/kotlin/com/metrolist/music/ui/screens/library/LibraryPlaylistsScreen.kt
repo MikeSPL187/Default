@@ -311,15 +311,16 @@ fun LibraryPlaylistsScreen(
 
             Spacer(Modifier.weight(1f))
 
-            Text(
-                text = pluralStringResource(
-                    R.plurals.n_playlist,
-                    visibleResults.count { !it.autoPlaylist },
-                    visibleResults.count { !it.autoPlaylist },
-                ),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.secondary,
-            )
+            // Counts the user's own playlists; with none yet, "0 playlists" next to Liked and Downloaded only confuses.
+            val ownCount = visibleResults.count { !it.autoPlaylist }
+            if (ownCount > 0) {
+                Text(
+                    text = pluralStringResource(R.plurals.n_playlist, ownCount, ownCount),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.secondary,
+                    maxLines = 1,
+                )
+            }
 
             IconButton(
                 onClick = { isSearchActive = true },
