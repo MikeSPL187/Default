@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadService
 import com.metrolist.innertube.YouTube
+import com.metrolist.music.utils.ShareCard
 import com.metrolist.music.LocalNavController
 import com.metrolist.innertube.models.AlbumItem
 import com.metrolist.music.LocalDatabase
@@ -387,6 +388,19 @@ fun YouTubeAlbumMenu(
                         } else {
                             null
                         },
+                            Material3MenuItemData(
+                                title = { Text(text = stringResource(R.string.share_card)) },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.insert_photo),
+                                        contentDescription = null,
+                                    )
+                                },
+                                onClick = {
+                                    onDismiss()
+                                    ShareCard.share(context, albumItem.thumbnail, albumItem.title, albumItem.artists.orEmpty().joinToString { it.name }, albumItem.shareLink)
+                                },
+                            ),
                         Material3MenuItemData(
                             title = { Text(text = stringResource(R.string.add_to_playlist)) },
                             icon = {

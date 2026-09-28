@@ -1453,4 +1453,5 @@
     <string name="removed_from_history">Removed from history</string>
     <string name="voice_search">Voice search</string>
     <string name="voice_search_prompt">Say what to look for</string>
+    <string name="share_card">Share as a card</string>
 </resources>

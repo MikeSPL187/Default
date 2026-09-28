@@ -64,6 +64,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadService
 import coil3.compose.AsyncImage
+import com.metrolist.music.utils.ShareCard
 import com.metrolist.music.utils.UndoMessages
 import com.metrolist.music.utils.songShareUrl
 import com.metrolist.music.LocalNavController
@@ -657,6 +658,19 @@ fun SongMenu(
                         } else {
                             null
                         },
+                            Material3MenuItemData(
+                                title = { Text(text = stringResource(R.string.share_card)) },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.insert_photo),
+                                        contentDescription = null,
+                                    )
+                                },
+                                onClick = {
+                                    onDismiss()
+                                    ShareCard.share(context, song.song.thumbnailUrl, song.song.title, song.orderedArtists.joinToString { it.name }, context.songShareUrl(song.id))
+                                },
+                            ),
                     ),
             )
         }

@@ -1358,4 +1358,5 @@
     <string name="removed_from_history">Убрано из истории</string>
     <string name="voice_search">Голосовой поиск</string>
     <string name="voice_search_prompt">Скажите, что найти</string>
+    <string name="share_card">Поделиться карточкой</string>
 </resources>

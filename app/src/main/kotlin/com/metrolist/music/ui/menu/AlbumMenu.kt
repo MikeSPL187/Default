@@ -63,6 +63,7 @@ import androidx.media3.exoplayer.offline.Download.STATE_QUEUED
 import androidx.media3.exoplayer.offline.Download.STATE_STOPPED
 import androidx.media3.exoplayer.offline.DownloadService
 import coil3.compose.AsyncImage
+import com.metrolist.music.utils.ShareCard
 import com.metrolist.music.LocalNavController
 import com.metrolist.innertube.YouTube
 import com.metrolist.music.LocalDatabase
@@ -414,6 +415,19 @@ fun AlbumMenu(
                         } else {
                             null
                         },
+                            Material3MenuItemData(
+                                title = { Text(text = stringResource(R.string.share_card)) },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.insert_photo),
+                                        contentDescription = null,
+                                    )
+                                },
+                                onClick = {
+                                    onDismiss()
+                                    ShareCard.share(context, album.album.thumbnailUrl, album.album.title, album.artists.joinToString { it.name }, "https://music.youtube.com/playlist?list=${album.album.playlistId}")
+                                },
+                            ),
                         Material3MenuItemData(
                             title = { Text(text = stringResource(R.string.add_to_playlist)) },
                             icon = {
