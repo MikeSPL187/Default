@@ -214,8 +214,10 @@ fun HomeFeedScreen(
     val blocks = remember(order) { orderedBlocks(order) }
     val shown = blocks.filter { it.id !in hidden }
     val moods =
-        homePage?.chips.orEmpty().filter { chip ->
-            chip.endpoint?.params != null && !chip.title.contains("podcast", ignoreCase = true) && !chip.title.contains("подкаст", ignoreCase = true)
+        remember(homePage) {
+            homePage?.chips.orEmpty().filter { chip ->
+                chip.endpoint?.params != null && !chip.title.contains("podcast", ignoreCase = true) && !chip.title.contains("подкаст", ignoreCase = true)
+            }
         }
 
     // ---- DJ
