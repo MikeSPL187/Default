@@ -35,6 +35,8 @@ class WrappedAudioService(
     private var player: ExoPlayer? = null
     private var playbackJob: Job? = null
 
+    private val fallbackUri: Uri = "android.resource://${context.packageName}/${R.raw.wrapped_theme}".toUri()
+
     private val _isMuted = MutableStateFlow(false)
     val isMuted = _isMuted.asStateFlow()
 
@@ -45,6 +47,12 @@ class WrappedAudioService(
                     override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                         Timber.tag("WrappedAudioService").e(error, "Player error")
                         playbackJob?.cancel()
+                        // A stream that fails to play leaves the page on the recap's own theme, not silence.
+                        if (currentMediaItem?.mediaId != FALLBACK_ID) {
+                            setMediaItem(MediaItem.Builder().setUri(fallbackUri).setMediaId(FALLBACK_ID).build())
+                            prepare()
+                            play()
+                        }
                     }
                 })
             }
@@ -62,7 +70,7 @@ class WrappedAudioService(
         withContext(Dispatchers.Main) {
             val mediaItem = MediaItem.Builder()
                 .setUri(songUri)
-                .setMediaId(songId ?: "fallback")
+                .setMediaId(songId ?: FALLBACK_ID)
                 .build()
             player?.setMediaItem(mediaItem)
             player?.prepare()
@@ -96,7 +104,6 @@ class WrappedAudioService(
     }
 
     private suspend fun getSongUri(songId: String?): Uri {
-        val fallbackUri = "android.resource://${context.packageName}/${R.raw.wrapped_theme}".toUri()
         if (songId == null) {
             Timber.tag("WrappedAudio").i("No song ID provided, using fallback audio.")
             return fallbackUri
@@ -141,5 +148,9 @@ class WrappedAudioService(
         player?.release()
         player = null
         Timber.tag("WrappedAudioService").d("Player released.")
+    }
+
+    private companion object {
+        const val FALLBACK_ID = "fallback"
     }
 }
