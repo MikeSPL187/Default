@@ -8,7 +8,6 @@ package com.metrolist.music.ui.screens.artist
 import com.metrolist.music.utils.RememberForQuickAccess
 import com.metrolist.music.utils.RecentCollection
 import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
