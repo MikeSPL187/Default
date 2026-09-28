@@ -60,11 +60,13 @@ class OnboardingViewModel
             viewModelScope.launch {
                 _loading.value = true
                 _failed.value = false
-                val page = YouTube.getChartsPage().getOrNull()
-                if (page == null) {
+                // Charts are not published in every country; the global chart playlist stands in for them.
+                val items =
+                    YouTube.getChartsPage().getOrNull()?.sections?.flatMap { it.items }?.takeIf { it.isNotEmpty() }
+                        ?: YouTube.playlist(GLOBAL_CHART_PLAYLIST).getOrNull()?.songs
+                if (items == null) {
                     _failed.value = true
                 } else {
-                    val items = page.sections.flatMap { it.items }
                     val listed = items.filterIsInstance<ArtistItem>().distinctBy { it.id }
                     // Some regions' charts list only songs; their artists are looked up by name to get a photo.
                     val fromSongs =
