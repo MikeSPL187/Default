@@ -77,6 +77,7 @@ import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.db.entities.PodcastEntity
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import com.metrolist.music.ui.component.EmptyPlaceholder
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.foundation.shape.CircleShape
@@ -154,22 +155,15 @@ fun OnlinePodcastScreen(
                 }
             } else if (error != null) {
                 item(key = "error") {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Text(
-                            text = error ?: stringResource(R.string.error_unknown),
-                            style = MaterialTheme.typography.bodyLarge,
-                            textAlign = TextAlign.Center
-                        )
-                        Button(onClick = { viewModel.retry() }) {
-                            Text(stringResource(R.string.retry))
-                        }
-                    }
+                    // A calm card with a retry; the technical reason stays in the log.
+                    EmptyPlaceholder(
+                        icon = R.drawable.cloud_off,
+                        text = stringResource(R.string.podcast_load_failed),
+                        hint = stringResource(R.string.search_failed_hint),
+                        action = stringResource(R.string.retry),
+                        onAction = { viewModel.retry() },
+                        modifier = Modifier.fillParentMaxSize(),
+                    )
                 }
             } else {
                 podcast?.let { podcastItem ->
