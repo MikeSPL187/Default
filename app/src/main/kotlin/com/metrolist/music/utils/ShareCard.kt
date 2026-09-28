@@ -137,7 +137,8 @@ object ShareCard {
             paint.alpha = 190
             canvas.drawBitmap(tiny, src, RectF(-200f, -200f, WIDTH + 200f, HEIGHT + 200f), paint)
             paint.alpha = 255
-            tiny.recycle()
+            // A cover already this small comes back as itself, and it is Coil's cached bitmap.
+            if (tiny !== cover) tiny.recycle()
         }
         paint.shader =
             LinearGradient(0f, 0f, 0f, HEIGHT.toFloat(), intArrayOf(0x33000000, 0x66000000, 0xCC000000.toInt()), null, Shader.TileMode.CLAMP)

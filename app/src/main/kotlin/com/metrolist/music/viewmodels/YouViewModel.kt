@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.AccountInfo
+import com.metrolist.music.constants.AccountChannelHandleKey
+import com.metrolist.music.constants.AccountEmailKey
+import com.metrolist.music.constants.AccountNameKey
 import com.metrolist.music.constants.InnerTubeCookieKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.Artist
@@ -74,13 +77,30 @@ class YouViewModel @Inject constructor(
     /** The signed-in account, or null for a guest. */
     val account: StateFlow<AccountInfo?> = _account.asStateFlow()
 
+    private val _signedIn = MutableStateFlow(false)
+
+    /** Whether someone is signed in, known from the saved session even when the account can't be fetched. */
+    val signedIn: StateFlow<Boolean> = _signedIn.asStateFlow()
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             context.dataStore.data
-                .map { !it[InnerTubeCookieKey].isNullOrEmpty() }
-                .distinctUntilChanged()
-                .collect { signedIn ->
-                    _account.value = if (signedIn) YouTube.accountInfo().getOrNull() else null
+                .map { prefs ->
+                    // Name, email and handle are saved at sign-in, so the profile shows without a connection.
+                    if (prefs[InnerTubeCookieKey].isNullOrEmpty()) {
+                        null
+                    } else {
+                        AccountInfo(
+                            name = prefs[AccountNameKey].orEmpty(),
+                            email = prefs[AccountEmailKey],
+                            channelHandle = prefs[AccountChannelHandleKey],
+                            thumbnailUrl = null,
+                        )
+                    }
+                }.distinctUntilChanged()
+                .collect { saved ->
+                    _signedIn.value = saved != null
+                    _account.value = saved?.let { YouTube.accountInfo().getOrNull() ?: it.takeIf { info -> info.name.isNotBlank() } }
                 }
         }
     }

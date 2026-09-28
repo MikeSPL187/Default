@@ -96,7 +96,8 @@ fun <T : Enum<T>> SortPill(
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         painterResource(R.drawable.arrow_downward),
-                        contentDescription = null,
+                        // Names what a tap does, as the button only flips the order.
+                        contentDescription = stringResource(if (sortDescending) R.string.sort_ascending else R.string.sort_descending),
                         modifier = Modifier.size(18.dp).rotate(rotation),
                     )
                 }

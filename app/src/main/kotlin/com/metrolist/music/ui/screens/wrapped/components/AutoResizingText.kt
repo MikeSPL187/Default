@@ -15,14 +15,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.text.TextStyle
 
+private const val MIN_FONT_SIZE = 8f
+
 @Composable
 fun AutoResizingText(
     text: String,
     modifier: Modifier = Modifier,
     style: TextStyle
 ) {
-    var scaledTextStyle by remember(text) { mutableStateOf(style) }
-    var readyToDraw by remember(text) { mutableStateOf(false) }
+    var scaledTextStyle by remember(text, style) { mutableStateOf(style) }
+    var readyToDraw by remember(text, style) { mutableStateOf(false) }
 
     Text(
         text = text,
@@ -35,7 +37,8 @@ fun AutoResizingText(
             }
         },
         onTextLayout = { textLayoutResult ->
-            if (textLayoutResult.didOverflowWidth) {
+            // Stops at a floor, so a zero-width layout cannot shrink the text forever.
+            if (textLayoutResult.didOverflowWidth && scaledTextStyle.fontSize.value > MIN_FONT_SIZE) {
                 scaledTextStyle =
                     scaledTextStyle.copy(fontSize = scaledTextStyle.fontSize * 0.9)
             } else {

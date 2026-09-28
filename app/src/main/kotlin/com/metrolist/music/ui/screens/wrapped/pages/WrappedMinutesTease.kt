@@ -30,7 +30,9 @@ fun WrappedMinutesTease(
     onNavigateForward: () -> Unit,
     isDataReady: Boolean
 ) {
-    LaunchedEffect(Unit) {
+    // Moves on only after the tease has been shown, not past a blank page while the data loads.
+    LaunchedEffect(isDataReady) {
+        if (!isDataReady) return@LaunchedEffect
         delay(3500)
         onNavigateForward()
     }

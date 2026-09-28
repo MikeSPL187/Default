@@ -2,7 +2,7 @@ package com.metrolist.music.ui.screens.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +26,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -73,7 +74,8 @@ fun PlayerStylePreview(
                     Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(16.dp))
-                        .clickable {
+                        // Announced as one choice of a group, with which one is picked.
+                        .selectable(selected = on, role = Role.RadioButton) {
                             haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
                             onSelect(style)
                         },

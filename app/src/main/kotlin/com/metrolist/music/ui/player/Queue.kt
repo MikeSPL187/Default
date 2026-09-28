@@ -865,7 +865,6 @@ fun Queue(
                                                 },
                                                 onLongClick = {
                                                     if (!inSelectMode) {
-                                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                         inSelectMode = true
                                                         onCheckedChange(true)
                                                     }

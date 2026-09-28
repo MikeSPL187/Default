@@ -85,10 +85,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -151,7 +149,6 @@ fun AutoPlaylistScreen(
 ) {
     val context = LocalContext.current
     val menuState = LocalMenuState.current
-    val haptic = LocalHapticFeedback.current
     val uploadUnsupportedFormatStr = stringResource(R.string.upload_unsupported_format)
     val uploadFileTooLargeStr = stringResource(R.string.upload_file_too_large)
     val uploadFailedStr = stringResource(R.string.upload_failed)
@@ -674,7 +671,6 @@ fun AutoPlaylistScreen(
                                         },
                                         onLongClick = {
                                             if (!inSelectMode) {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                 inSelectMode = true
                                                 onCheckedChange(true)
                                                 selectionAnchorSongId = song.id

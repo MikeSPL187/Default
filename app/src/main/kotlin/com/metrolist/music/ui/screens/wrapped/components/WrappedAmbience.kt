@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -25,6 +26,9 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 private const val TWO_PI = (2 * PI).toFloat()
+
+/** Phase shift, speed in whole turns per cycle, and alpha of each wave. */
+private val WAVES = listOf(Triple(0f, 3, 0.32f), Triple(1.7f, 4, 0.16f))
 
 /**
  * The recap's living background, shared by every page: large soft glows in the theme's colours
@@ -48,6 +52,8 @@ fun WrappedAmbience(
     val secondGlow = colors.tertiaryContainer
     val thirdGlow = colors.secondaryContainer
     val waveColor = colors.primary
+    // Reused every frame: the background animates for as long as the recap is open.
+    val paths = remember { List(WAVES.size) { Path() } }
 
     Canvas(modifier.fillMaxSize()) {
         drawRect(surface)
@@ -59,10 +65,10 @@ fun WrappedAmbience(
 
         val amplitude = 8.dp.toPx()
         val wavelength = w / 1.3f
-        listOf(Triple(0f, 3, 0.32f), Triple(1.7f, 4, 0.16f)).forEachIndexed { index, (shift, speed, alpha) ->
+        WAVES.forEachIndexed { index, (shift, speed, alpha) ->
             val baseline = h * 0.88f + index * 12.dp.toPx()
             val phase = speed * drift + shift
-            val path = Path()
+            val path = paths[index].apply { rewind() }
             var x = 0f
             path.moveTo(0f, baseline + amplitude * sin(phase))
             while (x < w) {

@@ -603,7 +603,6 @@ fun StatsScreen(
                                             onLongClick = {
                                                 val targetSong = mostPlayedSongs.find { it.id == song.id }
                                                 if (targetSong != null) {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                     menuState.show {
                                                         SongMenu(
                                                             originalSong = targetSong,

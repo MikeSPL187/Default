@@ -135,7 +135,10 @@ class SleepTimer(
         mediaItem: MediaItem?,
         reason: Int,
     ) {
-        if (pauseWhenSongEnd) {
+        // Only a song that played out ends the timer; a skip or a new queue moves the stop to
+        // the end of the song that now plays, instead of pausing the moment the user skipped.
+        val songEnded = reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT
+        if (pauseWhenSongEnd && songEnded) {
             completeTimerAndPause()
         }
     }

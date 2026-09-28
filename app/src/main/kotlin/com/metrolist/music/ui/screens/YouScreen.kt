@@ -76,6 +76,7 @@ fun YouScreen(
     val haptic = LocalHapticFeedback.current
     val week by viewModel.week.collectAsStateWithLifecycle()
     val account by viewModel.account.collectAsStateWithLifecycle()
+    val signedIn by viewModel.signedIn.collectAsStateWithLifecycle()
     var showAccount by remember { mutableStateOf(false) }
     val go: (String) -> Unit = { route ->
         haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
@@ -96,7 +97,7 @@ fun YouScreen(
                         .clip(RoundedCornerShape(24.dp))
                         .clickable {
                             haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                            if (account == null) navController.navigate("login") else showAccount = true
+                            if (signedIn) showAccount = true else navController.navigate("login")
                         }.padding(horizontal = 20.dp, vertical = 8.dp),
             ) {
                 val info = account
@@ -128,14 +129,14 @@ fun YouScreen(
                         .padding(start = 14.dp),
                 ) {
                     Text(
-                        info?.name ?: stringResource(R.string.you_sign_in),
+                        info?.name ?: stringResource(if (signedIn) R.string.account else R.string.you_sign_in),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        info?.channelHandle ?: info?.email ?: stringResource(if (info == null) R.string.you_sign_in_sub else R.string.you_account_sub),
+                        info?.channelHandle ?: info?.email ?: stringResource(if (signedIn) R.string.you_account_sub else R.string.you_sign_in_sub),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,

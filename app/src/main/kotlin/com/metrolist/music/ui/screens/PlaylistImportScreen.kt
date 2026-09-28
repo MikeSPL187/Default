@@ -78,6 +78,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -111,6 +112,7 @@ import com.metrolist.music.ui.screens.wrapped.components.rememberArtworkAccent
 import com.metrolist.music.ui.utils.backToMain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -280,7 +282,7 @@ fun PlaylistImportScreen(
     pickIndex?.let { index ->
         val track = playlist?.tracks?.getOrNull(index)
         if (track == null) {
-            pickIndex = null
+            LaunchedEffect(Unit) { pickIndex = null }
         } else {
             PickSongSheet(
                 track = track,
@@ -406,7 +408,6 @@ private fun errorText(error: ImportError): String =
             ImportError.UNREADABLE -> R.string.playlist_import_error_unreadable
         },
     )
-
 
 @Composable
 private fun sourceName(source: ImportSource): String =
@@ -748,13 +749,17 @@ private fun PickSongSheet(
     onDismiss: () -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
+    val focusManager = LocalFocusManager.current
     var query by rememberSaveable { mutableStateOf((track.artists.take(2) + track.title).joinToString(" ")) }
     var results by remember { mutableStateOf<List<SongItem>?>(null) }
     LaunchedEffect(query) {
         results = null
         if (query.isBlank()) return@LaunchedEffect
         delay(400)
-        results = runCatching { PlaylistImportService.searchSongs(query) }.getOrDefault(emptyList())
+        val found = PlaylistImportService.searchSongs(query)
+        // The search swallows cancellation, so a query typed over must not show its stale result.
+        ensureActive()
+        results = found
     }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
@@ -768,7 +773,7 @@ private fun PickSongSheet(
                 leadingIcon = { Icon(painterResource(R.drawable.search), contentDescription = null) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(),
+                keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
                 shape = RoundedCornerShape(28.dp),
                 modifier = Modifier.fillMaxWidth(),
             )

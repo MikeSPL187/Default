@@ -149,6 +149,7 @@ internal fun parseSpotifyEmbed(html: String): ImportedPlaylist {
 // Only a number followed by a mark is a list number: "7 Rings" is a title.
 private val LEADING_NUMBER = Regex("""^\s*\d{1,4}[.):]\s+""")
 private val DASH_SEPARATOR = Regex("""\s+[-–—]\s+""")
+private val LIST_ARTIST_SEPARATOR = Regex("""\s*(?:,|&|\bfeat\.?|\bft\.?)\s*""", RegexOption.IGNORE_CASE)
 
 /**
  * A pasted list, one track per line: "Artist — Title" (any dash), numbered or not. A line with no
@@ -162,7 +163,7 @@ fun parseTrackList(text: String): List<ImportedTrack> =
         if (parts.size == 2 && parts[0].isNotBlank() && parts[1].isNotBlank()) {
             ImportedTrack(
                 title = parts[1].trim(),
-                artists = parts[0].split(Regex("""\s*(?:,|&|\bfeat\.?|\bft\.?)\s*""", RegexOption.IGNORE_CASE)).map(String::trim).filter(String::isNotEmpty),
+                artists = parts[0].split(LIST_ARTIST_SEPARATOR).map(String::trim).filter(String::isNotEmpty),
             )
         } else {
             ImportedTrack(title = line, artists = emptyList())

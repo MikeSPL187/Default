@@ -202,7 +202,8 @@ fun WrappedScreenContent() {
         manager.prepare()
     }
 
-    LaunchedEffect(pagerState, state.trackMap) {
+    // Keyed on the pages too: the album pages drop out once the data is in, which shifts the music.
+    LaunchedEffect(pagerState, state.trackMap, screens) {
         if (state.trackMap.isEmpty()) return@LaunchedEffect
 
         snapshotFlow { pagerState.currentPage }.distinctUntilChanged().collect { page ->
@@ -232,7 +233,7 @@ fun WrappedScreenContent() {
                 actions = {
                     IconButton(onClick = { audioService.toggleMute() }) {
                         val icon = if (isMuted) R.drawable.volume_off else R.drawable.volume_up
-                        Icon(painterResource(icon), "Mute", tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(painterResource(icon), stringResource(if (isMuted) R.string.unmute else R.string.mute), tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),

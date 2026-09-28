@@ -44,8 +44,19 @@ object OfflineArtworkStore {
         dir.listFiles()?.forEach { storedKeys += it.name }
     }
 
-    private fun fileName(key: String): String =
-        MessageDigest.getInstance("SHA-256").digest(key.toByteArray()).joinToString("") { "%02x".format(it) }
+    private val HEX = "0123456789abcdef".toCharArray()
+
+    // Runs for every image request while lists scroll, so it avoids String.format per byte.
+    private fun fileName(key: String): String {
+        val digest = MessageDigest.getInstance("SHA-256").digest(key.toByteArray())
+        val chars = CharArray(digest.size * 2)
+        digest.forEachIndexed { i, byte ->
+            val v = byte.toInt() and 0xFF
+            chars[i * 2] = HEX[v ushr 4]
+            chars[i * 2 + 1] = HEX[v and 0x0F]
+        }
+        return String(chars)
+    }
 
     /** The stored cover for [url], if any. Cheap enough to call for every image request. */
     fun fileFor(url: String): File? {

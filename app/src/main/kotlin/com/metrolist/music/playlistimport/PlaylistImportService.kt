@@ -14,6 +14,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 import io.ktor.http.parameters
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import java.io.IOException
 
 /** Reads playlists from Yandex Music and Spotify, without an account, and finds their songs on YouTube Music. */
@@ -91,8 +92,14 @@ object PlaylistImportService {
 
     private fun SongItem.toCandidate() = MatchCandidate(id, title, artists.map { it.name }, duration)
 
-    private suspend fun search(query: String, filter: YouTube.SearchFilter): List<SongItem> =
-        YouTube.search(query, filter).getOrNull()?.items.orEmpty().filterIsInstance<SongItem>().take(6)
+    /** One retry, so a dropped request does not mark a track as missing when it is not. */
+    private suspend fun search(query: String, filter: YouTube.SearchFilter): List<SongItem> {
+        repeat(2) { attempt ->
+            YouTube.search(query, filter).getOrNull()?.let { return it.items.filterIsInstance<SongItem>().take(6) }
+            if (attempt == 0) delay(1_500)
+        }
+        return emptyList()
+    }
 
     /** Songs for a query typed by hand, when the automatic match was wrong or missing. */
     suspend fun searchSongs(query: String): List<SongItem> =

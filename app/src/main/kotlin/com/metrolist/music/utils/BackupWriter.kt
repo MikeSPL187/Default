@@ -28,7 +28,8 @@ fun writeBackup(
         outputStream.putNextEntry(ZipEntry(ArtistNameAliases.BACKUP_FILENAME))
         outputStream.write(ArtistNameAliases.serialize().encodeToByteArray())
         database.checkpoint()
-        val dbPath = database.openHelper.writableDatabase.path ?: return
+        // A backup without the database must fail, not pass as complete and push out good ones.
+        val dbPath = database.openHelper.writableDatabase.path ?: error("The database has no file to back up")
         FileInputStream(dbPath).use { inputStream ->
             outputStream.putNextEntry(ZipEntry(InternalDatabase.DB_NAME))
             inputStream.copyTo(outputStream)

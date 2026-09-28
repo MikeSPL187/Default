@@ -82,9 +82,9 @@ class BackupRestoreViewModel @Inject constructor(
     // Zipping the whole database is too slow for the main thread on large libraries.
     fun backup(context: Context, uri: Uri) = viewModelScope.launch(Dispatchers.IO) {
         runCatching {
-            context.applicationContext.contentResolver.openOutputStream(uri)?.use {
-                writeBackup(context, database, it)
-            }
+            // No stream means nothing was written, which must not be reported as a finished backup.
+            val output = context.applicationContext.contentResolver.openOutputStream(uri) ?: error("Couldn't open $uri")
+            output.use { writeBackup(context, database, it) }
         }.onSuccess {
             withContext(Dispatchers.Main) {
                 Toast.makeText(context, R.string.backup_create_success, Toast.LENGTH_SHORT).show()

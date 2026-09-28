@@ -17,8 +17,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -58,6 +61,7 @@ class PlaylistImporter
     ) {
         private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         private var job: Job? = null
+        private val fillLock = Mutex()
 
         private val _state = MutableStateFlow(ImportState())
         val state = _state.asStateFlow()
@@ -195,8 +199,8 @@ class PlaylistImporter
             index: Int,
             song: SongItem,
         ) {
-            val updated = _state.value.withMatch(index, song)
-            _state.value = updated
+            // Atomic, so a search result landing at the same moment cannot undo the user's pick.
+            val updated = _state.updateAndGet { it.withMatch(index, song) }
             val playlistId = updated.playlistId ?: return
             if (updated.phase != ImportState.Phase.DONE) return
             scope.launch {
@@ -218,7 +222,8 @@ class PlaylistImporter
         private suspend fun fill(
             playlistId: String,
             songs: List<SongItem?>,
-        ) {
+        ): Unit = fillLock.withLock {
+            // One rewrite at a time: two quick picks by hand would otherwise interleave and double songs.
             val found = songs.filterNotNull().distinctBy { it.id }
             found.forEach { song ->
                 runCatching { database.insert(song.toMediaMetadata()) }

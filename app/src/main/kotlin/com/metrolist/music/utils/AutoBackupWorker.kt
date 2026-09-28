@@ -64,7 +64,8 @@ class AutoBackupWorker(
         val uri = resolver.insert(collection, values) ?: error("Couldn't create $name")
         try {
             resolver.openOutputStream(uri)?.use { writeBackup(applicationContext, database, it) } ?: error("Couldn't open $name")
-            resolver.update(uri, ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 0) }, null, null)
+            val published = resolver.update(uri, ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 0) }, null, null)
+            check(published > 0) { "Couldn't publish $name" }
         } catch (t: Throwable) {
             resolver.delete(uri, null, null)
             throw t
@@ -92,9 +93,16 @@ class AutoBackupWorker(
         name: String,
     ) {
         val folder = File(applicationContext.getExternalFilesDir(null), "backups").apply { mkdirs() }
-        File(folder, name).outputStream().use { writeBackup(applicationContext, database, it) }
+        val file = File(folder, name)
+        try {
+            file.outputStream().use { writeBackup(applicationContext, database, it) }
+        } catch (t: Throwable) {
+            // A half-written copy must not count as one of the kept backups.
+            file.delete()
+            throw t
+        }
         folder
-            .listFiles { file -> file.name.startsWith(PREFIX) }
+            .listFiles { f -> f.name.startsWith(PREFIX) }
             ?.sortedByDescending { it.lastModified() }
             ?.drop(KEEP)
             ?.forEach { it.delete() }

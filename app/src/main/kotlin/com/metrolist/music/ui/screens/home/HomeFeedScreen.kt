@@ -282,19 +282,41 @@ fun HomeFeedScreen(
     val fillers = listOf(stringResource(R.string.downloaded_songs) to "auto_playlist/downloaded", stringResource(R.string.history) to "history")
     val quickItems =
         remember(recents, keepListening, likedTitle, fillers) { quickAccessItems(recents, keepListening.orEmpty(), likedTitle, fillers) }
+    val daylistTitle = daylist?.let { stringResource(it.part.titleRes) }
+    val mixTitles =
+        listOf(
+            stringResource(R.string.home_mix_daylist_sub),
+            stringResource(R.string.home_mix_on_repeat),
+            stringResource(R.string.home_mix_on_repeat_sub),
+            stringResource(R.string.home_mix_discover),
+            stringResource(R.string.home_mix_discover_sub),
+            stringResource(R.string.home_mix_forgotten),
+            stringResource(R.string.home_mix_forgotten_sub),
+        )
+    // Built only when the songs change: every song turns into a player item, and home recomposes
+    // on each track change and play/pause.
     val mixes =
-        buildList {
-            daylist?.let { list ->
-                add(Mix(stringResource(list.part.titleRes), stringResource(R.string.home_mix_daylist_sub), list.songs.map { it.toMediaItem() }, list.songs.map { it.song.thumbnailUrl }))
-            }
-            onRepeat?.takeIf { it.size >= MIN_MIX }?.let { songs ->
-                add(Mix(stringResource(R.string.home_mix_on_repeat), stringResource(R.string.home_mix_on_repeat_sub), songs.map { it.toMediaItem() }, songs.map { it.song.thumbnailUrl }))
-            }
-            discoverMix?.takeIf { it.size >= MIN_MIX }?.let { songs ->
-                add(Mix(stringResource(R.string.home_mix_discover), stringResource(R.string.home_mix_discover_sub), songs.map { it.toMediaItem() }, songs.map { it.thumbnail }))
-            }
-            forgotten?.takeIf { it.size >= MIN_MIX }?.let { songs ->
-                add(Mix(stringResource(R.string.home_mix_forgotten), stringResource(R.string.home_mix_forgotten_sub), songs.map { it.toMediaItem() }, songs.map { it.song.thumbnailUrl }))
+        remember(daylist, daylistTitle, onRepeat, discoverMix, forgotten, mixTitles) {
+            val daylistSub = mixTitles[0]
+            val onRepeatTitle = mixTitles[1]
+            val onRepeatSub = mixTitles[2]
+            val discoverTitle = mixTitles[3]
+            val discoverSub = mixTitles[4]
+            val forgottenTitle = mixTitles[5]
+            val forgottenSub = mixTitles[6]
+            buildList {
+                daylist?.let { list ->
+                    add(Mix(daylistTitle.orEmpty(), daylistSub, list.songs.map { it.toMediaItem() }, list.songs.map { it.song.thumbnailUrl }))
+                }
+                onRepeat?.takeIf { it.size >= MIN_MIX }?.let { songs ->
+                    add(Mix(onRepeatTitle, onRepeatSub, songs.map { it.toMediaItem() }, songs.map { it.song.thumbnailUrl }))
+                }
+                discoverMix?.takeIf { it.size >= MIN_MIX }?.let { songs ->
+                    add(Mix(discoverTitle, discoverSub, songs.map { it.toMediaItem() }, songs.map { it.thumbnail }))
+                }
+                forgotten?.takeIf { it.size >= MIN_MIX }?.let { songs ->
+                    add(Mix(forgottenTitle, forgottenSub, songs.map { it.toMediaItem() }, songs.map { it.song.thumbnailUrl }))
+                }
             }
         }
     val releaseArtists = remember(newReleases) { newReleases.orEmpty().flatMap { album -> album.artists.orEmpty().mapNotNull { it.id } }.toHashSet() }
@@ -888,12 +910,8 @@ private fun QuickTile(
                             haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                             onOpen()
                         },
-                        onLongClick = {
-                            if (item.recent != null) {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                menu = true
-                            }
-                        },
+                        // Only tiles with something to forget answer a hold, so the others do not buzz for nothing.
+                        onLongClick = if (item.recent != null) ({ menu = true }) else null,
                     ),
         ) {
             Box(
@@ -1002,7 +1020,7 @@ private fun ContinueCard(
             Box(
                 Modifier
                     .fillMaxHeight()
-                    .fillMaxWidth((progress.trackIndex + 1f) / progress.songCount)
+                    .fillMaxWidth(((progress.trackIndex + 1f) / progress.songCount.coerceAtLeast(1)).coerceIn(0f, 1f))
                     .clip(CircleShape)
                     .background(Color.White),
             )
@@ -1295,7 +1313,7 @@ private fun ChartList(
                         haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                         menuState.show { YouTubeSongMenu(song = song, onDismiss = menuState::dismiss) }
                     },
-                ) { Icon(painterResource(R.drawable.more_vert), contentDescription = null, tint = colors.onSurfaceVariant) }
+                ) { Icon(painterResource(R.drawable.more_vert), contentDescription = stringResource(R.string.more_options), tint = colors.onSurfaceVariant) }
             }
         }
     }

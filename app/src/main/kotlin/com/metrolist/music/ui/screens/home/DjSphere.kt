@@ -72,6 +72,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -326,13 +328,17 @@ fun DjHero(
                         ),
             )
             val corner by animateDpAsState(if (playing) 23.dp else 34.dp, tween(300), label = "button corner")
+            val buttonLabel = stringResource(if (playing) R.string.pause else R.string.play)
             Surface(
                 onClick = play,
                 shape = RoundedCornerShape(corner),
                 color = Color.White,
                 contentColor = palette.base,
                 shadowElevation = 8.dp,
-                modifier = Modifier.size(68.dp),
+                modifier =
+                    Modifier
+                        .size(68.dp)
+                        .semantics { contentDescription = buttonLabel },
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     if (starting && !active) {

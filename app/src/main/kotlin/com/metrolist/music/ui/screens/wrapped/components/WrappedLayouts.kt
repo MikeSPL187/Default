@@ -56,6 +56,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.imageLoader
@@ -115,6 +116,8 @@ fun highlighted(text: String): AnnotatedString {
     }
 }
 
+private val WHITESPACE = Regex("\\s+")
+
 /**
  * The largest size from [maxFontSize] down at which [text] fits [maxLines] lines of [maxWidth]
  * with every word whole.
@@ -128,7 +131,7 @@ private fun fitFontSize(
     maxFontSize: TextUnit,
     minFontSize: TextUnit,
 ): TextUnit {
-    val words = text.text.split(Regex("\\s+")).filter { it.isNotEmpty() }
+    val words = text.text.split(WHITESPACE).filter { it.isNotEmpty() }
     var size = maxFontSize.value
     while (size > minFontSize.value) {
         val sized = style.copy(fontSize = size.sp)
@@ -167,7 +170,12 @@ fun WrappedHeading(
             }
         Text(
             text = text,
-            style = headingStyle.copy(fontSize = fontSize, lineHeight = headingStyle.lineHeight * (fontSize.value / headingStyle.fontSize.value)),
+            style =
+                headingStyle.copy(
+                    fontSize = fontSize,
+                    lineHeight =
+                        if (headingStyle.lineHeight.isSpecified) headingStyle.lineHeight * (fontSize.value / headingStyle.fontSize.value) else TextUnit.Unspecified,
+                ),
             modifier = Modifier.fillMaxWidth(),
         )
     }
@@ -204,7 +212,7 @@ fun DisplayDigits(
     BoxWithConstraints(modifier.fillMaxWidth()) {
         val widthPx = constraints.maxWidth
         val fontSize =
-            remember(lines, widthPx) {
+            remember(lines, widthPx, maxFontSize, outlined) {
                 var size = maxFontSize.value
                 while (size > 12f && lines.any { measurer.measure(it, style.copy(fontSize = size.sp), softWrap = false, maxLines = 1).size.width > widthPx }) {
                     size *= 0.94f

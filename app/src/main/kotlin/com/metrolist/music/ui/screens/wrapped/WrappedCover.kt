@@ -76,7 +76,7 @@ fun renderWrappedCover(
 
     fun Paint.fitTo(lines: List<String>, maxWidth: Float, maxSize: Float) {
         textSize = maxSize
-        val widest = lines.maxOf { measureText(it) }
+        val widest = lines.maxOfOrNull { measureText(it) } ?: return
         if (widest > maxWidth) textSize = maxSize * maxWidth / widest
     }
 
