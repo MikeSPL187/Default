@@ -56,11 +56,9 @@ import java.util.Locale
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.ZoneOffset
 import javax.inject.Inject
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.collections.emptyList
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -136,6 +134,7 @@ constructor(
                     StatPeriod.WEEK_1, StatPeriod.MONTH_1 -> {
                         val days = if (period == StatPeriod.WEEK_1) 7 else 30
                         val start = today.minusDays(days - 1L)
+                        val dayMonth = DateTimeFormatter.ofPattern("d MMM")
                         database.eventsSince(start.atStartOfDay()).map { events ->
                             val bars = LongArray(days)
                             events.forEach { event ->
@@ -149,7 +148,7 @@ constructor(
                                         val day = start.plusDays(i.toLong())
                                         when {
                                             period == StatPeriod.WEEK_1 -> day.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-                                            i == 0 || i == days - 1 -> day.format(DateTimeFormatter.ofPattern("d MMM"))
+                                            i == 0 || i == days - 1 -> day.format(dayMonth)
                                             else -> ""
                                         }
                                     },
