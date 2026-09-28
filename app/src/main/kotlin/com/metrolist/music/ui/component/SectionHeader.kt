@@ -56,7 +56,8 @@ fun SectionHeader(
                     title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
+                    // Two lines, so a long title in Russian or at a large font is read whole.
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false),
                 )
