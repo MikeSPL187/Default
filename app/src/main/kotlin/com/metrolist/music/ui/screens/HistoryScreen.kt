@@ -43,6 +43,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -150,7 +151,11 @@ fun HistoryScreen(
             DateAgo.Yesterday -> stringResource(R.string.yesterday)
             DateAgo.ThisWeek -> stringResource(R.string.this_week)
             DateAgo.LastWeek -> stringResource(R.string.last_week)
-            is DateAgo.Other -> dateAgo.date.format(DateTimeFormatter.ofPattern("yyyy/MM"))
+            // "September 2025" in the app's language, not "2025/09".
+            is DateAgo.Other -> {
+                val locale = LocalConfiguration.current.locales[0]
+                dateAgo.date.format(DateTimeFormatter.ofPattern("LLLL yyyy", locale)).replaceFirstChar { it.titlecase(locale) }
+            }
         }
 
     val filteredEvents =
@@ -269,10 +274,10 @@ fun HistoryScreen(
                         )
                     }
 
-                    items(
+                    itemsIndexed(
                         items = section.songs,
-                        key = { "${section.title}_${it.id}_${section.songs.indexOf(it)}" },
-                    ) { song ->
+                        key = { index, song -> "${section.title}_${song.id}_$index" },
+                    ) { _, song ->
                         YouTubeListItem(
                             item = song,
                             isActive = song.id == mediaMetadata?.id,
