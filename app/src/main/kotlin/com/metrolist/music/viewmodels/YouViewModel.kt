@@ -12,6 +12,7 @@ import com.metrolist.music.constants.InnerTubeCookieKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.Artist
 import com.metrolist.music.db.entities.Event
+import com.metrolist.music.ui.screens.wrapped.WRAPPED_MIN_PLAY_TIME_MS
 import com.metrolist.music.utils.dataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -71,6 +72,15 @@ class YouViewModel @Inject constructor(
         ) { events, artists -> summarizeWeek(events, weekStart, artists.firstOrNull()) }
             .flowOn(Dispatchers.Default)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** Whether this month has enough listening for a recap; the card is not offered for an empty one. */
+    val monthRecapReady: StateFlow<Boolean> =
+        LocalDate.now().withDayOfMonth(1).atStartOfDay().let { monthStart ->
+            database.getTotalPlayTimeInRange(monthStart, LocalDateTime.now().plusDays(1))
+                .map { (it ?: 0L) >= WRAPPED_MIN_PLAY_TIME_MS }
+                .distinctUntilChanged()
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+        }
 
     private val _account = MutableStateFlow<AccountInfo?>(null)
 

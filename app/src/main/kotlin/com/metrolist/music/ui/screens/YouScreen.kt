@@ -78,6 +78,7 @@ fun YouScreen(
     val week by viewModel.week.collectAsStateWithLifecycle()
     val account by viewModel.account.collectAsStateWithLifecycle()
     val signedIn by viewModel.signedIn.collectAsStateWithLifecycle()
+    val monthRecapReady by viewModel.monthRecapReady.collectAsStateWithLifecycle()
     var showAccount by remember { mutableStateOf(false) }
     val go: (String) -> Unit = { route ->
         haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
@@ -150,13 +151,17 @@ fun YouScreen(
 
         item(key = "week") { WeekCard(week, onClick = { go("stats") }, onStart = { go(Screens.Home.route) }) }
 
-        item(key = "recap") {
-            val month = YearMonth.now()
-            RecapCard(
-                // The app's own language, which can differ from the system's.
-                month = month.month.getDisplayName(TextStyle.FULL_STANDALONE, LocalConfiguration.current.locales[0]),
-                onClick = { go(wrappedRoute(WrappedPeriod.InMonth(month))) },
-            )
+        // A month with next to no listening would open a recap of zeros, so the card waits for music.
+        if (monthRecapReady) {
+            item(key = "recap") {
+                val month = YearMonth.now()
+                RecapCard(
+                    // The app's own language, which can differ from the system's.
+                    month = month.month.getDisplayName(TextStyle.FULL_STANDALONE, LocalConfiguration.current.locales[0]),
+                    onClick = { go(wrappedRoute(WrappedPeriod.InMonth(month))) },
+                    modifier = Modifier.animateItem(),
+                )
+            }
         }
 
         item(key = "tools") {
@@ -358,6 +363,7 @@ private fun WeekCard(
 private fun RecapCard(
     month: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
     // Both ends are the surface tinted with an accent, so the text reads the same across the card
@@ -367,7 +373,7 @@ private fun RecapCard(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier =
-            Modifier
+            modifier
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(24.dp))
