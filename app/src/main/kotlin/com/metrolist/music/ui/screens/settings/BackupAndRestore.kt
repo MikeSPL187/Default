@@ -208,7 +208,7 @@ fun BackupAndRestore(
                         description = {
                             Text(
                                 if (lastAutoBackup > 0L) {
-                                    stringResource(R.string.auto_backup_last, DateTimeFormatter.ofPattern("d MMM, HH:mm").format(java.time.Instant.ofEpochMilli(lastAutoBackup).atZone(java.time.ZoneId.systemDefault())))
+                                    stringResource(R.string.auto_backup_last, DateTimeFormatter.ofLocalizedDateTime(java.time.format.FormatStyle.MEDIUM, java.time.format.FormatStyle.SHORT).format(java.time.Instant.ofEpochMilli(lastAutoBackup).atZone(java.time.ZoneId.systemDefault())))
                                 } else {
                                     stringResource(R.string.auto_backup_desc)
                                 },

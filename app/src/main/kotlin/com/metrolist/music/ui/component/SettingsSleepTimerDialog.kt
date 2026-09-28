@@ -608,13 +608,13 @@ private fun TimeRangeRow(
         FilledTonalButton(onClick = onStartClick, modifier = Modifier.weight(1f)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(stringResource(R.string.sleep_timer_start_time), style = MaterialTheme.typography.labelSmall)
-                Text(startTime, style = MaterialTheme.typography.bodyLarge)
+                Text(displayClock(startTime), style = MaterialTheme.typography.bodyLarge)
             }
         }
         FilledTonalButton(onClick = onEndClick, modifier = Modifier.weight(1f)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(stringResource(R.string.sleep_timer_end_time), style = MaterialTheme.typography.labelSmall)
-                Text(endTime, style = MaterialTheme.typography.bodyLarge)
+                Text(displayClock(endTime), style = MaterialTheme.typography.bodyLarge)
             }
         }
     }
@@ -639,7 +639,7 @@ fun SleepTimerTimePickerDialog(
         rememberTimePickerState(
             initialHour = initialLocalTime.hour,
             initialMinute = initialLocalTime.minute,
-            is24Hour = true,
+            is24Hour = android.text.format.DateFormat.is24HourFormat(androidx.compose.ui.platform.LocalContext.current),
         )
     DefaultDialog(
         title = { Text(title) },
@@ -653,4 +653,16 @@ fun SleepTimerTimePickerDialog(
             }) { Text(stringResource(android.R.string.ok)) }
         },
     ) { TimePicker(state = timePickerState) }
+}
+
+/** A stored "HH:mm" time shown as the phone's clock shows it, with AM/PM where the phone uses it. */
+@Composable
+private fun displayClock(stored: String): String {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val locale = androidx.compose.ui.text.intl.Locale.current.platformLocale
+    return runCatching {
+        val time = LocalTime.parse(stored, DateTimeFormatter.ofPattern("HH:mm"))
+        if (android.text.format.DateFormat.is24HourFormat(context)) stored
+        else time.format(DateTimeFormatter.ofPattern("h:mm a", locale))
+    }.getOrDefault(stored)
 }
