@@ -11,6 +11,7 @@ import timber.log.Timber
 import java.io.File
 import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.concurrent.thread
 
 private val GOOGLEUSERCONTENT_SIZED =
     Regex("^(https://(?:lh3|yt3)\\.googleusercontent\\.com/[^?]*?)=(?:w\\d+-h\\d+|s\\d+)[^?]*(\\?.*)?$")
@@ -37,11 +38,19 @@ object OfflineArtworkStore {
     private var directory: File? = null
     private val storedKeys = ConcurrentHashMap.newKeySet<String>()
 
+    @Volatile
+    private var keysLoaded = false
+
+    /** Called at app start; listing a folder of thousands of covers is left off the main thread. */
     fun initialize(context: Context) {
         if (directory != null) return
-        val dir = context.filesDir.resolve(DIRECTORY).apply { mkdirs() }
+        val dir = context.filesDir.resolve(DIRECTORY)
         directory = dir
-        dir.listFiles()?.forEach { storedKeys += it.name }
+        thread(name = TAG, isDaemon = true) {
+            dir.mkdirs()
+            dir.listFiles()?.forEach { storedKeys += it.name }
+            keysLoaded = true
+        }
     }
 
     private val HEX = "0123456789abcdef".toCharArray()
@@ -62,7 +71,8 @@ object OfflineArtworkStore {
     fun fileFor(url: String): File? {
         val dir = directory ?: return null
         val name = fileName(artworkKey(url))
-        return if (name in storedKeys) dir.resolve(name).takeIf(File::isFile) else null
+        // Until the folder is listed, the file itself is asked, so early covers still come from disk.
+        return if (!keysLoaded || name in storedKeys) dir.resolve(name).takeIf(File::isFile) else null
     }
 
     fun contains(url: String): Boolean = fileFor(url) != null
@@ -74,6 +84,7 @@ object OfflineArtworkStore {
         val name = fileName(artworkKey(url))
         val temp = dir.resolve("$name.tmp")
         runCatching {
+            dir.mkdirs()
             temp.writeBytes(bytes)
             if (!temp.renameTo(dir.resolve(name))) error("rename failed")
             storedKeys += name
