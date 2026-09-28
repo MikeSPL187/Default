@@ -1015,7 +1015,8 @@ fun Queue(
                             ).joinToString(" · "),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
+                        // A long queue name pushes the count and length to a second line instead of cutting them.
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
