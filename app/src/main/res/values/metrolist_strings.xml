@@ -1451,4 +1451,6 @@
     <string name="search_empty_filter_hint">Nothing of this kind — try another filter.</string>
     <string name="search_failed_hint">Check the connection and try again.</string>
     <string name="removed_from_history">Removed from history</string>
+    <string name="voice_search">Voice search</string>
+    <string name="voice_search_prompt">Say what to look for</string>
 </resources>

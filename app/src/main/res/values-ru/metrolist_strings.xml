@@ -1356,4 +1356,6 @@
     <string name="search_empty_filter_hint">Среди этого ничего нет — попробуйте другой фильтр.</string>
     <string name="search_failed_hint">Проверьте интернет и попробуйте ещё раз.</string>
     <string name="removed_from_history">Убрано из истории</string>
+    <string name="voice_search">Голосовой поиск</string>
+    <string name="voice_search_prompt">Скажите, что найти</string>
 </resources>

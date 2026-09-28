@@ -5,6 +5,13 @@
 
 package com.metrolist.music.ui.screens.search
 
+import android.app.Activity
+import android.content.Intent
+import android.speech.RecognizerIntent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextRange
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.asPaddingValues
@@ -182,6 +189,27 @@ fun SearchScreen(
 
     val onSearchFromSuggestion: (String) -> Unit = { searchQuery -> handleSearch(searchQuery) }
 
+    // Spoken queries go straight to the results, as if typed and submitted.
+    val context = LocalContext.current
+    val voiceIntent =
+        remember {
+            Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        }
+    val canUseVoice = remember { voiceIntent.resolveActivity(context.packageManager) != null }
+    val voiceLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val spoken =
+                result.data
+                    ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                    ?.firstOrNull()
+                    ?.trim()
+            if (result.resultCode == Activity.RESULT_OK && !spoken.isNullOrEmpty()) {
+                query = TextFieldValue(spoken, TextRange(spoken.length))
+                onSearch(spoken)
+            }
+        }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -253,7 +281,23 @@ fun SearchScreen(
                                 IconButton(onClick = { query = TextFieldValue("") }) {
                                     Icon(
                                         painter = painterResource(R.drawable.close),
-                                        contentDescription = null,
+                                        contentDescription = stringResource(R.string.clear_search),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            } else if (canUseVoice) {
+                                IconButton(
+                                    onClick = {
+                                        runCatching {
+                                            voiceLauncher.launch(
+                                                Intent(voiceIntent).putExtra(RecognizerIntent.EXTRA_PROMPT, context.getString(R.string.voice_search_prompt)),
+                                            )
+                                        }
+                                    },
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.mic),
+                                        contentDescription = stringResource(R.string.voice_search),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 }
