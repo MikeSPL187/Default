@@ -68,11 +68,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -146,7 +144,6 @@ fun ArtistScreen(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val menuState = LocalMenuState.current
-    val haptic = LocalHapticFeedback.current
     val coroutineScope = rememberCoroutineScope()
     val playerConnection = LocalPlayerConnection.current ?: return
     val listenTogetherManager = LocalListenTogetherManager.current
@@ -651,7 +648,6 @@ fun ArtistScreen(
                                                 }
                                             },
                                             onLongClick = {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                 menuState.show {
                                                     SongMenu(
                                                         originalSong = song,
@@ -701,7 +697,6 @@ fun ArtistScreen(
                                                         navController.navigate("album/${album.id}")
                                                     },
                                                     onLongClick = {
-                                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                         menuState.show {
                                                             AlbumMenu(
                                                                 originalAlbum = album,
@@ -778,7 +773,6 @@ fun ArtistScreen(
                                                     }
                                                 },
                                                 onLongClick = {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                     menuState.show {
                                                         YouTubeSongMenu(
                                                             song = song,
@@ -854,7 +848,6 @@ fun ArtistScreen(
                                                             }
                                                         },
                                                         onLongClick = {
-                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                             menuState.show {
                                                                 when (item) {
                                                                     is SongItem -> {

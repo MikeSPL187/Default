@@ -72,9 +72,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -130,7 +128,6 @@ private const val TABS_INDEX = 2
 fun OfflineHomeScreen(viewModel: OfflineHomeViewModel = hiltViewModel()) {
     val navController = LocalNavController.current
     val menuState = LocalMenuState.current
-    val haptic = LocalHapticFeedback.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val coroutineScope = rememberCoroutineScope()
 
@@ -264,7 +261,7 @@ fun OfflineHomeScreen(viewModel: OfflineHomeViewModel = hiltViewModel()) {
                                         menuState.show { SongMenu(originalSong = song, onDismiss = menuState::dismiss) }
                                     },
                                 ) {
-                                    Icon(painterResource(R.drawable.more_vert), contentDescription = null)
+                                    Icon(painterResource(R.drawable.more_vert), contentDescription = stringResource(R.string.more_options))
                                 }
                             },
                             modifier =
@@ -279,7 +276,6 @@ fun OfflineHomeScreen(viewModel: OfflineHomeViewModel = hiltViewModel()) {
                                             }
                                         },
                                         onLongClick = {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             menuState.show { SongMenu(originalSong = song, onDismiss = menuState::dismiss) }
                                         },
                                     ).animateItem(),
@@ -310,7 +306,6 @@ fun OfflineHomeScreen(viewModel: OfflineHomeViewModel = hiltViewModel()) {
                                         count = downloadCounts?.get(playlist.id),
                                         onOpen = { navController.navigate("local_playlist/${playlist.id}") },
                                         onMenu = {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             menuState.show {
                                                 PlaylistMenu(playlist = playlist, coroutineScope = coroutineScope, onDismiss = menuState::dismiss)
                                             }
@@ -337,7 +332,6 @@ fun OfflineHomeScreen(viewModel: OfflineHomeViewModel = hiltViewModel()) {
                                     album = album,
                                     onOpen = { navController.navigate("album/${album.id}") },
                                     onMenu = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         menuState.show { AlbumMenu(originalAlbum = album, onDismiss = menuState::dismiss) }
                                     },
                                     onPlay = { coroutineScope.launch { play(viewModel.albumSongs(album.id), album.album.title) } },

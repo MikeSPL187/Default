@@ -52,10 +52,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -100,7 +98,6 @@ fun OnlinePodcastScreen(
     viewModel: OnlinePodcastViewModel = hiltViewModel(),
 ) {
     val menuState = LocalMenuState.current
-    val haptic = LocalHapticFeedback.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val database = LocalDatabase.current
 
@@ -230,7 +227,6 @@ fun OnlinePodcastScreen(
                                         }
                                     },
                                     onLongClick = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         menuState.show {
                                             YouTubeSongMenu(episode.asSongItem(), menuState::dismiss)
                                         }

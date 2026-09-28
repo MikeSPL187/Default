@@ -1199,6 +1199,7 @@
 
     <!-- Home -->
     <string name="dj_title">Диджей</string>
+    <string name="dj_start_failed">Диджей не смог начать. Проверьте интернет и попробуйте ещё раз.</string>
     <string name="home_block_dj">Диджей</string>
     <string name="home_block_quick_access">Быстрый доступ</string>
     <string name="home_block_for_you">Для вас</string>

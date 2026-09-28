@@ -173,7 +173,7 @@ private fun orderedBlocks(order: List<String>): List<HomeBlock> =
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeFeedScreen(
-    @Suppress("UNUSED_PARAMETER") snackbarHostState: SnackbarHostState,
+    snackbarHostState: SnackbarHostState,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val navController = LocalNavController.current
@@ -220,6 +220,7 @@ fun HomeFeedScreen(
 
     // ---- DJ
     val djTitle = stringResource(R.string.dj_title)
+    val djFailedMessage = stringResource(R.string.dj_start_failed)
     val djActive = queueTitle == djTitle && mediaMetadata != null
     var djStarting by remember { mutableStateOf(false) }
     LaunchedEffect(djActive) { if (djActive) djStarting = false }
@@ -227,6 +228,8 @@ fun HomeFeedScreen(
         // The DJ looks songs up first; a failure must not leave the button spinning.
         if (djStarting) {
             delay(START_TIMEOUT_MS)
+            // Said out loud, so the spinner stopping does not look like the button did nothing.
+            if (!djActive) scope.launch { snackbarHostState.showSnackbar(djFailedMessage) }
             djStarting = false
         }
     }
@@ -1247,7 +1250,6 @@ private fun ChartList(
                                 onPlay(index)
                             },
                             onLongClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 menuState.show { YouTubeSongMenu(song = song, onDismiss = menuState::dismiss) }
                             },
                         ).padding(start = 20.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),

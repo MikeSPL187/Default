@@ -531,7 +531,6 @@ fun DailyDiscoverCard(
                 .combinedClickable(
                     onClick = onClick,
                     onLongClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         if (song != null) {
                             menuState.show {
                                 YouTubeSongMenu(
@@ -872,7 +871,6 @@ fun HomeScreen(
                                     navController.navigate("album/${it.id}")
                                 },
                                 onLongClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     menuState.show {
                                         AlbumMenu(
                                             originalAlbum = it,
@@ -975,7 +973,6 @@ fun HomeScreen(
                             }
                         },
                         onLongClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             menuState.show {
                                 when (item) {
                                     is SongItem -> {
@@ -1869,7 +1866,6 @@ fun HomeScreen(
                                                                 }
                                                             },
                                                             onLongClick = {
-                                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                                 menuState.show {
                                                                     SongMenu(
                                                                         originalSong = song,
@@ -2194,7 +2190,6 @@ fun HomeScreen(
                                                                 }
                                                             },
                                                             onLongClick = {
-                                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                                 menuState.show {
                                                                     SongMenu(
                                                                         originalSong = song,
@@ -2309,7 +2304,6 @@ fun HomeScreen(
                                                                 }
                                                             },
                                                             onLongClick = {
-                                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                                 menuState.show {
                                                                     SongMenu(
                                                                         originalSong = song,
@@ -2536,7 +2530,6 @@ fun HomeScreen(
                                                                     }
                                                                 },
                                                                 onLongClick = {
-                                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                                     menuState.show {
                                                                         YouTubeSongMenu(
                                                                             song = song,

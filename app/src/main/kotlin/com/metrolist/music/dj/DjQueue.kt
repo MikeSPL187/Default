@@ -21,6 +21,7 @@ import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.filterNotRecommended
 import com.metrolist.music.utils.notRecommended
 import com.metrolist.music.utils.read
+import com.metrolist.music.viewmodels.GLOBAL_CHART_PLAYLIST
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -54,6 +55,7 @@ class DjQueue(
     private var discoveriesSkipped = 0
     private var favouritesSkipped = 0
     private val moodSongs = HashMap<String, List<SongItem>>()
+    private var starter: List<SongItem>? = null
 
     override suspend fun getInitialStatus(): Queue.Status {
         if (lead == null) return Queue.Status(title, nextBatch(FIRST_BATCH), 0)
@@ -160,10 +162,19 @@ class DjQueue(
 
             // New songs grow from what was just heard through, else from strong favourites; with a
             // mood, from the mood's own songs and what was heard through of them.
-            val seeds = if (mood != null) recentKeeps.take(SEEDS) else (recentKeeps + favourites.map { it.id }).distinct().take(SEEDS)
+            val learned = if (mood != null) recentKeeps.take(SEEDS) else (recentKeeps + favourites.map { it.id }).distinct().take(SEEDS)
+            // With nothing heard yet (a new listener), the set starts from the artists they picked,
+            // else from the global chart, instead of coming out empty.
+            val starter = if (learned.isEmpty() && mood == null) starterSongs().filterNot { it.id in excluded } else emptyList()
+            val seeds = learned.ifEmpty { starter.shuffled().take(SEEDS).map { it.id } }
             val knownIds = candidates.mapTo(HashSet()) { it.id } + likedIds
             val radios = coroutineScope { seeds.map { async { radioOf(it) } }.awaitAll() }
-            val pool = if (mood != null) listOf(songsOfMood(mood.params)) + radios else radios
+            val pool =
+                when {
+                    mood != null -> listOf(songsOfMood(mood.params)) + radios
+                    starter.isNotEmpty() -> listOf(starter.shuffled()) + radios
+                    else -> radios
+                }
             val discoveries =
                 DjPlanner.byConsensus(pool) { it.id }
                     .filterNot { song ->
@@ -209,6 +220,41 @@ class DjQueue(
         return result
     }
 
+    /** Songs of the artists in the library, or of the global chart: where a set starts from nothing. */
+    private suspend fun starterSongs(): List<SongItem> {
+        synchronized(lock) { starter }?.let { return it }
+        val artists = database.bookmarkedArtistEntitiesByNameAsc().shuffled().take(STARTER_ARTISTS)
+        val fromArtists =
+            coroutineScope {
+                artists
+                    .map { artist ->
+                        async {
+                            YouTube
+                                .artist(artist.id)
+                                .getOrNull()
+                                ?.sections
+                                .orEmpty()
+                                .flatMap { it.items }
+                                .filterIsInstance<SongItem>()
+                                .take(STARTER_PER_ARTIST)
+                        }
+                    }.awaitAll()
+                    .flatten()
+            }
+        val songs =
+            fromArtists
+                .ifEmpty {
+                    YouTube
+                        .playlist(GLOBAL_CHART_PLAYLIST)
+                        .onFailure { Timber.tag("DJ").w(it, "No chart to start from") }
+                        .getOrNull()
+                        ?.songs
+                        .orEmpty()
+                }.distinctBy { it.id }
+        if (songs.isNotEmpty()) synchronized(lock) { starter = songs }
+        return songs
+    }
+
     private suspend fun radioOf(songId: String): List<SongItem> =
         YouTube.next(WatchEndpoint(videoId = songId, playlistId = "RDAMVM$songId"))
             .onFailure { Timber.tag("DJ").w(it, "No radio for $songId") }
@@ -231,5 +277,7 @@ class DjQueue(
         const val MOOD_FAMILIAR = 0.35
         const val MOOD_MIN_SONGS = 30
         const val MOOD_PLAYLISTS = 3
+        const val STARTER_ARTISTS = 6
+        const val STARTER_PER_ARTIST = 8
     }
 }

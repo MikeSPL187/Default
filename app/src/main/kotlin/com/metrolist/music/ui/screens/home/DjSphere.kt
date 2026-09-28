@@ -321,7 +321,6 @@ fun DjHero(
                             indication = null,
                             onClick = play,
                             onLongClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 onTune()
                             },
                         ),

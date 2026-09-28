@@ -43,8 +43,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -100,7 +98,6 @@ fun OnlineSearchScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
-    val haptic = LocalHapticFeedback.current
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
@@ -295,7 +292,6 @@ fun OnlineSearchScreen(
                                     }
                                 },
                                 onLongClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     menuState.show {
                                         when (item) {
                                             is SongItem -> {
@@ -568,7 +564,6 @@ fun OnlineSearchScreen(
                                 }
                             },
                             onLongClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 menuState.show {
                                     when (item) {
                                         is SongItem -> {
@@ -657,7 +652,6 @@ fun SuggestionItem(
     onFillTextField: () -> Unit,
     pureBlack: Boolean,
 ) {
-    val haptic = LocalHapticFeedback.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier =
@@ -668,7 +662,6 @@ fun SuggestionItem(
                 .combinedClickable(
                     onClick = onClick,
                     onLongClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         if (online) onFillTextField() else onDelete()
                     },
                 ).windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)),

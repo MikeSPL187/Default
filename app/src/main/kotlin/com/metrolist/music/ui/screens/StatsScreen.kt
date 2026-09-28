@@ -640,7 +640,6 @@ fun StatsScreen(
                         share = (artist.timeListened ?: 0).toFloat() / longest,
                         onClick = { navController.navigate("artist/${artist.id}") },
                         onLongClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             menuState.show {
                                 ArtistMenu(
                                     originalArtist = artist,
@@ -691,7 +690,6 @@ fun StatsScreen(
                                                     navController.navigate("album/${album.id}")
                                                 },
                                                 onLongClick = {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                     menuState.show {
                                                         AlbumMenu(
                                                             originalAlbum = album,

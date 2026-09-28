@@ -39,7 +39,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -84,7 +83,6 @@ fun LibraryArtistsScreen(
     viewModel: LibraryArtistsViewModel = hiltViewModel(),
 ) {
     val menuState = LocalMenuState.current
-    val haptic = LocalHapticFeedback.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val coroutineScope = rememberCoroutineScope()
     var viewType by rememberEnumPreference(ArtistViewTypeKey, LibraryViewType.GRID)

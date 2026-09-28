@@ -351,7 +351,6 @@ fun AlbumScreen(
                                         .combinedClickable(
                                             onClick = { navController.navigate("album/${item.id}") },
                                             onLongClick = {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                 menuState.show {
                                                     YouTubeAlbumMenu(
                                                         albumItem = item,

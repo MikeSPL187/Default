@@ -50,8 +50,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -132,7 +130,6 @@ fun LibraryMixScreen(
     viewModel: LibraryMixViewModel = hiltViewModel(),
 ) {
     val menuState = LocalMenuState.current
-    val haptic = LocalHapticFeedback.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val queueSearchedSongsStr = stringResource(R.string.queue_searched_songs)
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -675,7 +672,6 @@ fun LibraryMixScreen(
                                                     }
                                                 },
                                                 onLongClick = {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                     menuState.show {
                                                         PlaylistMenu(
                                                             playlist = item,
@@ -730,7 +726,6 @@ fun LibraryMixScreen(
                                                     }
                                                 },
                                                 onLongClick = {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                     menuState.show {
                                                         SongMenu(
                                                             originalSong = item,
@@ -772,7 +767,6 @@ fun LibraryMixScreen(
                                                     navController.navigate("artist/${item.id}")
                                                 },
                                                 onLongClick = {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                     menuState.show {
                                                         ArtistMenu(
                                                             originalArtist = item,
@@ -815,7 +809,6 @@ fun LibraryMixScreen(
                                                     navController.navigate("album/${item.id}")
                                                 },
                                                 onLongClick = {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                     menuState.show {
                                                         AlbumMenu(
                                                             originalAlbum = item,
@@ -1005,7 +998,6 @@ fun LibraryMixScreen(
                                                     }
                                                 },
                                                 onLongClick = {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                     menuState.show {
                                                         PlaylistMenu(
                                                             playlist = item,
@@ -1044,7 +1036,6 @@ fun LibraryMixScreen(
                                                     }
                                                 },
                                                 onLongClick = {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                     menuState.show {
                                                         SongMenu(
                                                             originalSong = item,
@@ -1069,7 +1060,6 @@ fun LibraryMixScreen(
                                                     navController.navigate("artist/${item.id}")
                                                 },
                                                 onLongClick = {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                     menuState.show {
                                                         ArtistMenu(
                                                             originalArtist = item,
@@ -1097,7 +1087,6 @@ fun LibraryMixScreen(
                                                     navController.navigate("album/${item.id}")
                                                 },
                                                 onLongClick = {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                     menuState.show {
                                                         AlbumMenu(
                                                             originalAlbum = item,
