@@ -60,14 +60,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -159,20 +156,6 @@ fun StatsScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    var inSelectMode by rememberSaveable { mutableStateOf(false) }
-    val selection =
-        rememberSaveable(
-            saver =
-                listSaver<MutableList<Long>, Long>(
-                    save = { it.toList() },
-                    restore = { it.toMutableStateList() },
-                ),
-        ) { mutableStateListOf() }
-    val onExitSelectionMode = {
-        inSelectMode = false
-        selection.clear()
-    }
-
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue())
@@ -188,8 +171,6 @@ fun StatsScreen(
             isSearching = false
             query = TextFieldValue()
         }
-    } else if (inSelectMode) {
-        BackHandler(onBack = onExitSelectionMode)
     }
 
     val indexChips by viewModel.indexChips.collectAsStateWithLifecycle()
@@ -776,9 +757,7 @@ fun StatsScreen(
 
     TopAppBar(
         title = {
-            if (inSelectMode) {
-                Text(pluralStringResource(R.plurals.n_selected, selection.size, selection.size))
-            } else if (isSearching) {
+            if (isSearching) {
                 Row {
                     TextField(
                         value = query,
@@ -821,54 +800,29 @@ fun StatsScreen(
             }
         },
         navigationIcon = {
-            if (inSelectMode) {
-                androidx.compose.material3.IconButton(onClick = onExitSelectionMode) {
-                    Icon(
-                        painter = painterResource(R.drawable.close),
-                        contentDescription = stringResource(R.string.close),
-                    )
-                }
-            } else {
-                IconButton(
-                    onClick = {
-                        if (isSearching) {
-                            isSearching = false
-                            query = TextFieldValue()
-                        } else {
-                            navController.navigateUp()
-                        }
-                    },
-                    onLongClick = {
-                        if (!isSearching) {
-                            navController.backToMain()
-                        }
-                    },
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.arrow_back),
-                        contentDescription = stringResource(R.string.cd_back),
-                    )
-                }
+            IconButton(
+                onClick = {
+                    if (isSearching) {
+                        isSearching = false
+                        query = TextFieldValue()
+                    } else {
+                        navController.navigateUp()
+                    }
+                },
+                onLongClick = {
+                    if (!isSearching) {
+                        navController.backToMain()
+                    }
+                },
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.arrow_back),
+                    contentDescription = stringResource(R.string.cd_back),
+                )
             }
         },
         actions = {
-            if (inSelectMode) {
-                Checkbox(
-                    checked = true,
-                    onCheckedChange = {
-                    },
-                )
-                androidx.compose.material3.IconButton(
-                    enabled = selection.isNotEmpty(),
-                    onClick = {
-                    },
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.more_vert),
-                        contentDescription = stringResource(R.string.more_options),
-                    )
-                }
-            } else if (!isSearching) {
+            if (!isSearching) {
                 androidx.compose.material3.IconButton(
                     onClick = { isSearching = true },
                 ) {
