@@ -36,6 +36,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.rememberCoroutineScope
+import com.metrolist.music.ui.menu.ArtistMenu
+import com.metrolist.music.ui.menu.AlbumMenu
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -82,6 +85,7 @@ fun LocalSearchScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val coroutineScope = rememberCoroutineScope()
 
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
@@ -255,10 +259,14 @@ fun LocalSearchScreen(
                                 isPlaying = isPlaying,
                                 modifier =
                                     Modifier
-                                        .clickable {
-                                            onDismiss()
-                                            navController.navigate("album/${item.id}")
-                                        }.animateItem(),
+                                        .combinedClickable(
+                                            onClick = {
+                                                onDismiss()
+                                                navController.navigate("album/${item.id}")
+                                            },
+                                            // The same menu as the album has everywhere else.
+                                            onLongClick = { menuState.show { AlbumMenu(originalAlbum = item, onDismiss = menuState::dismiss) } },
+                                        ).animateItem(),
                             )
                         }
 
@@ -267,10 +275,15 @@ fun LocalSearchScreen(
                                 artist = item,
                                 modifier =
                                     Modifier
-                                        .clickable {
-                                            onDismiss()
-                                            navController.navigate("artist/${item.id}")
-                                        }.animateItem(),
+                                        .combinedClickable(
+                                            onClick = {
+                                                onDismiss()
+                                                navController.navigate("artist/${item.id}")
+                                            },
+                                            onLongClick = {
+                                                menuState.show { ArtistMenu(originalArtist = item, coroutineScope = coroutineScope, onDismiss = menuState::dismiss) }
+                                            },
+                                        ).animateItem(),
                             )
                         }
 
@@ -294,6 +307,7 @@ fun LocalSearchScreen(
                     EmptyPlaceholder(
                         icon = R.drawable.search,
                         text = stringResource(R.string.no_results_found),
+                        hint = stringResource(R.string.search_empty_hint),
                     )
                 }
             }

@@ -384,7 +384,7 @@ fun OnlineSearchResult(
             },
             placeholder = {
                 Text(
-                    text = stringResource(R.string.search_yt_music),
+                    text = stringResource(R.string.search_music_hint),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -409,7 +409,7 @@ fun OnlineSearchResult(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.close),
-                            contentDescription = stringResource(R.string.close),
+                            contentDescription = stringResource(R.string.clear_search),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -501,14 +501,14 @@ fun OnlineSearchResult(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     if (searchFilter == null) {
-                        searchSummary?.summaries?.forEach { summary ->
-                            item {
-                                NavigationTitle(summary.title)
+                        searchSummary?.summaries?.forEachIndexed { section, summary ->
+                            item(key = "title_$section") {
+                                NavigationTitle(summary.title, modifier = Modifier.animateItem())
                             }
 
                             itemsIndexed(
                                 items = summary.items,
-                                key = { index, item -> "${summary.title}/${item.id}/$index" },
+                                key = { index, item -> "$section/${item.id}/$index" },
                                 itemContent = { index, item -> ytItemContent(item) },
                             )
                         }
