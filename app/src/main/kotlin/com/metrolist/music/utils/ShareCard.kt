@@ -27,6 +27,8 @@ import androidx.core.content.FileProvider
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
+import androidx.core.graphics.withClip
+import androidx.core.graphics.withTranslation
 import androidx.palette.graphics.Palette
 import coil3.imageLoader
 import coil3.request.ImageRequest
@@ -154,17 +156,16 @@ object ShareCard {
             }
         canvas.drawRoundRect(RectF(coverRect).apply { offset(0f, 30f) }, radius, radius, shadow)
 
-        canvas.save()
-        canvas.clipPath(Path().apply { addRoundRect(coverRect, radius, radius, Path.Direction.CW) })
-        if (cover != null) {
-            val side = minOf(cover.width, cover.height)
-            val src = Rect((cover.width - side) / 2, (cover.height - side) / 2, (cover.width + side) / 2, (cover.height + side) / 2)
-            canvas.drawBitmap(cover, src, coverRect, paint)
-        } else {
-            paint.color = 0xFF3A3340.toInt()
-            canvas.drawRect(coverRect, paint)
+        canvas.withClip(Path().apply { addRoundRect(coverRect, radius, radius, Path.Direction.CW) }) {
+            if (cover != null) {
+                val side = minOf(cover.width, cover.height)
+                val src = Rect((cover.width - side) / 2, (cover.height - side) / 2, (cover.width + side) / 2, (cover.height + side) / 2)
+                drawBitmap(cover, src, coverRect, paint)
+            } else {
+                paint.color = 0xFF3A3340.toInt()
+                drawRect(coverRect, paint)
+            }
         }
-        canvas.restore()
 
         val bold = ResourcesCompat.getFont(context, R.font.google_sans_bold)
         val regular = ResourcesCompat.getFont(context, R.font.google_sans_regular)
@@ -185,10 +186,7 @@ object ShareCard {
                 .setLineSpacing(0f, 1.05f)
                 .build()
         var y = coverRect.bottom + 110f
-        canvas.save()
-        canvas.translate(120f, y)
-        titleLayout.draw(canvas)
-        canvas.restore()
+        canvas.withTranslation(120f, y) { titleLayout.draw(this) }
         y += titleLayout.height + 26f
 
         val subtitlePaint =
@@ -204,10 +202,7 @@ object ShareCard {
                 .setMaxLines(1)
                 .setEllipsize(TextUtils.TruncateAt.END)
                 .build()
-        canvas.save()
-        canvas.translate(120f, y)
-        subtitleLayout.draw(canvas)
-        canvas.restore()
+        canvas.withTranslation(120f, y) { subtitleLayout.draw(this) }
 
         val brand =
             TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
