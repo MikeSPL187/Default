@@ -46,6 +46,8 @@ if [ $status -eq 0 ]; then
   adb shell settings put system font_scale 1.3 || true
   maestro test .maestro/tour.yaml -e P=big- --test-output-dir smoke-output/tour-big > smoke-output/tour-big.log 2>&1 || true
   adb shell settings put system font_scale 1.0 || true
+  # The in-place language switch, there and back; a crash here is still caught from logcat below.
+  maestro test .maestro/language.yaml --test-output-dir smoke-output/language > smoke-output/language.log 2>&1 || echo "::warning::Language switch flow did not finish, see language.log"
   adb logcat -d > smoke-output/logcat.txt
 fi
 

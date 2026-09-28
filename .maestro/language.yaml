@@ -1,0 +1,43 @@
+# Switches the app to Russian and back from Settings → Content, checking the in-place language change.
+appId: com.metrolist.music
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Home"
+    timeout: 60000
+- tapOn: "You"
+- waitForAnimationToEnd
+- tapOn: "Settings"
+- waitForAnimationToEnd
+- tapOn: "Content"
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element: "App language"
+    timeout: 15000
+- tapOn:
+    text: "App language"
+    index: 1
+- waitForAnimationToEnd
+- takeScreenshot: lang-01-dialog
+- scrollUntilVisible:
+    element: "Русский"
+    timeout: 15000
+- tapOn: "Русский"
+- extendedWaitUntil:
+    visible: "Язык приложения"
+    timeout: 15000
+- waitForAnimationToEnd
+- takeScreenshot: lang-02-russian
+- tapOn:
+    text: "Язык приложения"
+    index: 1
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element: "English \\(US\\)"
+    direction: UP
+    timeout: 15000
+- tapOn: "English \\(US\\)"
+- extendedWaitUntil:
+    visible: "App language"
+    timeout: 15000
+- takeScreenshot: lang-03-english
