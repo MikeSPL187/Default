@@ -48,6 +48,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
+import com.metrolist.music.ui.component.FitText
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -249,12 +252,12 @@ private fun ToolTile(
                     .clip(CircleShape)
                     .background(lerp(colors.surfaceContainerHigh, tool.tint, 0.26f)),
         ) { Icon(painterResource(tool.icon), null, tint = iconTint, modifier = Modifier.size(21.dp)) }
-        Text(
+        // "Equalizer" in Russian is long for a third of the width; it shrinks rather than end in "…".
+        FitText(
             stringResource(tool.label),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+            textAlign = TextAlign.Center,
+            minFontSize = 9.sp,
             modifier = Modifier.padding(top = 7.dp, start = 6.dp, end = 6.dp),
         )
     }

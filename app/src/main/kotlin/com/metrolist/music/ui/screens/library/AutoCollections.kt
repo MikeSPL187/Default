@@ -121,7 +121,8 @@ fun AutoCollectionsRow(
                 FitText(
                     collection.title,
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                    minFontSize = 10.sp,
+                    // Low enough for "Понравившиеся" in a tile at the largest font.
+                    minFontSize = 8.sp,
                     modifier = Modifier.padding(top = 8.dp, start = 2.dp),
                 )
                 collection.subtitle?.let {
