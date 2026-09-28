@@ -88,6 +88,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -819,7 +820,8 @@ fun Queue(
                                             if (!locked && !isListenTogetherGuest) {
                                                 IconButton(
                                                     onClick = { },
-                                                    modifier = Modifier.draggableHandle(),
+                                                    // Dragging needs sight; not a button to a screen reader.
+                                                    modifier = Modifier.clearAndSetSemantics {}.draggableHandle(),
                                                 ) {
                                                     Icon(
                                                         painter = painterResource(R.drawable.drag_handle),
@@ -924,7 +926,7 @@ fun Queue(
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.playlist_play),
-                                                contentDescription = null,
+                                                contentDescription = stringResource(R.string.play_next),
                                             )
                                         }
                                         IconButton(
@@ -937,7 +939,7 @@ fun Queue(
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.queue_music),
-                                                contentDescription = null,
+                                                contentDescription = stringResource(R.string.add_to_queue),
                                             )
                                         }
                                     }
@@ -1058,7 +1060,7 @@ fun Queue(
                         ) {
                             Icon(
                                 painter = painterResource(if (locked) R.drawable.lock else R.drawable.lock_open),
-                                contentDescription = null,
+                                contentDescription = stringResource(if (locked) R.string.a11y_unlock_queue else R.string.a11y_lock_queue),
                             )
                         }
                     }

@@ -27,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -92,7 +93,7 @@ fun DraggableLyricsProviderList(
                     ) {
                         IconButton(
                             onClick = { },
-                            modifier = Modifier.draggableHandle(),
+                            modifier = Modifier.clearAndSetSemantics {}.draggableHandle(),
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.drag_handle),

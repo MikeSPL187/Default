@@ -100,6 +100,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
@@ -731,7 +732,8 @@ fun LocalPlaylistScreen(
                                     if (sortType == PlaylistSongSortType.CUSTOM && !locked && !inSelectMode && !isSearching && editable && activeFilter == DownloadFilter.ALL) {
                                         IconButton(
                                             onClick = { },
-                                            modifier = Modifier.draggableHandle(),
+                                            // Dragging needs sight; not a button to a screen reader.
+                                            modifier = Modifier.clearAndSetSemantics {}.draggableHandle(),
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.drag_handle),

@@ -543,7 +543,7 @@ private fun ThumbnailHeader(
     ) {
         if (onCollapse != null) {
             IconButton(onClick = onCollapse) {
-                Icon(painterResource(R.drawable.expand_more), contentDescription = null, tint = textColor, modifier = Modifier.size(28.dp))
+                Icon(painterResource(R.drawable.expand_more), contentDescription = stringResource(R.string.a11y_collapse_player), tint = textColor, modifier = Modifier.size(28.dp))
             }
         } else {
             Spacer(Modifier.size(48.dp))

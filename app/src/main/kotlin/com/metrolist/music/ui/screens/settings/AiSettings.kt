@@ -624,7 +624,7 @@ fun AiSettings(navController: NavController) {
                                     IconButton(onClick = { showTranslateModeHelpDialog = true }) {
                                         Icon(
                                             painterResource(R.drawable.info),
-                                            contentDescription = null,
+                                            contentDescription = stringResource(R.string.a11y_more_info),
                                             modifier = Modifier.size(20.dp),
                                         )
                                     }
