@@ -1,0 +1,17 @@
+Cold start, no profile: median 2424 ms (runs: 1594 2074 2424 2453 2483 )
+Frames during the tour, no profile:
+  Total frames rendered: 1154
+  Janky frames: 1066 (92.37%)
+  Janky frames (legacy): 1102 (95.49%)
+  50th percentile: 85ms
+  90th percentile: 150ms
+  99th percentile: 550ms
+Profile: 87428 rules (14897 of them for the app itself)
+Cold start, with the profile: median 1069 ms (runs: 940 996 1069 1194 1232 )
+Frames during the tour, with the profile:
+  Total frames rendered: 877
+  Janky frames: 826 (94.18%)
+  Janky frames (legacy): 859 (97.95%)
+  50th percentile: 89ms
+  90th percentile: 150ms
+  99th percentile: 450ms
