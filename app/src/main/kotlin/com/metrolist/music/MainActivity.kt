@@ -5,6 +5,9 @@
 
 package com.metrolist.music
 
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.animation.core.Animatable
+import com.metrolist.music.utils.LanguageSwitcher
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import com.metrolist.music.ui.screens.OnboardingScreen
 import com.metrolist.music.constants.OnboardingDoneKey
@@ -434,6 +437,12 @@ class MainActivity : FragmentActivity() {
                     ?.let { Locale.forLanguageTag(it) }
                     ?: Locale.getDefault()
             setAppLocale(this, locale)
+        } else {
+            // The language may have been changed in the system's settings; the stored choice follows it.
+            lifecycleScope.launch(Dispatchers.IO) {
+                val chosen = LanguageSwitcher.current(this@MainActivity)
+                if ((dataStore[AppLanguageKey] ?: SYSTEM_DEFAULT) != chosen) safeDataStoreEdit { it[AppLanguageKey] = chosen }
+            }
         }
 
         lifecycleScope.launch {
@@ -1479,6 +1488,25 @@ class MainActivity : FragmentActivity() {
                     }
                     if (showOnboarding) {
                         OnboardingScreen(onDone = { showOnboarding = false })
+                    }
+
+                    // A language change fades the screen to its background and back, instead of a flash.
+                    val languageVeil = remember { Animatable(if (LanguageSwitcher.consumeFadeIn()) 1f else 0f) }
+                    val fadingOut by LanguageSwitcher.fadingOut.collectAsStateWithLifecycle()
+                    LaunchedEffect(fadingOut) {
+                        languageVeil.animateTo(
+                            if (fadingOut) 1f else 0f,
+                            tween(if (fadingOut) LanguageSwitcher.FADE_OUT_MS else LanguageSwitcher.FADE_IN_MS),
+                        )
+                    }
+                    if (languageVeil.value > 0f) {
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .graphicsLayer { alpha = languageVeil.value }
+                                .background(MaterialTheme.colorScheme.surface)
+                                .pointerInput(Unit) { awaitPointerEventScope { while (true) awaitPointerEvent() } },
+                        )
                     }
 
                     if (showAccountDialog) {
