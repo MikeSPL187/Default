@@ -34,6 +34,8 @@ import com.metrolist.music.R
 import com.metrolist.music.constants.GridItemSize
 import com.metrolist.music.constants.GridItemsSizeKey
 import com.metrolist.music.constants.GridThumbnailHeight
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import com.metrolist.music.ui.component.EmptyPlaceholder
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.component.YouTubeGridItem
@@ -60,6 +62,7 @@ fun BrowseScreen(
 
     val title by viewModel.title.collectAsStateWithLifecycle()
     val items by viewModel.items.collectAsStateWithLifecycle()
+    val loadFailed by viewModel.loadFailed.collectAsStateWithLifecycle()
 
     val coroutineScope = rememberCoroutineScope()
     val gridItemSize by rememberEnumPreference(GridItemsSizeKey, GridItemSize.BIG)
@@ -135,7 +138,17 @@ fun BrowseScreen(
                 )
             }
 
-            if (items.isEmpty()) {
+            if (items.isEmpty() && loadFailed) {
+                item(key = "load_failed", span = { GridItemSpan(maxLineSpan) }) {
+                    EmptyPlaceholder(
+                        icon = R.drawable.cloud_off,
+                        text = stringResource(R.string.page_load_failed),
+                        hint = stringResource(R.string.search_failed_hint),
+                        action = stringResource(R.string.retry),
+                        onAction = viewModel::retry,
+                    )
+                }
+            } else if (items.isEmpty()) {
                 items(8) {
                     ShimmerHost {
                         GridItemPlaceHolder(fillMaxWidth = true)

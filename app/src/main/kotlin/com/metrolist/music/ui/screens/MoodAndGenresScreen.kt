@@ -40,6 +40,7 @@ import com.metrolist.music.R
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.derivedStateOf
+import com.metrolist.music.ui.component.EmptyPlaceholder
 import com.metrolist.music.ui.component.LargeScreenTitle
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.NavigationTitle
@@ -58,6 +59,7 @@ fun MoodAndGenresScreen(
     val itemsPerRow = if (localConfiguration.orientation == ORIENTATION_LANDSCAPE) 3 else 2
 
     val moodAndGenresList by viewModel.moodAndGenres.collectAsStateWithLifecycle()
+    val loadFailed by viewModel.loadFailed.collectAsStateWithLifecycle()
 
     val listState = rememberLazyListState()
     val scrolledPastTitle by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
@@ -68,7 +70,17 @@ fun MoodAndGenresScreen(
     ) {
         item(key = "large_title") { LargeScreenTitle(stringResource(R.string.mood_and_genres)) }
 
-        if (moodAndGenresList == null) {
+        if (moodAndGenresList == null && loadFailed) {
+            item(key = "load_failed") {
+                EmptyPlaceholder(
+                    icon = R.drawable.cloud_off,
+                    text = stringResource(R.string.page_load_failed),
+                    hint = stringResource(R.string.search_failed_hint),
+                    action = stringResource(R.string.retry),
+                    onAction = viewModel::retry,
+                )
+            }
+        } else if (moodAndGenresList == null) {
             item(key = "mood_and_genres_shimmer") {
                 ShimmerHost(
                     modifier = Modifier.animateItem()

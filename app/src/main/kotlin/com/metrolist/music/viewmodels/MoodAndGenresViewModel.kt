@@ -21,7 +21,19 @@ class MoodAndGenresViewModel
 constructor() : ViewModel() {
     val moodAndGenres = MutableStateFlow<List<MoodAndGenres>?>(null)
 
+    /** The last fetch failed; the screen trades its placeholders for a retry card. */
+    val loadFailed = MutableStateFlow(false)
+
     init {
+        load()
+    }
+
+    fun retry() {
+        loadFailed.value = false
+        load()
+    }
+
+    private fun load() {
         viewModelScope.launch {
             YouTube
                 .moodAndGenres()
@@ -29,6 +41,7 @@ constructor() : ViewModel() {
                     moodAndGenres.value = it
                 }.onFailure {
                     reportException(it)
+                    loadFailed.value = true
                 }
         }
     }

@@ -34,7 +34,19 @@ constructor(
     private val _newReleaseAlbums = MutableStateFlow<List<AlbumItem>>(emptyList())
     val newReleaseAlbums = _newReleaseAlbums.asStateFlow()
 
+    /** The last fetch failed; the screen trades its placeholders for a retry card. */
+    val loadFailed = MutableStateFlow(false)
+
     init {
+        load()
+    }
+
+    fun retry() {
+        loadFailed.value = false
+        load()
+    }
+
+    private fun load() {
         viewModelScope.launch {
             YouTube
                 .newReleaseAlbums()
@@ -65,8 +77,11 @@ constructor(
                                     } ?: Int.MAX_VALUE
                                 firstArtistKey
                             }.filterExplicit(context.dataStore.read(HideExplicitKey, false))
+                    // Every album filtered away would otherwise leave the placeholders forever.
+                    if (_newReleaseAlbums.value.isEmpty()) loadFailed.value = true
                 }.onFailure {
                     reportException(it)
+                    loadFailed.value = true
                 }
         }
     }

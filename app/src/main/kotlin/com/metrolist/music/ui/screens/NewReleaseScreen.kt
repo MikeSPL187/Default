@@ -32,6 +32,7 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.derivedStateOf
+import com.metrolist.music.ui.component.EmptyPlaceholder
 import com.metrolist.music.ui.component.LargeScreenTitle
 import com.metrolist.music.constants.GridItemSize
 import com.metrolist.music.constants.GridItemsSizeKey
@@ -58,6 +59,8 @@ fun NewReleaseScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
 
     val newReleaseAlbums by viewModel.newReleaseAlbums.collectAsStateWithLifecycle()
+
+    val loadFailed by viewModel.loadFailed.collectAsStateWithLifecycle()
 
     val coroutineScope = rememberCoroutineScope()
     val gridItemSize by rememberEnumPreference(GridItemsSizeKey, GridItemSize.BIG)
@@ -100,7 +103,17 @@ fun NewReleaseScreen(
             )
         }
 
-        if (newReleaseAlbums.isEmpty()) {
+        if (newReleaseAlbums.isEmpty() && loadFailed) {
+            item(key = "load_failed", span = { GridItemSpan(maxLineSpan) }) {
+                EmptyPlaceholder(
+                    icon = R.drawable.cloud_off,
+                    text = stringResource(R.string.page_load_failed),
+                    hint = stringResource(R.string.search_failed_hint),
+                    action = stringResource(R.string.retry),
+                    onAction = viewModel::retry,
+                )
+            }
+        } else if (newReleaseAlbums.isEmpty()) {
             items(8) {
                 ShimmerHost {
                     GridItemPlaceHolder(fillMaxWidth = true)

@@ -24,8 +24,20 @@ class BrowseViewModel @Inject constructor(
  
     val items = MutableStateFlow<List<YTItem>?>(emptyList())
     val title = MutableStateFlow<String?>("")
- 
+
+    /** The last fetch failed; the screen trades its placeholders for a retry card. */
+    val loadFailed = MutableStateFlow(false)
+
     init {
+        load()
+    }
+
+    fun retry() {
+        loadFailed.value = false
+        load()
+    }
+
+    private fun load() {
         viewModelScope.launch {
             browseId?.let {
                 YouTube.browse(browseId, null).onSuccess { result ->
@@ -35,8 +47,10 @@ class BrowseViewModel @Inject constructor(
                     // Flatten the nested structure to get all YTItems
                     val allItems = result.items.flatMap { it.items }
                     items.value = allItems
+                    if (allItems.isEmpty()) loadFailed.value = true
                 }.onFailure {
                     reportException(it)
+                    loadFailed.value = true
                 }
             }
         }

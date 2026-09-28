@@ -36,7 +36,19 @@ constructor(
 
     val result = MutableStateFlow<BrowseResult?>(null)
 
+    /** The last fetch failed; the screen trades its placeholders for a retry card. */
+    val loadFailed = MutableStateFlow(false)
+
     init {
+        load()
+    }
+
+    fun retry() {
+        loadFailed.value = false
+        load()
+    }
+
+    private fun load() {
         viewModelScope.launch {
             val hideExplicit = context.dataStore.read(HideExplicitKey, false)
             val hideVideoSongs = context.dataStore.read(HideVideoSongsKey, false)
@@ -50,6 +62,7 @@ constructor(
                         .filterYoutubeShorts(hideYoutubeShorts)
                 }.onFailure {
                     reportException(it)
+                    loadFailed.value = true
                 }
         }
     }

@@ -39,6 +39,8 @@ import com.metrolist.music.constants.GridItemsSizeKey
 import com.metrolist.music.constants.GridThumbnailHeight
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.queues.YouTubeQueue
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import com.metrolist.music.ui.component.EmptyPlaceholder
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.component.YouTubeGridItem
@@ -65,6 +67,8 @@ fun YouTubeBrowseScreen(
 
     val browseResult by viewModel.result.collectAsStateWithLifecycle()
 
+    val loadFailed by viewModel.loadFailed.collectAsStateWithLifecycle()
+
     val coroutineScope = rememberCoroutineScope()
     val gridItemSize by rememberEnumPreference(GridItemsSizeKey, GridItemSize.BIG)
 
@@ -74,7 +78,17 @@ fun YouTubeBrowseScreen(
         columns = GridCells.Adaptive(minSize = GridThumbnailHeight + if (gridItemSize == GridItemSize.BIG) 24.dp else (-24).dp),
         contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
     ) {
-        if (browseResult == null) {
+        if (browseResult == null && loadFailed) {
+            item(key = "load_failed", span = { GridItemSpan(maxLineSpan) }) {
+                EmptyPlaceholder(
+                    icon = R.drawable.cloud_off,
+                    text = stringResource(R.string.page_load_failed),
+                    hint = stringResource(R.string.search_failed_hint),
+                    action = stringResource(R.string.retry),
+                    onAction = viewModel::retry,
+                )
+            }
+        } else if (browseResult == null) {
             items(8) {
                 ShimmerHost {
                     GridItemPlaceHolder(fillMaxWidth = true)

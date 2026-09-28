@@ -1408,6 +1408,7 @@
     <string name="album_load_failed">Не удалось загрузить альбом</string>
     <string name="album_all_songs_hidden">Все песни альбома скрыты</string>
     <string name="album_all_songs_hidden_hint">Откровенные песни или клипы скрыты в Настройках › Контент</string>
+    <string name="page_load_failed">Не удалось загрузить страницу</string>
     <string name="playlist_load_failed">Не удалось загрузить плейлист</string>
     <string name="podcast_load_failed">Не удалось загрузить подкаст</string>
     <string name="settings_section_recap">Итоги</string>
