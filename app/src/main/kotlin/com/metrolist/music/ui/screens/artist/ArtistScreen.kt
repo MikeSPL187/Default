@@ -72,6 +72,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -465,11 +466,12 @@ fun ArtistScreen(
                                         .padding(horizontal = 16.dp),
                             ) {
                                 // Artist Name
+                                // Two balanced lines for a long name or a duo, rather than an ellipsis.
                                 Text(
-                                    text = displayArtistName ?: "Unknown",
-                                    style = MaterialTheme.typography.headlineLarge,
+                                    text = displayArtistName ?: stringResource(R.string.unknown),
+                                    style = MaterialTheme.typography.headlineLarge.copy(lineBreak = LineBreak.Heading),
                                     fontWeight = FontWeight.Bold,
-                                    maxLines = 1,
+                                    maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
                                     fontSize = 32.sp,
                                     modifier = Modifier.padding(bottom = 16.dp),

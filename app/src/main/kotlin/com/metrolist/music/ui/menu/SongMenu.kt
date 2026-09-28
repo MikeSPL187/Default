@@ -1121,7 +1121,7 @@ fun SongMenu(
                                                 insert(
                                                     PodcastEntity(
                                                         id = podcastId,
-                                                        title = song.song.albumName ?: "Unknown Podcast",
+                                                        title = song.song.albumName ?: context.getString(R.string.unknown),
                                                         author = song.artists.firstOrNull()?.name,
                                                         thumbnailUrl = song.song.thumbnailUrl,
                                                     ).toggleBookmark(),

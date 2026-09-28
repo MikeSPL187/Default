@@ -88,6 +88,7 @@ import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.LocalSyncUtils
 import com.metrolist.music.R
+import com.metrolist.music.ui.component.EmptyPlaceholder
 import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.db.entities.Playlist
 import com.metrolist.music.db.entities.PlaylistEntity
@@ -217,24 +218,15 @@ fun OnlinePlaylistScreen(
                     }
                 } else if (error != null) {
                     item(key = "error_placeholder") {
-                        Column(
-                            modifier =
-                                Modifier
-                                    .fillParentMaxSize()
-                                    .padding(32.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                        ) {
-                            Text(
-                                text = error ?: stringResource(R.string.error_unknown),
-                                style = MaterialTheme.typography.bodyLarge,
-                                textAlign = TextAlign.Center,
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            androidx.compose.material3.TextButton(onClick = { viewModel.retry() }) {
-                                Text(stringResource(R.string.retry))
-                            }
-                        }
+                        // The same calm card as a failed search; the technical reason stays in the log.
+                        EmptyPlaceholder(
+                            icon = R.drawable.cloud_off,
+                            text = stringResource(R.string.playlist_load_failed),
+                            hint = stringResource(R.string.search_failed_hint),
+                            action = stringResource(R.string.retry),
+                            onAction = { viewModel.retry() },
+                            modifier = Modifier.fillParentMaxSize(),
+                        )
                     }
                 } else if (!isLoading && songs.isEmpty()) {
                     item(key = "empty_placeholder") {

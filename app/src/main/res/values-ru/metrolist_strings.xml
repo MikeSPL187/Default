@@ -1405,4 +1405,5 @@
     <string name="a11y_collapse_player">Свернуть плеер</string>
     <string name="a11y_more_info">Подробнее</string>
     <string name="a11y_open_player">Открыть плеер</string>
+    <string name="playlist_load_failed">Не удалось загрузить плейлист</string>
 </resources>

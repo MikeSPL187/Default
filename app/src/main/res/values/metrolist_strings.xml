@@ -1491,4 +1491,5 @@
     <string name="a11y_collapse_player">Collapse the player</string>
     <string name="a11y_more_info">More about this</string>
     <string name="a11y_open_player">Open the player</string>
+    <string name="playlist_load_failed">Couldn\'t load this playlist</string>
 </resources>
