@@ -106,7 +106,7 @@ class PlayerConnection(
                 Triple(
                     initialPlayer.playbackState,
                     initialPlayer.playWhenReady,
-                    initialPlayer.playWhenReady && initialPlayer.playbackState != STATE_ENDED,
+                    initialPlayer.playWhenReady && initialPlayer.playbackState != STATE_ENDED && initialPlayer.playbackState != Player.STATE_IDLE,
                 )
             } else {
                 Timber.tag(TAG).w("Player not ready during construction; using safe defaults")
@@ -123,8 +123,9 @@ class PlayerConnection(
         playbackState = MutableStateFlow(initialState.first)
         playWhenReady = MutableStateFlow(initialState.second)
         isPlaying =
+            // A failed track drops to idle but keeps playWhenReady; it must show Play, not Pause.
             combine(playbackState, playWhenReady) { state, ready ->
-                ready && state != STATE_ENDED
+                ready && state != STATE_ENDED && state != Player.STATE_IDLE
             }.stateIn(
                 scope,
                 SharingStarted.Lazily,

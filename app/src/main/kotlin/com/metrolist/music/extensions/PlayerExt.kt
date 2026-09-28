@@ -17,8 +17,12 @@ import com.metrolist.music.models.MediaMetadata
 import java.util.ArrayDeque
 
 fun Player.togglePlayPause() {
-    if (!playWhenReady && playbackState == Player.STATE_IDLE) {
+    // Idle means stopped or failed: Play prepares the track again rather than flipping a flag
+    // that may already be on after an error.
+    if (playbackState == Player.STATE_IDLE) {
         prepare()
+        playWhenReady = true
+        return
     }
     playWhenReady = !playWhenReady
 }
