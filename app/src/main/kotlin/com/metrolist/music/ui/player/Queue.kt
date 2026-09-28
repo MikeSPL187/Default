@@ -1251,12 +1251,12 @@ private fun PlayerTab(
     ) {
         val tint = (if (active) activeContent else color).copy(alpha = if (enabled) 1f else 0.4f)
         Icon(painterResource(icon), contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
-        Text(
+        // Three tabs share the width; at a large font "Queue" shrinks a little instead of ending in "…".
+        FitText(
             label,
             color = tint,
             style = MaterialTheme.typography.labelLarge,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            minFontSize = 10.sp,
             modifier = Modifier.padding(start = 6.dp),
         )
     }

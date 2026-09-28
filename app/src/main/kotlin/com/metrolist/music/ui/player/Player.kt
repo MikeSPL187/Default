@@ -1618,13 +1618,15 @@ fun BottomSheetPlayer(
                         // With lyrics open the words get the room; where it plays and sharing wait on the cover view.
                         if (!showInlineLyrics) Row(
                             verticalAlignment = Alignment.CenterVertically,
+                            // The chip takes all the room the share button leaves, so "This phone" is read whole.
+                            horizontalArrangement = Arrangement.SpaceBetween,
                             modifier =
                                 Modifier
                                     .fillMaxWidth()
                                     .padding(start = PlayerHorizontalPadding - 4.dp, end = PlayerHorizontalPadding - 12.dp, top = 18.dp),
                         ) {
                             AudioOutputChip(contentColor = TextBackgroundColor, modifier = Modifier.weight(1f, fill = false))
-                            Spacer(Modifier.weight(1f))
+                            Spacer(Modifier.width(8.dp))
                             IconButton(
                                 onClick = {
                                     val intent =

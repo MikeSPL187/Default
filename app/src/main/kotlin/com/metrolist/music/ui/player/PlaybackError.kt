@@ -21,7 +21,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -56,6 +57,7 @@ import com.metrolist.music.R
 import com.metrolist.music.models.MediaMetadata
 import java.time.Instant
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PlaybackError(
     error: PlaybackException,
@@ -165,20 +167,21 @@ fun PlaybackError(
             modifier = Modifier.padding(top = 6.dp),
         )
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        // Side by side when they fit, one under the other when a large font makes them wide.
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.padding(top = 16.dp),
         ) {
             Button(onClick = retry) {
                 Icon(painterResource(R.drawable.replay), contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(text = stringResource(R.string.retry))
+                Text(text = stringResource(R.string.retry), maxLines = 1, softWrap = false)
             }
             OutlinedButton(onClick = { playerConnection.player.seekToNext() }) {
                 Icon(painterResource(R.drawable.skip_next), contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(text = stringResource(R.string.player_error_next))
+                Text(text = stringResource(R.string.player_error_next), maxLines = 1, softWrap = false)
             }
         }
 

@@ -84,9 +84,10 @@ appId: com.metrolist.music
     commands:
       - back
       - waitForAnimationToEnd
+# The player's own tab row, seen also when a song failed and the header is hidden.
 - runFlow:
     when:
-      visible: "ИГРАЕТ ИЗ"
+      visible: "Таймер"
     commands:
       - back
       - waitForAnimationToEnd
