@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -270,7 +271,9 @@ fun UpdaterScreen(navController: NavController) {
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = if (release.build == current) colors.primary else colors.onSurface,
-                            modifier = Modifier.width(44.dp),
+                            maxLines = 1,
+                            // Grows for long build numbers or large fonts instead of wrapping digits.
+                            modifier = Modifier.widthIn(min = 44.dp).padding(end = 8.dp),
                         )
                         Text(
                             release.notes.firstOrNull().orEmpty(),
