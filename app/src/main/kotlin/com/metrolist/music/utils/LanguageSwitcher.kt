@@ -11,10 +11,12 @@ import android.content.Context
 import android.os.Build
 import android.os.LocaleList
 import com.metrolist.music.constants.AppLanguageKey
+import com.metrolist.music.constants.LanguageCodeToName
 import com.metrolist.music.constants.SYSTEM_DEFAULT
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.util.Locale
 
 /**
  * Changes the app's language in place: the screen fades to its background, the activity is
@@ -40,8 +42,18 @@ object LanguageSwitcher {
         return pending
     }
 
-    /** The chosen language tag, or [SYSTEM_DEFAULT] when the app follows the system. */
-    fun current(context: Context): String =
+    /**
+     * The chosen language as one of the app's language tags, or [SYSTEM_DEFAULT] when the app
+     * follows the system. A regional pick made in the system settings ("en-US") maps to the
+     * app's entry for that language ("en").
+     */
+    fun current(context: Context): String {
+        val tag = stored(context)
+        if (tag == SYSTEM_DEFAULT || tag in LanguageCodeToName) return tag
+        return Locale.forLanguageTag(tag).language.takeIf { it in LanguageCodeToName } ?: tag
+    }
+
+    private fun stored(context: Context): String =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context
                 .getSystemService(LocaleManager::class.java)

@@ -818,7 +818,7 @@ private fun ArtistRow(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
         AsyncImage(
-            model = artist.artist.thumbnailUrl ?: artist.songs.first().song.thumbnailUrl,
+            model = artist.artist.thumbnailUrl ?: artist.songs.firstOrNull()?.song?.thumbnailUrl,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier =

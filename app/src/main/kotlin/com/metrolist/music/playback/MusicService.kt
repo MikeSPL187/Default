@@ -643,6 +643,8 @@ class MusicService :
         scope.launch {
             val remembered = eqProfileRepository.profileForDevice(currentOutputKey()) ?: return@launch
             val id = remembered.first()
+            // A profile deleted since it was used with this output leaves the current one in place.
+            if (id != null && eqProfileRepository.profiles.value.none { it.id == id }) return@launch
             if (id != eqProfileRepository.activeProfile.value?.id) eqProfileRepository.setActiveProfile(id)
         }
     }
