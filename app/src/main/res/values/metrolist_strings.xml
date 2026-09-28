@@ -1362,7 +1362,6 @@
     <string name="home_continue_track">Track %1$d of %2$d</string>
     <string name="home_block_artists">Your artists</string>
     <string name="home_play_all">Play all</string>
-    <string name="home_mood_all">All</string>
     <string name="home_mix_daylist_sub">For this time of day</string>
     <string name="home_mix_on_repeat_sub">Most played this month</string>
     <string name="home_mix_discover_sub">New, like what you love</string>

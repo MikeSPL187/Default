@@ -1263,7 +1263,6 @@
     <string name="home_continue_track">Трек %1$d из %2$d</string>
     <string name="home_block_artists">Ваши исполнители</string>
     <string name="home_play_all">Слушать все</string>
-    <string name="home_mood_all">Всё</string>
     <string name="home_mix_daylist_sub">Под это время дня</string>
     <string name="home_mix_on_repeat_sub">Самое частое за месяц</string>
     <string name="home_mix_discover_sub">Новое, похожее на любимое</string>

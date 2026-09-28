@@ -287,6 +287,7 @@ fun HomeFeedScreen(
     // ---- For you
     val likedTitle = stringResource(R.string.liked)
     val quickPicksTitle = stringResource(R.string.quick_picks)
+    val chartTitleText = stringResource(R.string.home_block_chart)
     val fillers = listOf(stringResource(R.string.downloaded_songs) to "auto_playlist/downloaded", stringResource(R.string.history) to "history")
     val quickItems =
         remember(recents, keepListening, likedTitle, fillers) { quickAccessItems(recents, keepListening.orEmpty(), likedTitle, fillers) }
@@ -530,6 +531,7 @@ fun HomeFeedScreen(
 
                     HomeBlock.CHART ->
                         chart?.takeIf { it.isNotEmpty() }?.let { songs ->
+                            val chartTitle = chartTitleText
                             item(key = "chart_title") {
                                 SectionHeader(
                                     title = stringResource(R.string.home_block_chart),
@@ -544,7 +546,7 @@ fun HomeFeedScreen(
                                     isPlaying = isPlaying,
                                     onPlay = { index ->
                                         playerConnection.playQueue(
-                                            ListQueue(title = null, items = songs.map { it.toMediaItem() }, startIndex = index),
+                                            ListQueue(title = chartTitle, items = songs.map { it.toMediaItem() }, startIndex = index),
                                         )
                                     },
                                     modifier = Modifier.animateItem(),
@@ -585,28 +587,6 @@ fun HomeFeedScreen(
                                 },
                             )
                         }
-                    }
-                }
-            }
-
-            item(key = "edit_home") {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 24.dp)
-                            .animateItem(),
-                ) {
-                    OutlinedButton(
-                        onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                            editing = true
-                        },
-                    ) {
-                        Icon(painterResource(R.drawable.edit), contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.home_edit))
                     }
                 }
             }
@@ -791,7 +771,9 @@ private fun MoodChips(
                     haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
                     onSelect(null)
                 },
-                label = { Text(stringResource(R.string.home_mood_all)) },
+                // The same "no mood" choice as in Tune the DJ, named and drawn the same way.
+                label = { Text(stringResource(R.string.dj_mood_any)) },
+                leadingIcon = { Icon(painterResource(R.drawable.all_inclusive), contentDescription = null, modifier = Modifier.size(18.dp)) },
             )
         }
         items(moods, key = { it.title }) { chip ->

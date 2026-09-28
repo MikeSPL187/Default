@@ -22,6 +22,7 @@ appId: com.metrolist.music
 - takeScreenshot: ru-03-home-3
 - scrollUntilVisible:
     element: "Изменить Главную"
+    direction: UP
     timeout: 20000
     optional: true
 - tapOn:
