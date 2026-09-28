@@ -54,7 +54,7 @@ object FlowPlanner {
                 }
             FlowMode.NEW -> {
                 val byDownload = tracks.filter { it.downloadedAt != null }.sortedByDescending { it.downloadedAt }
-                val recent = byDownload.filter { it.downloadedAt!!.isAfter(now.minus(NEW_WITHIN)) }
+                val recent = byDownload.filter { it.downloadedAt?.isAfter(now.minus(NEW_WITHIN)) == true }
                 if (recent.size >= NEW_MINIMUM) recent else byDownload.take(NEW_MINIMUM)
             }
         }
