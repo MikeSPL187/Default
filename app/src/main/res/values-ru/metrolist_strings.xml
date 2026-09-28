@@ -1394,4 +1394,8 @@
     <string name="home_artist_new_release">Новый релиз</string>
     <string name="home_move_up">Выше</string>
     <string name="home_move_down">Ниже</string>
+    <string name="search_switch_online">Искать в YouTube Music</string>
+    <string name="search_switch_library">Искать в своей библиотеке</string>
+    <string name="search_fill_query">Подставить в строку поиска</string>
+    <string name="search_history_remove">Удалить из истории</string>
 </resources>

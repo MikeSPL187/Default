@@ -329,7 +329,14 @@ fun SearchScreen(
                                                 SearchSource.ONLINE -> R.drawable.language
                                             },
                                         ),
-                                    contentDescription = null,
+                                    // Says where a tap takes the search, as the icon alone does not.
+                                    contentDescription =
+                                        stringResource(
+                                            when (searchSource) {
+                                                SearchSource.LOCAL -> R.string.search_switch_online
+                                                SearchSource.ONLINE -> R.string.search_switch_library
+                                            },
+                                        ),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }

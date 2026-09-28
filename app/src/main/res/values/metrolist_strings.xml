@@ -1480,4 +1480,8 @@
     <string name="home_artist_new_release">New release</string>
     <string name="home_move_up">Move up</string>
     <string name="home_move_down">Move down</string>
+    <string name="search_switch_online">Search YouTube Music instead</string>
+    <string name="search_switch_library">Search your library instead</string>
+    <string name="search_fill_query">Put in the search field</string>
+    <string name="search_history_remove">Remove from history</string>
 </resources>
