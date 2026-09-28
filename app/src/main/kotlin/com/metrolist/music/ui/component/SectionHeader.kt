@@ -22,6 +22,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.metrolist.music.R
 
@@ -59,7 +61,8 @@ fun SectionHeader(
                     // Two lines, so a long title in Russian or at a large font is read whole.
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false),
+                    // TalkBack can jump from section to section by headings.
+                    modifier = Modifier.weight(1f, fill = false).semantics { heading() },
                 )
                 if (onClick != null) {
                     Icon(
