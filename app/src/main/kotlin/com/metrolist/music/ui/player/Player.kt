@@ -820,6 +820,20 @@ fun BottomSheetPlayer(
             initialAnchor = 1,
         )
 
+    // The open queue is a light page in the light theme; the status bar turns dark over it and
+    // back to the player's own when it closes, so the clock never disappears.
+    val queueOpen = state.isExpanded && queueSheetState.isExpanded
+    DisposableEffect(queueOpen, useDarkTheme, playerBackground) {
+        val window = (context as? android.app.Activity)?.window
+        val insets = window?.let { WindowCompat.getInsetsController(it, it.decorView) }
+        if (queueOpen) insets?.isAppearanceLightStatusBars = !useDarkTheme
+        onDispose {
+            if (queueOpen && state.isExpanded) {
+                insets?.isAppearanceLightStatusBars = playerBackground == PlayerBackgroundStyle.DEFAULT && !useDarkTheme
+            }
+        }
+    }
+
     val bottomSheetBackgroundColor =
         when (playerBackground) {
             PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT -> {
