@@ -64,6 +64,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
@@ -186,6 +189,9 @@ private fun NewMiniPlayer(
     onClick: () -> Unit = {},
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
+    val openLabel = stringResource(R.string.a11y_open_player)
+    val nextLabel = stringResource(R.string.next)
+    val previousLabel = stringResource(R.string.previous)
 
     // Theme settings - these rarely change
     val miniPlayerBackground by rememberEnumPreference(
@@ -395,9 +401,11 @@ private fun NewMiniPlayer(
                     .shadow(10.dp, RoundedCornerShape(32.dp))
                     .clip(RoundedCornerShape(32.dp))
                     .background(color = backgroundColor)
+                    .miniPlayerSemantics(nextLabel, previousLabel, playerConnection)
                     .clickable(
                         interactionSource = interactionSource,
                         indication = LocalIndication.current,
+                        onClickLabel = openLabel,
                         onClick = onClick
                     ),
         ) {
@@ -670,6 +678,9 @@ private fun LegacyMiniPlayer(
     onClick: () -> Unit = {},
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
+    val openLabel = stringResource(R.string.a11y_open_player)
+    val nextLabel = stringResource(R.string.next)
+    val previousLabel = stringResource(R.string.previous)
     val pureBlack by rememberPreference(PureBlackMiniPlayerKey, defaultValue = false)
 
     val playbackState by playerConnection.playbackState.collectAsStateWithLifecycle()
@@ -738,9 +749,11 @@ private fun LegacyMiniPlayer(
                     } else {
                         MaterialTheme.colorScheme.surfaceContainer
                     },
-                ).clickable(
+                ).miniPlayerSemantics(nextLabel, previousLabel, playerConnection)
+                .clickable(
                     interactionSource = interactionSource,
                     indication = LocalIndication.current,
+                    onClickLabel = openLabel,
                     onClick = onClick
                 ).let { baseModifier ->
                     if (swipeThumbnail) {
@@ -1048,3 +1061,26 @@ private fun FavoriteButton(
         )
     }
 }
+
+/**
+ * The songs a swipe on the mini player skips to, as actions a screen reader offers, since the
+ * swipe itself needs sight.
+ */
+private fun Modifier.miniPlayerSemantics(
+    nextLabel: String,
+    previousLabel: String,
+    playerConnection: com.metrolist.music.playback.PlayerConnection,
+): Modifier =
+    semantics {
+        customActions =
+            listOf(
+                CustomAccessibilityAction(nextLabel) {
+                    playerConnection.seekToNext()
+                    true
+                },
+                CustomAccessibilityAction(previousLabel) {
+                    playerConnection.seekToPrevious()
+                    true
+                },
+            )
+    }
