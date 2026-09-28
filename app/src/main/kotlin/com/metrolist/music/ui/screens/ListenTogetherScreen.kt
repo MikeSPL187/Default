@@ -71,6 +71,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -175,6 +179,10 @@ fun ListenTogetherScreen(
                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                     val clip = android.content.ClipData.newPlainText("ListenTogetherRoom", event.roomCode)
                     clipboard.setPrimaryClip(clip)
+                    // Android 13+ confirms a copy itself.
+                    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) {
+                        Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
+                    }
                 }
 
                 else -> {}
@@ -1086,6 +1094,7 @@ private fun JoinCreateRoomSection(
                 onValueChange = onUsernameChange,
                 label = { Text(stringResource(R.string.username)) },
                 placeholder = { Text(stringResource(R.string.enter_username)) },
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Next),
                 leadingIcon = {
                     Icon(
                         painterResource(R.drawable.person),
@@ -1096,7 +1105,7 @@ private fun JoinCreateRoomSection(
                 trailingIcon = {
                     if (usernameInput.isNotBlank()) {
                         MaterialIconButton(onClick = { onUsernameChange("") }) {
-                            Icon(painterResource(R.drawable.close), null)
+                            Icon(painterResource(R.drawable.close), stringResource(R.string.clear))
                         }
                     }
                 },
@@ -1118,9 +1127,16 @@ private fun JoinCreateRoomSection(
             // Room code input
             OutlinedTextField(
                 value = roomCodeInput,
-                onValueChange = { if (it.length <= 8) onRoomCodeChange(it.uppercase()) },
+                // A pasted code may carry spaces, dashes or lower case; keep just its eight characters.
+                onValueChange = { onRoomCodeChange(it.filter(Char::isLetterOrDigit).uppercase().take(8)) },
                 label = { Text(stringResource(R.string.room_code)) },
                 placeholder = { Text(stringResource(R.string.enter_room_code)) },
+                keyboardOptions =
+                    KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Characters,
+                        autoCorrectEnabled = false,
+                        keyboardType = KeyboardType.Ascii,
+                    ),
                 leadingIcon = {
                     Icon(
                         painterResource(R.drawable.group),
@@ -1131,7 +1147,7 @@ private fun JoinCreateRoomSection(
                 trailingIcon = {
                     if (roomCodeInput.isNotBlank()) {
                         MaterialIconButton(onClick = { onRoomCodeChange("") }) {
-                            Icon(painterResource(R.drawable.close), null)
+                            Icon(painterResource(R.drawable.close), stringResource(R.string.clear))
                         }
                     }
                 },
