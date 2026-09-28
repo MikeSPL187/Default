@@ -90,6 +90,22 @@ import com.metrolist.music.ui.utils.widescreenVideoThumbnail
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import kotlinx.coroutines.delay
+import android.net.ConnectivityManager
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.runtime.DisposableEffect
+import androidx.core.content.getSystemService
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.currentStateAsState
+import com.metrolist.music.constants.VideoModeKey
+import com.metrolist.music.constants.VideoQuality
+import com.metrolist.music.constants.VideoQualityKey
+import com.metrolist.music.offline.LocalOfflineMode
+import com.metrolist.music.video.VideoClip
+import com.metrolist.music.video.VideoClips
+import com.metrolist.music.video.VideoPlayback
 
 /**
  * Pre-calculated thumbnail dimensions to avoid repeated calculations during recomposition.
@@ -233,6 +249,46 @@ fun Thumbnail(
     
     // Pre-calculate text color based on background style
     val textBackgroundColor = getTextColor(playerBackground)
+
+    // ---- Music video: looked up only while the player is open, played only while it is chosen.
+    var videoMode by rememberPreference(VideoModeKey, false)
+    val videoQuality by rememberEnumPreference(VideoQualityKey, VideoQuality.AUTO)
+    val offline = LocalOfflineMode.current.active
+    val expanded by remember { derivedStateOf { isPlayerExpanded() } }
+    val lifecycleState by LocalLifecycleOwner.current.lifecycle.currentStateAsState()
+    val visible = expanded && lifecycleState.isAtLeast(Lifecycle.State.STARTED)
+    // Kept with the song it belongs to, so a clip found for one song never shows over the next;
+    // a null clip means the song was looked up and has none.
+    var found by remember { mutableStateOf<Pair<String, VideoClip?>?>(null) }
+    LaunchedEffect(mediaMetadata?.id, visible, offline, hidePlayerThumbnail) {
+        val song = mediaMetadata ?: return@LaunchedEffect
+        if (found?.first != song.id) found = null
+        if (!visible || offline || hidePlayerThumbnail || isListenTogetherGuest) return@LaunchedEffect
+        found = song.id to VideoClips.find(song)
+    }
+    val lookup = found?.takeIf { it.first == mediaMetadata?.id }
+    val clip = lookup?.second
+    var playback by remember { mutableStateOf<VideoPlayback?>(null) }
+    // One picture player for as long as videos are on and watched, so songs change without rebuilding it.
+    val videoActive = videoMode && visible && !offline && !hidePlayerThumbnail && !isListenTogetherGuest
+    DisposableEffect(videoActive) {
+        if (videoActive) playback = VideoPlayback(context, playerConnection.player)
+        onDispose {
+            playback?.release()
+            playback = null
+        }
+    }
+    val maxVideoHeight =
+        videoQuality.maxHeight
+            ?: if (context.getSystemService<ConnectivityManager>()?.isActiveNetworkMetered != false) 480 else 720
+    LaunchedEffect(playback, clip, maxVideoHeight) {
+        val songId = mediaMetadata?.id ?: return@LaunchedEffect
+        if (clip != null) playback?.show(songId, clip, maxVideoHeight)
+    }
+    var fullscreen by remember { mutableStateOf(false) }
+    // Full screen stays open from song to song, and closes on one that has no video.
+    val noVideo = lookup != null && lookup.second == null
+    LaunchedEffect(playback, noVideo) { if (playback == null || noVideo) fullscreen = false }
     
     // Grid state
     val thumbnailLazyGridState = rememberLazyGridState()
@@ -349,6 +405,19 @@ fun Thumbnail(
                         onMore = onMore,
                     )
                 }
+
+                AnimatedVisibility(
+                    visible = clip != null,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically(),
+                ) {
+                    SongVideoSwitch(
+                        video = videoMode,
+                        onChange = { videoMode = it },
+                        contentColor = textBackgroundColor,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                    )
+                }
                 
                 // Thumbnail content
                 BoxWithConstraints(
@@ -413,6 +482,8 @@ fun Thumbnail(
                                 currentMediaId = mediaMetadata?.id,
                                 currentMediaThumbnail = mediaMetadata?.thumbnailUrl,
                                 onLongPress = onMore,
+                                video = playback.takeIf { clip != null && item.mediaId == mediaMetadata?.id && !fullscreen },
+                                onFullscreen = { fullscreen = true },
                             )
                         }
                     }
@@ -426,6 +497,10 @@ fun Thumbnail(
                 delay(1000)
                 showSeekEffect = false
             }
+        }
+
+        playback?.takeIf { fullscreen }?.let { active ->
+            VideoFullscreen(active, onDismiss = { fullscreen = false })
         }
 
         AnimatedVisibility(
@@ -527,6 +602,8 @@ private fun ThumbnailItem(
     currentMediaThumbnail: String? = null,
     modifier: Modifier = Modifier,
     onLongPress: (() -> Unit)? = null,
+    video: VideoPlayback? = null,
+    onFullscreen: () -> Unit = {},
 ) {
     val haptic = LocalHapticFeedback.current
     val incrementalSeekSkipEnabled by rememberPreference(SeekExtraSeconds, defaultValue = false)
@@ -590,9 +667,24 @@ private fun ThumbnailItem(
             },
         contentAlignment = Alignment.Center
     ) {
+        // With a music video on, the square cover eases into the video's own frame.
+        var showing = false
+        var frameRatio = 1f
+        if (video != null) {
+            showing = video.showing.collectAsStateWithLifecycle().value
+            if (showing) frameRatio = video.aspectRatio.collectAsStateWithLifecycle().value
+        }
+        val frameWidth by animateDpAsState(
+            if (frameRatio < 1f) dimensions.thumbnailSize * frameRatio else dimensions.thumbnailSize,
+            label = "video frame width",
+        )
+        val frameHeight by animateDpAsState(
+            if (frameRatio > 1f) dimensions.thumbnailSize / frameRatio else dimensions.thumbnailSize,
+            label = "video frame height",
+        )
         Box(
             modifier = Modifier
-                .size(dimensions.thumbnailSize)
+                .size(frameWidth, frameHeight)
                 .shadow(CoverElevation, RoundedCornerShape(dimensions.cornerRadius))
                 .clip(RoundedCornerShape(dimensions.cornerRadius))
         ) {
@@ -607,8 +699,12 @@ private fun ThumbnailItem(
 
                 ThumbnailImage(
                     artworkUri = artworkUriToUse,
-                    cropArtwork = cropAlbumArt
+                    cropArtwork = cropAlbumArt || video != null,
                 )
+            }
+
+            if (video != null) {
+                VideoInCover(video = video, showing = showing, onFullscreen = onFullscreen)
             }
             
             // Cast button at top-right corner of thumbnail

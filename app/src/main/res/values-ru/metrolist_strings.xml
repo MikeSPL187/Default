@@ -1381,4 +1381,13 @@
     <string name="theme_mode">Режим темы</string>
     <string name="color_palette">Цветовая палитра</string>
     <string name="use_system_colors">Системные цвета</string>
+    <!-- Клипы -->
+    <string name="video_switch_song">Трек</string>
+    <string name="video_switch_video">Клип</string>
+    <string name="video_fullscreen">Смотреть на весь экран</string>
+    <string name="video_exit_fullscreen">Выйти из полноэкранного режима</string>
+    <string name="video_unavailable">Клип сейчас недоступен</string>
+    <string name="video_quality">Качество клипов</string>
+    <string name="video_quality_desc">Насколько чёткие клипы в плеере</string>
+    <string name="video_quality_auto">Авто (720p по Wi-Fi, 480p в мобильной сети)</string>
 </resources>

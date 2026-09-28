@@ -116,6 +116,20 @@ enum class AudioQuality {
     HIGH,
 }
 
+/** Whether the player shows a song's music video in place of its cover, when it has one. */
+val VideoModeKey = booleanPreferencesKey("videoMode")
+val VideoQualityKey = stringPreferencesKey("videoQuality")
+
+/** How sharp a music video is; each step is the tallest picture fetched. */
+enum class VideoQuality(val maxHeight: Int?) {
+    /** 720p on Wi-Fi, 480p on mobile data. */
+    AUTO(null),
+    P360(360),
+    P480(480),
+    P720(720),
+    P1080(1080),
+}
+
 val AudioOffload = booleanPreferencesKey("enableOffload")
 val AudioTrackPlaybackParamsKey = booleanPreferencesKey("audioTrackPlaybackParams")
 

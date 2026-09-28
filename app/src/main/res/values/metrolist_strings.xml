@@ -1466,4 +1466,13 @@
         <item quantity="one">Continue with %d artist</item>
         <item quantity="other">Continue with %d artists</item>
     </plurals>
+    <!-- Music videos -->
+    <string name="video_switch_song">Song</string>
+    <string name="video_switch_video">Video</string>
+    <string name="video_fullscreen">Watch full screen</string>
+    <string name="video_exit_fullscreen">Exit full screen</string>
+    <string name="video_unavailable">Video unavailable right now</string>
+    <string name="video_quality">Video quality</string>
+    <string name="video_quality_desc">How sharp music videos are in the player</string>
+    <string name="video_quality_auto">Auto (720p on Wi-Fi, 480p on mobile data)</string>
 </resources>

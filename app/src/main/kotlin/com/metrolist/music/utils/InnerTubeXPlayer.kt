@@ -102,6 +102,57 @@ object InnerTubeXPlayer {
             Result.failure(error)
         }
 
+    /**
+     * The picture of [videoId], at most [maxHeight] lines tall, as a stream without sound: the
+     * song keeps playing from its own audio stream while this is shown in time with it.
+     */
+    suspend fun videoStream(
+        videoId: String,
+        maxHeight: Int,
+    ): Result<VideoStream> =
+        try {
+            val hints =
+                ContentHints(wantVideo = true, maxVideoHeight = maxHeight)
+                    .withStreamCapabilities(allowHls = false, allowSabr = false, allowBoundedRange = true)
+            val stream =
+                requireNotNull(
+                    bundle().extractor.extract(
+                        videoId = videoId,
+                        hints = hints,
+                        excludedClients = failedStreamClients(videoId),
+                        audioQuality = InnerTubeXAudioQuality.LOW,
+                        clientPlaybackNonce = generateClientPlaybackNonce(),
+                    ),
+                ) { "InnerTubeX returned no playable stream" }
+            val url = stream.videoUrl?.takeIf { it.startsWith("https://") } ?: error("No video stream for $videoId")
+            Result.success(
+                VideoStream(
+                    url = url,
+                    headers = stream.headers,
+                    width = stream.videoWidth,
+                    height = stream.videoHeight,
+                    contentLength = stream.videoContentLengthBytes,
+                    rangeChunkSizeBytes = stream.rangeChunkSizeBytes.takeIf { stream.requireBoundedRange || stream.useRangeChunks } ?: 0L,
+                    expiresAtMs = stream.expiresAt?.toEpochMilliseconds(),
+                ),
+            )
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Result.failure(error)
+        }
+
+    class VideoStream(
+        val url: String,
+        val headers: Map<String, String>,
+        val width: Int?,
+        val height: Int?,
+        val contentLength: Long?,
+        /** Above zero when the stream must be read in bounded ranges of this size, like the audio. */
+        val rangeChunkSizeBytes: Long,
+        val expiresAtMs: Long?,
+    )
+
     internal fun markStreamClientFailed(
         videoId: String,
         clientName: String,

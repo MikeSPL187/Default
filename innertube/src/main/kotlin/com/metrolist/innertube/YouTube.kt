@@ -20,6 +20,7 @@ import com.metrolist.innertube.models.Runs
 import com.metrolist.innertube.models.SearchSuggestions
 import com.metrolist.innertube.models.SectionListRenderer
 import com.metrolist.innertube.models.SongItem
+import com.metrolist.innertube.models.VideoCounterpart
 import com.metrolist.innertube.models.WatchEndpoint
 import com.metrolist.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
 import com.metrolist.innertube.models.YTItem
@@ -2976,9 +2977,8 @@ object YouTube {
                     ?.text
             val items =
                 playlistPanelRenderer.contents.mapNotNull { content ->
-                    content.playlistPanelVideoRenderer
-                        ?.let(NextPage::fromPlaylistPanelVideoRenderer)
-                        ?.let { it to content.playlistPanelVideoRenderer.selected }
+                    val renderer = content.videoRenderer ?: return@mapNotNull null
+                    NextPage.fromPlaylistPanelVideoRenderer(renderer)?.let { it to renderer.selected }
                 }
             val songs = items.map { it.first }
             val currentIndex = items.indexOfFirst { it.second }.takeIf { it != -1 }
@@ -3127,10 +3127,51 @@ object YouTube {
                 .body<GetQueueResponse>()
                 .queueDatas
                 .mapNotNull {
-                    it.content.playlistPanelVideoRenderer?.let { renderer ->
+                    it.content.videoRenderer?.let { renderer ->
                         NextPage.fromPlaylistPanelVideoRenderer(renderer)
                     }
                 }
+        }
+
+    /**
+     * The music video YouTube Music pairs with the song [videoId] ("Song / Video"), with how the
+     * song's time maps onto the video's; null when the song has none.
+     */
+    suspend fun videoCounterpart(videoId: String): Result<VideoCounterpart?> =
+        runCatching {
+            val response =
+                innerTube
+                    .next(WEB_REMIX, videoId, null, null, null, null)
+                    .body<NextResponse>()
+            val panel =
+                response.contents.singleColumnMusicWatchNextResultsRenderer
+                    ?.tabbedRenderer
+                    ?.watchNextTabbedResultsRenderer
+                    ?.tabs
+                    ?.firstOrNull()
+                    ?.tabRenderer
+                    ?.content
+                    ?.musicQueueRenderer
+                    ?.content
+                    ?.playlistPanelRenderer
+            val wrapper =
+                panel?.contents
+                    ?.mapNotNull { it.playlistPanelVideoWrapperRenderer }
+                    ?.firstOrNull { it.primaryRenderer?.playlistPanelVideoRenderer?.videoId == videoId }
+                    ?: return@runCatching null
+            val counterpart = wrapper.counterpart?.firstOrNull() ?: return@runCatching null
+            val counterpartId = counterpart.counterpartRenderer?.playlistPanelVideoRenderer?.videoId ?: return@runCatching null
+            VideoCounterpart(
+                videoId = counterpartId,
+                segments =
+                    counterpart.segmentMap?.segment.orEmpty().mapNotNull { segment ->
+                        VideoCounterpart.Segment(
+                            songStartMs = segment.primaryVideoStartTimeMilliseconds?.content?.toLongOrNull() ?: return@mapNotNull null,
+                            videoStartMs = segment.counterpartVideoStartTimeMilliseconds?.content?.toLongOrNull() ?: return@mapNotNull null,
+                            durationMs = segment.durationMilliseconds?.content?.toLongOrNull() ?: return@mapNotNull null,
+                        )
+                    },
+            )
         }
 
     suspend fun transcript(videoId: String): Result<String> =

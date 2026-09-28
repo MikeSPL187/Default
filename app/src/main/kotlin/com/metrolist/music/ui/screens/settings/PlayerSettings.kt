@@ -44,6 +44,8 @@ import com.metrolist.music.constants.AudioOffload
 import com.metrolist.music.constants.AudioTrackPlaybackParamsKey
 import com.metrolist.music.constants.AudioQuality
 import com.metrolist.music.constants.AudioQualityKey
+import com.metrolist.music.constants.VideoQuality
+import com.metrolist.music.constants.VideoQualityKey
 import com.metrolist.music.constants.AutoDownloadOnLikeKey
 import com.metrolist.music.constants.CrossfadeDurationKey
 import com.metrolist.music.constants.CrossfadeEnabledKey
@@ -241,6 +243,25 @@ fun PlayerSettings(
         mutableStateOf(false)
     }
 
+    val (videoQuality, onVideoQualityChange) = rememberEnumPreference(VideoQualityKey, defaultValue = VideoQuality.AUTO)
+    var showVideoQualityDialog by remember { mutableStateOf(false) }
+    val videoQualityText: @Composable (VideoQuality) -> String = {
+        it.maxHeight?.let { height -> "${height}p" } ?: stringResource(R.string.video_quality_auto)
+    }
+    if (showVideoQualityDialog) {
+        EnumDialog(
+            onDismiss = { showVideoQualityDialog = false },
+            onSelect = {
+                onVideoQualityChange(it)
+                showVideoQualityDialog = false
+            },
+            title = stringResource(R.string.video_quality),
+            current = videoQuality,
+            values = VideoQuality.entries,
+            valueText = videoQualityText,
+        )
+    }
+
     if (showAudioQualityDialog) {
         EnumDialog(
             onDismiss = { showAudioQualityDialog = false },
@@ -312,6 +333,12 @@ fun PlayerSettings(
                         )
                     },
                     onClick = { showAudioQualityDialog = true }
+                ))
+                add(Material3SettingsItem(
+                    icon = painterResource(R.drawable.music_video),
+                    title = { Text(stringResource(R.string.video_quality)) },
+                    description = { Text(videoQualityText(videoQuality)) },
+                    onClick = { showVideoQualityDialog = true }
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.linear_scale),
