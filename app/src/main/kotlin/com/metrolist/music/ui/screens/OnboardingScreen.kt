@@ -6,12 +6,7 @@
 package com.metrolist.music.ui.screens
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -54,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
@@ -274,6 +270,7 @@ private fun ArtistChoice(
     onClick: () -> Unit,
 ) {
     val scale by animateFloatAsState(if (selected) 0.92f else 1f, label = "artist pick")
+    val badge by animateFloatAsState(if (selected) 1f else 0f, label = "artist pick badge")
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier =
@@ -307,27 +304,25 @@ private fun ArtistChoice(
                             },
                         ),
             )
-            AnimatedVisibility(
-                visible = selected,
-                enter = scaleIn() + fadeIn(),
-                exit = scaleOut() + fadeOut(),
-                modifier = Modifier.align(Alignment.BottomEnd),
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .graphicsLayer {
+                            scaleX = badge
+                            scaleY = badge
+                            alpha = badge
+                        }.size(30.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary),
             ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier =
-                        Modifier
-                            .size(30.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary),
-                ) {
-                    Icon(
-                        painterResource(R.drawable.check),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
+                Icon(
+                    painterResource(R.drawable.check),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(18.dp),
+                )
             }
         }
         Text(
