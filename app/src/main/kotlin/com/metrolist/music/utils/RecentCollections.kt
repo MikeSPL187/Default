@@ -42,7 +42,8 @@ object RecentCollections {
     private const val LIMIT = 12
 
     fun flow(context: Context): Flow<List<RecentCollection>> =
-        context.dataStore.data.map { decode(it[key]) }.distinctUntilChanged()
+        // Any setting saved emits here; the JSON is decoded only when this entry itself changed.
+        context.dataStore.data.map { it[key] }.distinctUntilChanged().map(::decode)
 
     suspend fun record(
         context: Context,
