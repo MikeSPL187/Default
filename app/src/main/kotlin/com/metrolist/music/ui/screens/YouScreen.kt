@@ -360,6 +360,10 @@ private fun RecapCard(
     onClick: () -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
+    // Both ends are the surface tinted with an accent, so the text reads the same across the card
+    // in either theme; system colours can make one container light in the dark theme.
+    val start = lerp(colors.surfaceContainerHigh, colors.primary, 0.32f)
+    val end = lerp(colors.surfaceContainerHigh, colors.tertiary, 0.32f)
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier =
@@ -367,19 +371,19 @@ private fun RecapCard(
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(24.dp))
-                .background(androidx.compose.ui.graphics.Brush.linearGradient(listOf(colors.primaryContainer, colors.tertiaryContainer)))
+                .background(androidx.compose.ui.graphics.Brush.linearGradient(listOf(start, end)))
                 .clickable(onClick = onClick)
                 .padding(horizontal = 18.dp, vertical = 16.dp),
     ) {
         Column(Modifier.weight(1f)) {
-            Text(stringResource(R.string.you_recap_title, month), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = colors.onPrimaryContainer)
-            Text(stringResource(R.string.you_recap_sub), style = MaterialTheme.typography.bodyMedium, color = colors.onPrimaryContainer.copy(alpha = 0.8f))
+            Text(stringResource(R.string.you_recap_title, month), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = colors.onSurface)
+            Text(stringResource(R.string.you_recap_sub), style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
         }
-        Surface(shape = CircleShape, color = colors.onPrimaryContainer) {
+        Surface(shape = CircleShape, color = colors.primary) {
             Text(
                 stringResource(R.string.you_recap_open),
                 style = MaterialTheme.typography.labelLarge,
-                color = colors.primaryContainer,
+                color = colors.onPrimary,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp),
             )
         }

@@ -33,7 +33,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -88,6 +87,7 @@ import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import com.metrolist.music.ui.component.FitText
 import com.metrolist.music.ui.component.SegmentLabel
 import com.metrolist.music.ui.screens.home.DjHero
 import com.metrolist.music.ui.screens.home.spherePalette
@@ -634,7 +634,7 @@ private fun LikedCard(
             ) {
                 Icon(painterResource(R.drawable.play), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
                 Spacer(Modifier.width(6.dp))
-                FittingLabel(stringResource(R.string.offline_play))
+                FitText(stringResource(R.string.offline_play), minFontSize = 11.sp)
             }
             OutlinedButton(
                 onClick = onShuffle,
@@ -645,24 +645,13 @@ private fun LikedCard(
             ) {
                 Icon(painterResource(R.drawable.shuffle), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
                 Spacer(Modifier.width(6.dp))
-                FittingLabel(stringResource(R.string.offline_shuffle))
+                FitText(stringResource(R.string.offline_shuffle), minFontSize = 11.sp)
             }
         }
     }
 }
 
 private val LikedButtonPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
-
-/** A button label that shrinks a little rather than being cut off with large system fonts. */
-@Composable
-private fun FittingLabel(text: String) {
-    Text(
-        text = text,
-        maxLines = 1,
-        softWrap = false,
-        autoSize = TextAutoSize.StepBased(minFontSize = 11.sp, maxFontSize = MaterialTheme.typography.labelLarge.fontSize),
-    )
-}
 
 @Composable
 private fun CardRow(content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit) {

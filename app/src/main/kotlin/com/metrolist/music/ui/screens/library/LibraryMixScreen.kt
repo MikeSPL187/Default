@@ -49,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -246,13 +247,16 @@ fun LibraryMixScreen(
         if (!showAutoRow) {
             emptyList()
         } else {
+            // Each tile is the surface tinted with its accent, so all of them sit at the same depth in
+            // either theme; system colours can make one container light in the dark theme.
+            fun tile(accent: Color) = SolidColor(lerp(colors.surfaceContainerHighest, accent, 0.32f))
             listOfNotNull(
                 AutoCollection("liked", likedPlaylist.playlist.name, R.drawable.favorite, LikedTileBrush, Color.White, "auto_playlist/liked", likedSub).takeIf { showLiked },
-                AutoCollection("downloaded", downloadPlaylist.playlist.name, R.drawable.offline, SolidColor(colors.primaryContainer), colors.onPrimaryContainer, "auto_playlist/downloaded", downloadedSub)
+                AutoCollection("downloaded", downloadPlaylist.playlist.name, R.drawable.offline, tile(colors.primary), colors.primary, "auto_playlist/downloaded", downloadedSub)
                     .takeIf { showDownloaded },
-                AutoCollection("top", topPlaylist.playlist.name, R.drawable.trending_up, SolidColor(colors.secondaryContainer), colors.onSecondaryContainer, "top_playlist/$topSize")
+                AutoCollection("top", topPlaylist.playlist.name, R.drawable.trending_up, tile(colors.secondary), colors.secondary, "top_playlist/$topSize")
                     .takeIf { showTop },
-                AutoCollection("cached", cachedPlaylist.playlist.name, R.drawable.cached, SolidColor(colors.tertiaryContainer), colors.onTertiaryContainer, "cache_playlist/cached")
+                AutoCollection("cached", cachedPlaylist.playlist.name, R.drawable.cached, tile(colors.tertiary), colors.tertiary, "cache_playlist/cached")
                     .takeIf { showCached },
                 AutoCollection("uploaded", uploadedPlaylist.playlist.name, R.drawable.cloud, SolidColor(colors.surfaceContainerHighest), colors.onSurfaceVariant, "auto_playlist/uploaded")
                     .takeIf { showUploaded },
