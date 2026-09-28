@@ -14,8 +14,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Simple NetworkConnectivityObserver based on OuterTune's implementation
- * Provides network connectivity monitoring for auto-play functionality
+ * Whether the device can reach the internet, kept up to date as networks come and go. Based on
+ * OuterTune's observer; the offline mode and resuming playback after a dropout follow it.
  */
 class NetworkConnectivityObserver(context: Context) {
     private val connectivityManager =
@@ -101,15 +101,12 @@ class NetworkConnectivityObserver(context: Context) {
         runCatching { connectivityManager.unregisterNetworkCallback(networkCallback) }
         runCatching { connectivityManager.unregisterNetworkCallback(underlyingCallback) }
     }
-    
-    /**
-     * Check current connectivity state synchronously
-     */
+
+    /** Whether the internet can be reached right now, asked of the system directly. */
     fun isCurrentlyConnected(): Boolean {
         return try {
             val activeNetwork = connectivityManager.activeNetwork
             val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
-            
             networkCapabilities != null && reachesInternet(networkCapabilities)
         } catch (e: Exception) {
             false
