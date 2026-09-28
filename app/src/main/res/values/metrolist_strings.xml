@@ -1477,4 +1477,7 @@
     <string name="video_quality_auto">Auto (720p on Wi-Fi, 480p on mobile data)</string>
     <!-- Short enough for the search bar beside its three buttons, at any font size -->
     <string name="search_music_hint">Search music</string>
+    <string name="home_artist_new_release">New release</string>
+    <string name="home_move_up">Move up</string>
+    <string name="home_move_down">Move down</string>
 </resources>

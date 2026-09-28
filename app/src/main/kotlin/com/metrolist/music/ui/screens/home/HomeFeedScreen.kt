@@ -73,6 +73,11 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
@@ -805,8 +810,8 @@ private fun MoodChips(
 
 // ---------------------------------------------------------------- quick access
 
-@Immutable
 /** A song the DJ may bring, shown as a cover around the sphere. */
+@Immutable
 private class Upcoming(
     val title: String,
     val cover: String?,
@@ -997,7 +1002,8 @@ private fun ContinueCard(
     onContinue: () -> Unit,
     onOpen: () -> Unit,
 ) {
-    val next = progress.trackIndex + 2
+    // The track to take up again, never past the album's last one.
+    val next = (progress.trackIndex + 2).coerceAtMost(progress.songCount.coerceAtLeast(1))
     CoverCard(
         title = progress.title,
         subtitle = stringResource(R.string.home_continue_track, next, progress.songCount),
@@ -1199,7 +1205,9 @@ private fun ArtistCircle(
     onOpen: () -> Unit,
     onMenu: () -> Unit,
 ) {
-    Box {
+    val newRelease = stringResource(R.string.home_artist_new_release)
+    // The dot is read out too, so a screen reader hears what sighted users see.
+    Box(if (hasNew) Modifier.semantics(mergeDescendants = true) { stateDescription = newRelease } else Modifier) {
         CoverCard(title = artist.artist.name, subtitle = null, round = true, onClick = onOpen, onLongClick = onMenu) { Cover(artist.artist.thumbnailUrl) }
         if (hasNew) {
             Box(
@@ -1371,11 +1379,28 @@ private fun EditHomeSheet(
             items(list, key = { it.id }) { block ->
                 ReorderableItem(reorderState, key = block.id) { dragging ->
                     val visible = block.id !in hidden
+                    val index = list.indexOf(block)
+                    val moveUp = stringResource(R.string.home_move_up)
+                    val moveDown = stringResource(R.string.home_move_down)
+                    // Dragging needs sight; a screen reader moves a block with these actions instead.
+                    fun move(by: Int): Boolean {
+                        val target = index + by
+                        if (target !in list.indices) return false
+                        list = list.toMutableList().apply { add(target, removeAt(index)) }
+                        onReorder(list)
+                        return true
+                    }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier =
                             Modifier
-                                .fillMaxWidth()
+                                .semantics {
+                                    customActions =
+                                        listOfNotNull(
+                                            CustomAccessibilityAction(moveUp) { move(-1) }.takeIf { index > 0 },
+                                            CustomAccessibilityAction(moveDown) { move(1) }.takeIf { index < list.lastIndex },
+                                        )
+                                }.fillMaxWidth()
                                 .padding(horizontal = 8.dp)
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(if (dragging) MaterialTheme.colorScheme.surfaceContainerHigh else Color.Transparent)
@@ -1384,8 +1409,9 @@ private fun EditHomeSheet(
                     ) {
                         IconButton(
                             onClick = {},
+                            // Not a button to a screen reader: the row's own actions move the block.
                             modifier =
-                                Modifier.draggableHandle(
+                                Modifier.clearAndSetSemantics {}.draggableHandle(
                                     onDragStarted = { haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate) },
                                     onDragStopped = { haptic.performHapticFeedback(HapticFeedbackType.GestureEnd) },
                                 ),
@@ -1440,9 +1466,9 @@ internal fun moodIcon(title: String): Int {
         has("focus", "study", "фокус", "концентр", "учёб", "учеб") -> R.drawable.center_focus
         has("dance", "electro", "edm", "танц", "электр") -> R.drawable.nightlife
         has("party", "вечерин", "туса") -> R.drawable.celebration
-        has("feel good", "happy", "хорош", "позитив", "радост") -> R.drawable.sentiment_very_satisfied
+        has("feel good", "happy", "fun", "хорош", "позитив", "радост", "весел") -> R.drawable.sentiment_very_satisfied
         has("sad", "груст", "печал") -> R.drawable.water_drop
-        has("sleep", "сон", "сна") -> R.drawable.bedtime
+        has("sleep", "сон", "для сна", "засып") -> R.drawable.bedtime
         has("romance", "love", "романт", "любов") -> R.drawable.favorite
         has("r&b", "soul", "соул", "hip", "rap", "хип", "рэп", "поп", "pop") -> R.drawable.mic
         has("jazz", "blues", "classic", "джаз", "блюз", "классик", "piano") -> R.drawable.piano

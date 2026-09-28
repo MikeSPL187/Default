@@ -1391,4 +1391,7 @@
     <string name="video_quality_desc">Насколько чёткие клипы в плеере</string>
     <string name="video_quality_auto">Авто (720p по Wi-Fi, 480p в мобильной сети)</string>
     <string name="search_music_hint">Поиск музыки</string>
+    <string name="home_artist_new_release">Новый релиз</string>
+    <string name="home_move_up">Выше</string>
+    <string name="home_move_down">Ниже</string>
 </resources>

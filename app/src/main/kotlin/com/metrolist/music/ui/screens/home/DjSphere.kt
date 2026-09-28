@@ -55,6 +55,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.LineBreak
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
@@ -291,8 +293,10 @@ fun DjHero(
                     model = url,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
+                    // Decoration to a screen reader: the play button below does the same.
                     modifier =
                         Modifier
+                            .clearAndSetSemantics {}
                             .offset(spot.x * spread, spot.y)
                             .graphicsLayer {
                                 translationY = sin(clock.value * 0.8f + i * 1.7f) * 4.dp.toPx()
@@ -319,6 +323,7 @@ fun DjHero(
                 modifier =
                     Modifier
                         .size(SPHERE_BOX)
+                        .clearAndSetSemantics {}
                         .combinedClickable(
                             interactionSource = press,
                             indication = null,
@@ -377,10 +382,11 @@ fun DjHero(
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(horizontal = 24.dp)) {
                 Text(
                     heading,
-                    style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
-                    maxLines = 1,
+                    // A long song title takes a second line rather than losing its end.
+                    style = MaterialTheme.typography.headlineSmall.copy(lineBreak = LineBreak.Heading),
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = 2.dp),
                 )
@@ -494,7 +500,8 @@ private fun DjAction(
             stringResource(label),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 5.dp),
+            // The button above already says it; read once.
+            modifier = Modifier.padding(top = 5.dp).clearAndSetSemantics {},
         )
     }
 }
