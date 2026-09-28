@@ -449,6 +449,9 @@ constructor(
                 .distinct()
         OfflineArtworkStore.retainOnly(artworkUrls.map(::offlineArtworkRequestUrl))
         if (!context.isInternetConnected()) return
+        // Missing covers wait for Wi-Fi like the downloads themselves, instead of using mobile data at every start.
+        val metered = context.getSystemService(android.net.ConnectivityManager::class.java)?.isActiveNetworkMetered ?: true
+        if (metered && context.dataStore.get(DownloadOnWifiOnlyKey, false)) return
         artworkUrls.forEach(::storeOfflineArtwork)
     }
 
