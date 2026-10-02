@@ -365,127 +365,137 @@ fun Thumbnail(
                 compositingStrategy = CompositingStrategy.Offscreen
             }
     ) {
-        // Error view
-        AnimatedVisibility(
-            visible = error != null,
-            enter = fadeIn(),
-            exit = fadeOut(),
-            modifier = Modifier
-                .padding(32.dp)
-                .align(Alignment.Center),
-        ) {
-            error?.let { playbackError ->
-                PlaybackError(
-                    error = playbackError,
-                    retry = playerConnection.player::prepare,
-                )
-            }
-        }
-
-        // Main thumbnail view
-        AnimatedVisibility(
-            visible = error == null,
-            enter = fadeIn(),
-            exit = fadeOut(),
+        // The header stays over an error too, so the player can still be collapsed and its menu opened.
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .then(if (!isLandscape) Modifier.statusBarsPadding() else Modifier),
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = if (isLandscape) Arrangement.Center else Arrangement.Top
+            // Now Playing header - hide in landscape mode
+            if (!isLandscape) {
+                ThumbnailHeader(
+                    queueTitle = queueTitle,
+                    albumTitle = mediaMetadata?.album?.title,
+                    textColor = textBackgroundColor,
+                    onCollapse = onCollapse,
+                    onMore = onMore,
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
             ) {
-                // Now Playing header - hide in landscape mode
-                if (!isLandscape) {
-                    ThumbnailHeader(
-                        queueTitle = queueTitle,
-                        albumTitle = mediaMetadata?.album?.title,
-                        textColor = textBackgroundColor,
-                        onCollapse = onCollapse,
-                        onMore = onMore,
-                    )
-                }
-
+                // Error view
                 AnimatedVisibility(
-                    visible = clip != null,
-                    enter = fadeIn() + expandVertically(),
-                    exit = fadeOut() + shrinkVertically(),
+                    visible = error != null,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    modifier = Modifier
+                        .padding(32.dp)
+                        .align(Alignment.Center),
                 ) {
-                    SongVideoSwitch(
-                        video = videoMode,
-                        onChange = { videoMode = it },
-                        contentColor = textBackgroundColor,
-                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
-                    )
-                }
-                
-                // Thumbnail content
-                BoxWithConstraints(
-                    contentAlignment = Alignment.Center,
-                    modifier = if (isLandscape) {
-                        Modifier.weight(1f, false)
-                    } else {
-                        Modifier.fillMaxSize()
-                    }
-                ) {
-                    // Calculate dimensions once per size change, considering landscape mode
-                    val dimensions = remember(maxWidth, maxHeight, isLandscape) {
-                        calculateThumbnailDimensions(
-                            containerWidth = maxWidth,
-                            containerHeight = maxHeight,
-                            isLandscape = isLandscape
+                    error?.let { playbackError ->
+                        PlaybackError(
+                            error = playbackError,
+                            retry = playerConnection.player::prepare,
                         )
                     }
+                }
 
-                    // Remember the onSeek callback to prevent recomposition
-                    val onSeekCallback = remember {
-                        { direction: String, showEffect: Boolean ->
-                            seekDirection = direction
-                            showSeekEffect = showEffect
-                        }
-                    }
-                    
-                    // Derive scroll enabled state to prevent unnecessary recomposition
-                    val isScrollEnabled by remember(swipeThumbnail) {
-                        derivedStateOf { swipeThumbnail && isPlayerExpanded() }
-                    }
-                    
-                    LazyHorizontalGrid(
-                        state = thumbnailLazyGridState,
-                        rows = GridCells.Fixed(1),
-                        flingBehavior = rememberSnapFlingBehavior(thumbnailSnapLayoutInfoProvider),
-                        userScrollEnabled = isScrollEnabled,
-                        modifier = if (isLandscape) {
-                            Modifier.size(dimensions.thumbnailSize + (PlayerHorizontalPadding * 2))
-                        } else {
-                            Modifier.fillMaxSize()
-                        }
+                // Main thumbnail view
+                AnimatedVisibility(
+                    visible = error == null,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = if (isLandscape) Arrangement.Center else Arrangement.Top
                     ) {
-                        items(
-                            items = mediaItems,
-                            key = { item -> 
-                                item.mediaId.ifEmpty { "unknown_${item.hashCode()}" }
-                            }
-                        ) { item ->
-                            ThumbnailItem(
-                                item = item,
-                                dimensions = dimensions,
-                                hidePlayerThumbnail = hidePlayerThumbnail,
-                                cropAlbumArt = cropAlbumArt,
-                                textBackgroundColor = textBackgroundColor,
-                                layoutDirection = layoutDirection,
-                                onSeek = onSeekCallback,
-                                playerConnection = playerConnection,
-                                context = context,
-                                isLandscape = isLandscape,
-                                isListenTogetherGuest = isListenTogetherGuest,
-                                currentMediaId = mediaMetadata?.id,
-                                currentMediaThumbnail = mediaMetadata?.thumbnailUrl,
-                                onLongPress = onMore,
-                                video = playback.takeIf { clip != null && item.mediaId == mediaMetadata?.id && !fullscreen },
-                                onFullscreen = { playerVideo.fullscreen = true },
+                        AnimatedVisibility(
+                            visible = clip != null,
+                            enter = fadeIn() + expandVertically(),
+                            exit = fadeOut() + shrinkVertically(),
+                        ) {
+                            SongVideoSwitch(
+                                video = videoMode,
+                                onChange = { videoMode = it },
+                                contentColor = textBackgroundColor,
+                                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
                             )
+                        }
+                
+                        // Thumbnail content
+                        BoxWithConstraints(
+                            contentAlignment = Alignment.Center,
+                            modifier = if (isLandscape) {
+                                Modifier.weight(1f, false)
+                            } else {
+                                Modifier.fillMaxSize()
+                            }
+                        ) {
+                            // Calculate dimensions once per size change, considering landscape mode
+                            val dimensions = remember(maxWidth, maxHeight, isLandscape) {
+                                calculateThumbnailDimensions(
+                                    containerWidth = maxWidth,
+                                    containerHeight = maxHeight,
+                                    isLandscape = isLandscape
+                                )
+                            }
+
+                            // Remember the onSeek callback to prevent recomposition
+                            val onSeekCallback = remember {
+                                { direction: String, showEffect: Boolean ->
+                                    seekDirection = direction
+                                    showSeekEffect = showEffect
+                                }
+                            }
+                    
+                            // Derive scroll enabled state to prevent unnecessary recomposition
+                            val isScrollEnabled by remember(swipeThumbnail) {
+                                derivedStateOf { swipeThumbnail && isPlayerExpanded() }
+                            }
+                    
+                            LazyHorizontalGrid(
+                                state = thumbnailLazyGridState,
+                                rows = GridCells.Fixed(1),
+                                flingBehavior = rememberSnapFlingBehavior(thumbnailSnapLayoutInfoProvider),
+                                userScrollEnabled = isScrollEnabled,
+                                modifier = if (isLandscape) {
+                                    Modifier.size(dimensions.thumbnailSize + (PlayerHorizontalPadding * 2))
+                                } else {
+                                    Modifier.fillMaxSize()
+                                }
+                            ) {
+                                items(
+                                    items = mediaItems,
+                                    key = { item -> 
+                                        item.mediaId.ifEmpty { "unknown_${item.hashCode()}" }
+                                    }
+                                ) { item ->
+                                    ThumbnailItem(
+                                        item = item,
+                                        dimensions = dimensions,
+                                        hidePlayerThumbnail = hidePlayerThumbnail,
+                                        cropAlbumArt = cropAlbumArt,
+                                        textBackgroundColor = textBackgroundColor,
+                                        layoutDirection = layoutDirection,
+                                        onSeek = onSeekCallback,
+                                        playerConnection = playerConnection,
+                                        context = context,
+                                        isLandscape = isLandscape,
+                                        isListenTogetherGuest = isListenTogetherGuest,
+                                        currentMediaId = mediaMetadata?.id,
+                                        currentMediaThumbnail = mediaMetadata?.thumbnailUrl,
+                                        onLongPress = onMore,
+                                        video = playback.takeIf { clip != null && item.mediaId == mediaMetadata?.id && !fullscreen },
+                                        onFullscreen = { playerVideo.fullscreen = true },
+                                    )
+                                }
+                            }
                         }
                     }
                 }
