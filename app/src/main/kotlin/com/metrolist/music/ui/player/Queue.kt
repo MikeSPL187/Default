@@ -948,7 +948,18 @@ fun Queue(
                                     Modifier
                                         .fillMaxWidth()
                                         .combinedClickable(
-                                            onClick = {},
+                                            // A suggestion plays on a tap, like any song in a list.
+                                            onClick = {
+                                                if (!isListenTogetherGuest) {
+                                                    val player = playerConnection.player
+                                                    val startsAtOnce = player.mediaItemCount == 0 || player.playbackState == Player.STATE_IDLE
+                                                    playerConnection.service.playNextAutomix(item, index)
+                                                    if (!startsAtOnce) {
+                                                        player.seekToNextMediaItem()
+                                                        player.play()
+                                                    }
+                                                }
+                                            },
                                             onLongClick = {
                                                 menuState.show {
                                                     QueueMenu(
