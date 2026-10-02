@@ -236,13 +236,6 @@ class OnlinePlaylistViewModel @Inject constructor(
         proactiveLoadJob = viewModelScope.launch(Dispatchers.IO) {
             var currentProactiveToken = continuation
             while (currentProactiveToken != null && isActive) {
-                // If a manual loadMore is happening, pause proactive loading
-                if (_isLoadingMore.value) {
-                    // Wait until manual load is finished, then re-evaluate
-                    // This simple break and restart strategy from loadMoreSongs is preferred
-                    break 
-                }
-
                 YouTube.playlistContinuation(currentProactiveToken)
                     .onSuccess { playlistContinuationPage ->
                         val currentSongs = playlistSongs.value.toMutableList()
@@ -257,33 +250,6 @@ class OnlinePlaylistViewModel @Inject constructor(
                     }
             }
             // If loop finishes because currentProactiveToken is null, all songs are loaded proactively.
-        }
-    }
-
-    fun loadMoreSongs() {
-        if (_isLoadingMore.value) return // Already loading more (manually)
-        
-        val tokenForManualLoad = continuation ?: return // No more songs to load
-
-        proactiveLoadJob?.cancel() // Cancel proactive loading to prioritize manual scroll
-        _isLoadingMore.value = true
-
-        viewModelScope.launch(Dispatchers.IO) {
-            YouTube.playlistContinuation(tokenForManualLoad)
-                .onSuccess { playlistContinuationPage ->
-                    val currentSongs = playlistSongs.value.toMutableList()
-                    currentSongs.addAll(playlistContinuationPage.songs)
-                    playlistSongs.value = applySongFilters(currentSongs)
-                    continuation = playlistContinuationPage.continuation
-                }.onFailure { throwable ->
-                    reportException(throwable)
-                }.also {
-                    _isLoadingMore.value = false
-                    // Resume proactive loading if there's still a continuation
-                    if (continuation != null && isActive) {
-                        startProactiveBackgroundLoading()
-                    }
-                }
         }
     }
 

@@ -576,12 +576,6 @@ constructor(
         }
     }
 
-    fun clearPodcastData() {
-        viewModelScope.launch(Dispatchers.IO) {
-            syncUtils.clearPodcastData()
-        }
-    }
-
     suspend fun refreshAll() {
         fetchSePlaylist()
         fetchPodcastChannels()
