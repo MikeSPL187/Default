@@ -176,15 +176,16 @@ jobs:
           build="$version-b$GITHUB_RUN_NUMBER"
           apk="MetrolistWatch-$build.apk"
           cp "$signed" "$apk"
-          # "What's new" comes from the "Что нового:" lines of the commits since the last release,
-          # or from their subjects; the app shows the "- " lines of the notes.
+          # "What's new" comes from the "Что нового:" blocks of the commits since the last release
+          # (the text on that line and the "- " lines under it), or from their subjects; the app
+          # shows the "- " lines of the notes.
           prev=$(gh release list --limit 1 --json tagName --jq '.[0].tagName // empty')
           if [ -n "$prev" ] && git rev-parse -q --verify "refs/tags/$prev" > /dev/null; then
             range="$prev..$GITHUB_SHA"
           else
             range="-1 $GITHUB_SHA"
           fi
-          changes=$(git log --format=%B $range | sed -n 's/^Что нового: *//p')
+          changes=$(git log --format=%B $range | awk '/^Что нового:/ { f = 1; sub(/^Что нового: */, ""); if ($0 != "") print; next } f && /^- / { sub(/^- /, ""); print; next } { f = 0 }')
           [ -z "$changes" ] && changes=$(git log --format=%s $range | head -10)
           notes=$(printf 'Что нового:\n%s\n\nСборка %s из коммита %s. Установите %s или обновитесь в приложении: Настройки → Обновления.' \
             "$(echo "$changes" | sed 's/^/- /')" "$GITHUB_RUN_NUMBER" "${GITHUB_SHA:0:7}" "$apk")
