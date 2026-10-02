@@ -569,9 +569,9 @@
     <string name="error_podcast_unsubscribe">Не удалось отписаться от подкаста</string>
     <string name="listen_together_auto_approval_suggestions">Автоматически одобрять предложенные треки</string>
     <string name="listen_together_auto_approval_suggestions_desc">Автоматически одобрять предложенные гостями треки и добавлять их в очередь</string>
-    <string name="speed_dial">Быстрый выбор</string>
-    <string name="pin_to_speed_dial">Закрепить в быстром выборе</string>
-    <string name="unpin_from_speed_dial">Открепить от быстрого выбора</string>
+    <string name="speed_dial">Быстрый доступ</string>
+    <string name="pin_to_speed_dial">Закрепить в быстром доступе</string>
+    <string name="unpin_from_speed_dial">Открепить от быстрого доступа</string>
     <string name="randomize_home_order">Случайный порядок на главном экране</string>
     <string name="randomize_home_order_desc">Случайно менять порядок разделов на главном экране с учётом приоритетов</string>
     <string name="daily_discover_sounds_like">Звучит как %1$s</string>

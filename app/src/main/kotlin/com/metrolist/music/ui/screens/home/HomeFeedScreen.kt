@@ -134,6 +134,7 @@ import com.metrolist.music.db.entities.AlbumProgress
 import com.metrolist.music.db.entities.Artist
 import com.metrolist.music.db.entities.LocalItem
 import com.metrolist.music.db.entities.Song
+import com.metrolist.music.db.entities.SpeedDialItem
 import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.queues.ListQueue
@@ -198,6 +199,7 @@ fun HomeFeedScreen(
     val order by viewModel.homeBlockOrder.collectAsStateWithLifecycle()
     val recents by viewModel.recentCollections.collectAsStateWithLifecycle()
     val keepListening by viewModel.keepListening.collectAsStateWithLifecycle()
+    val pinned by viewModel.pinnedSpeedDialItems.collectAsStateWithLifecycle()
     val daylist by viewModel.daylist.collectAsStateWithLifecycle()
     val discoverMix by viewModel.discoverMix.collectAsStateWithLifecycle()
     val onRepeat by viewModel.onRepeat.collectAsStateWithLifecycle()
@@ -299,7 +301,7 @@ fun HomeFeedScreen(
     // Named and drawn as in the library, where the same collection is a tile too.
     val fillers = listOf(stringResource(R.string.offline) to "auto_playlist/downloaded", stringResource(R.string.history) to "history")
     val quickItems =
-        remember(recents, keepListening, likedTitle, fillers) { quickAccessItems(recents, keepListening.orEmpty(), likedTitle, fillers) }
+        remember(recents, keepListening, pinned, likedTitle, fillers) { quickAccessItems(recents, keepListening.orEmpty(), pinned, likedTitle, fillers) }
     val daylistTitle = daylist?.let { stringResource(it.part.titleRes) }
     val mixTitles =
         listOf(
@@ -413,8 +415,19 @@ fun HomeFeedScreen(
                                 QuickAccessGrid(
                                     items = quickItems,
                                     playingTitle = queueTitle.takeIf { isPlaying },
-                                    onOpen = { navController.navigate(it.route) },
-                                    onForget = { it.recent?.let(viewModel::forgetRecent) },
+                                    onOpen = { item ->
+                                        val pin = item.pin
+                                        // A pinned song plays; everything else opens.
+                                        if (pin?.type == "SONG") {
+                                            val song = pin.toYTItem() as SongItem
+                                            playerConnection.playQueue(YouTubeQueue(endpoint = WatchEndpoint(videoId = song.id), preloadItem = song.toMediaMetadata()))
+                                        } else {
+                                            navController.navigate(item.route)
+                                        }
+                                    },
+                                    onForget = { item ->
+                                        item.pin?.let(viewModel::unpin) ?: item.recent?.let(viewModel::forgetRecent)
+                                    },
                                     modifier = Modifier.padding(top = 8.dp).animateItem(),
                                 )
                             }
@@ -837,12 +850,15 @@ private data class QuickItem(
     val liked: Boolean = false,
     val recent: RecentCollection? = null,
     val icon: Int? = null,
+    // Pinned from a menu ("Pin to Quick access").
+    val pin: SpeedDialItem? = null,
 )
 
 /** Six ways back to what the user opens most: the last collections, then their liked songs and favourites. */
 private fun quickAccessItems(
     recents: List<RecentCollection>,
     keepListening: List<LocalItem>,
+    pinned: List<SpeedDialItem>,
     likedTitle: String,
     fillers: List<Pair<String, String>>,
 ): List<QuickItem> {
@@ -857,6 +873,23 @@ private fun quickAccessItems(
             )
         }
     val liked = QuickItem(likedTitle, null, "auto_playlist/liked", liked = true)
+    val pins =
+        pinned.map { pin ->
+            QuickItem(
+                title = pin.title,
+                thumbnail = pin.thumbnailUrl,
+                route =
+                    when (pin.type) {
+                        "ALBUM" -> "album/${pin.id}"
+                        "ARTIST" -> "artist/${pin.id}"
+                        "LOCAL_PLAYLIST" -> "local_playlist/${pin.id}"
+                        "PLAYLIST" -> "online_playlist/${pin.id}"
+                        else -> "song/${pin.id}"
+                    },
+                round = pin.type == "ARTIST",
+                pin = pin,
+            )
+        }
     val favourites =
         keepListening.mapNotNull { item ->
             when (item) {
@@ -865,7 +898,8 @@ private fun quickAccessItems(
                 else -> null
             }
         }
-    val items = (listOf(liked) + fromRecents + favourites).distinctBy { it.route }.take(QUICK_ACCESS)
+    // What the user pinned comes first, then what they opened lately.
+    val items = (listOf(liked) + pins + fromRecents + favourites).distinctBy { it.route }.take(QUICK_ACCESS)
     // Tiles come in pairs; an odd one out gets a place the user goes anyway, so no row has a hole.
     val filler = fillers.map { (title, route) -> QuickItem(title, null, route, icon = if (route == "history") R.drawable.history else R.drawable.offline) }.firstOrNull { f -> items.none { it.route == f.route } }
     return if (items.size % 2 == 1 && filler != null) items + filler else items
@@ -930,7 +964,7 @@ private fun QuickTile(
                             onOpen()
                         },
                         // Only tiles with something to forget answer a hold, so the others do not buzz for nothing.
-                        onLongClick = if (item.recent != null) ({ menu = true }) else null,
+                        onLongClick = if (item.recent != null || item.pin != null) ({ menu = true }) else null,
                     ),
         ) {
             // The cover runs the tile's full height even when a large font wraps the title. It takes
@@ -989,7 +1023,7 @@ private fun QuickTile(
         }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
             DropdownMenuItem(
-                text = { Text(stringResource(R.string.home_forget)) },
+                text = { Text(stringResource(if (item.pin != null) R.string.unpin_from_speed_dial else R.string.home_forget)) },
                 leadingIcon = { Icon(painterResource(R.drawable.close), contentDescription = null) },
                 onClick = {
                     menu = false
