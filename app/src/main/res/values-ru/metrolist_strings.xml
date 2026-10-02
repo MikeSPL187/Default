@@ -309,7 +309,7 @@
     <string name="crop_album_art">Обрезать обложку альбома</string>
     <string name="crop_album_art_desc">Принудительно использовать квадратное соотношение сторон, обрезая миниатюры видео</string>
     <string name="keep_screen_on_when_player_is_expanded">Не выключать экран при развернутом плеере</string>
-    <string name="listen_together">Listen Together</string>
+    <string name="listen_together">Слушать вместе</string>
     <string name="listen_together_server_url">Адрес сервера</string>
     <string name="listen_together_username">Имя пользователя</string>
     <string name="listen_together_connected">Подключено</string>

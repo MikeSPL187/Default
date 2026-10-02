@@ -12,6 +12,7 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.WatchEndpoint
+import com.metrolist.music.R
 import com.metrolist.music.constants.ListenTogetherSyncVolumeKey
 import com.metrolist.music.extensions.currentMetadata
 import com.metrolist.music.extensions.metadata
@@ -1680,7 +1681,7 @@ class ListenTogetherManager
                                         ),
                                     )
                                     try {
-                                        connection.service.queueTitle = "Listen Together" // Set default title
+                                        connection.service.queueTitle = context.getString(R.string.listen_together)
                                     } catch (e: Exception) {
                                         Timber.tag(TAG).e(e, "Failed to set queue title")
                                     }

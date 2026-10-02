@@ -14,6 +14,7 @@ import com.metrolist.innertube.models.PlaylistItem
 import com.metrolist.innertube.models.SongItem
 import com.metrolist.innertube.models.filterVideoSongs
 import com.metrolist.music.constants.HideVideoSongsKey
+import com.metrolist.music.R
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.extensions.isInternetConnected
@@ -97,9 +98,9 @@ class OnlinePlaylistViewModel @Inject constructor(
                     .onSuccess { episodes ->
                         playlist.value = PlaylistItem(
                             id = playlistId,
-                            title = "New Episodes",
+                            title = context.getString(R.string.new_episodes),
                             author = null,
-                            songCountText = "${episodes.size} episodes",
+                            songCountText = context.resources.getQuantityString(R.plurals.n_episode, episodes.size, episodes.size),
                             thumbnail = episodes.firstOrNull()?.thumbnail ?: "",
                             playEndpoint = null,
                             shuffleEndpoint = null,
@@ -123,9 +124,9 @@ class OnlinePlaylistViewModel @Inject constructor(
                     // Use YouTube episodes
                     playlist.value = PlaylistItem(
                         id = playlistId,
-                        title = "Episodes for Later",
+                        title = context.getString(R.string.episodes_for_later),
                         author = null,
-                        songCountText = "${episodes.size} episodes",
+                        songCountText = context.resources.getQuantityString(R.plurals.n_episode, episodes.size, episodes.size),
                         thumbnail = episodes.firstOrNull()?.thumbnail ?: "",
                         playEndpoint = null,
                         shuffleEndpoint = null,
@@ -215,9 +216,9 @@ class OnlinePlaylistViewModel @Inject constructor(
             timber.log.Timber.d("[SE_LOCAL] Converted to ${songItems.size} SongItems")
             playlist.value = PlaylistItem(
                 id = playlistId,
-                title = "Episodes for Later",
+                title = context.getString(R.string.episodes_for_later),
                 author = null,
-                songCountText = "${songItems.size} episodes",
+                songCountText = context.resources.getQuantityString(R.plurals.n_episode, songItems.size, songItems.size),
                 thumbnail = songItems.firstOrNull()?.thumbnail ?: "",
                 playEndpoint = null,
                 shuffleEndpoint = null,
