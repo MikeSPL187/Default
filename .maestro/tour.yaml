@@ -163,9 +163,20 @@ appId: com.metrolist.music
     optional: true
 - waitForAnimationToEnd
 - takeScreenshot: ${P}13-player-queue
-- back
-- back
-- waitForAnimationToEnd
+# Close the queue, then the player, only as far as they are open: a blind back too many leaves
+# the search results.
+- runFlow:
+    when:
+      visible: "Save queue as playlist"
+    commands:
+      - back
+      - waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Timer"
+    commands:
+      - back
+      - waitForAnimationToEnd
 
 # The artist: the top result of the search, or the artist row among the suggestions when the
 # player's closing went one screen further back.
