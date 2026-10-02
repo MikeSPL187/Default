@@ -1205,7 +1205,7 @@ fun BottomSheetPlayer(
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.more_horiz),
-                                        contentDescription = null,
+                                        contentDescription = stringResource(R.string.more_options),
                                         modifier = Modifier.size(24.dp),
                                     )
                                 }
@@ -1320,7 +1320,7 @@ fun BottomSheetPlayer(
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.more_horiz),
-                                    contentDescription = null,
+                                    contentDescription = stringResource(R.string.more_options),
                                     tint = iconButtonColor,
                                     modifier =
                                         Modifier
@@ -2150,7 +2150,7 @@ private fun PlayerMoreMenuButton(
     ) {
         Image(
             painter = painterResource(R.drawable.more_horiz),
-            contentDescription = null,
+            contentDescription = stringResource(R.string.more_options),
             colorFilter = ColorFilter.tint(iconButtonColor),
         )
     }
