@@ -167,9 +167,10 @@ appId: com.metrolist.music
 - back
 - waitForAnimationToEnd
 
+# The artist is the top result of the search.
 - tapOn:
     text: "Dua Lipa"
-    index: 1
+    below: "Top result"
     optional: true
 - waitForAnimationToEnd:
     timeout: 10000
