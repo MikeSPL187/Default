@@ -92,7 +92,8 @@ fun CreatePlaylistDialog(
                             style = MaterialTheme.typography.titleMedium,
                         )
                         Text(
-                            text = stringResource(R.string.allows_for_sync_witch_youtube),
+                            // Signed out the switch cannot turn on, so it says why instead of answering a tap with a toast.
+                            text = stringResource(if (isSignedIn) R.string.allows_for_sync_witch_youtube else R.string.sync_playlist_sign_in),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -100,6 +101,7 @@ fun CreatePlaylistDialog(
                     Row {
                         Switch(
                             checked = syncedPlaylist,
+                            enabled = isSignedIn,
                             onCheckedChange = {
                                 coroutineScope.launch {
                                     val isYtmSyncEnabled = withContext(Dispatchers.IO) { context.isSyncEnabled() }

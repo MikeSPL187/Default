@@ -30,7 +30,8 @@
         <item quantity="many">%d секунд</item>
         <item quantity="other">%d секунд</item>
     </plurals>
-    <string name="allows_for_sync_witch_youtube">ПРИМЕЧАНИЕ: Этот параметр включает синхронизацию с YouTube Music, и его НЕЛЬЗЯ изменить позже</string>
+    <string name="allows_for_sync_witch_youtube">Плейлист будет и в вашей библиотеке YouTube Music. Изменить это потом нельзя</string>
+    <string name="sync_playlist_sign_in">Войдите в аккаунт, чтобы плейлист был и в YouTube Music</string>
     <string name="player_background_blur">Размытие</string>
     <string name="slim_navbar">Тонкая панель навигации</string>
     <string name="dislikes">Дизлайки</string>
