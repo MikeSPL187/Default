@@ -621,6 +621,8 @@
     <string name="listen_together_in_top_bar_desc">Show Listen Together in the top app bar instead of the navigation bar</string>
     <string name="listen_together_description">Listen to music with your friends in real time. Create a room to host, or join an existing room with a code</string>
     <string name="listen_together_name_hint">Enter a name to create a room, and a room code as well to join one</string>
+    <string name="selection_queue_title">Selected songs</string>
+    <string name="remove_download_selection_confirm">Remove the downloads of the selected songs?</string>
     <string name="listen_together_background_disconnect_note">NOTE: When you are connected but not in a room, Listen Together disconnects after 30 minutes in the background to save battery</string>
     <string name="listen_together_not_configured">Listen Together is not set up. Please configure the server URL in: Listen Together &gt; Settings &gt; Server URL</string>
     <string name="listen_together_suggestion_received">%1$s suggested %2$s</string>

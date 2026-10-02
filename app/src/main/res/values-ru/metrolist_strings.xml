@@ -330,6 +330,8 @@
     <string name="listen_together_no_logs">Журнал пуст</string>
     <string name="listen_together_description">Слушайте музыку с друзьями в реальном времени. Создайте свою комнату или присоединитесь к существующей по коду</string>
     <string name="listen_together_name_hint">Введите имя, чтобы создать комнату, а чтобы войти в чужую — ещё и её код</string>
+    <string name="selection_queue_title">Выбранные песни</string>
+    <string name="remove_download_selection_confirm">Удалить загрузки выбранных песен?</string>
     <string name="listen_together_background_disconnect_note">ПРИМЕЧАНИЕ: Если вы подключены, но не находитесь в комнате, функция Listen Together отключится через 30 минут в фоновом режиме для экономии заряда батареи</string>
     <string name="listen_together_not_configured">Listen Together не настроен. Укажите адрес сервера в: Listen Together &gt; Настройки &gt; Адрес сервера</string>
     <string name="listen_together_suggestion_received">%1$s предложил(а): %2$s</string>

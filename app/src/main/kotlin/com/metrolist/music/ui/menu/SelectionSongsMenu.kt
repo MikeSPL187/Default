@@ -84,6 +84,8 @@ fun SelectionSongMenu(
     val playerConnection = LocalPlayerConnection.current ?: return
     val syncUtils = LocalSyncUtils.current
     val deletedNSongsTemplate = stringResource(R.string.deleted_n_songs)
+    // The queue's name in the player, in the app's language.
+    val selectionTitle = stringResource(R.string.selection_queue_title)
     val listenTogetherManager = com.metrolist.music.LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && listenTogetherManager.isHost == false
 
@@ -160,7 +162,7 @@ fun SelectionSongMenu(
             onDismiss = { showRemoveDownloadDialog = false },
             content = {
                 Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, "selection"),
+                    text = stringResource(R.string.remove_download_selection_confirm),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp),
                 )
@@ -313,7 +315,7 @@ fun SelectionSongMenu(
                                     onDismiss()
                                     playerConnection.playQueue(
                                         ListQueue(
-                                            title = "Selection",
+                                            title = selectionTitle,
                                             items = songSelection.map { it.toMediaItem() },
                                         ),
                                     )
@@ -338,7 +340,7 @@ fun SelectionSongMenu(
                                     onDismiss()
                                     playerConnection.playQueue(
                                         ListQueue(
-                                            title = "Selection",
+                                            title = selectionTitle,
                                             items = songSelection.shuffled().map { it.toMediaItem() },
                                         ),
                                     )
@@ -400,7 +402,7 @@ fun SelectionSongMenu(
                                         onDismiss()
                                         playerConnection.playQueue(
                                             ListQueue(
-                                                title = "Selection",
+                                                title = selectionTitle,
                                                 items = songSelection.shuffled().map { it.toMediaItem() },
                                             ),
                                         )
@@ -664,6 +666,7 @@ fun SelectionMediaMetadataMenu(
     val downloadUtil = LocalDownloadUtil.current
     val coroutineScope = rememberCoroutineScope()
     val playerConnection = LocalPlayerConnection.current ?: return
+    val selectionTitle = stringResource(R.string.selection_queue_title)
     val listenTogetherManager = com.metrolist.music.LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && listenTogetherManager.isHost == false
 
@@ -724,7 +727,7 @@ fun SelectionMediaMetadataMenu(
             onDismiss = { showRemoveDownloadDialog = false },
             content = {
                 Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, "selection"),
+                    text = stringResource(R.string.remove_download_selection_confirm),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp),
                 )
@@ -810,7 +813,7 @@ fun SelectionMediaMetadataMenu(
                                         onDismiss()
                                         playerConnection.playQueue(
                                             ListQueue(
-                                                title = "Selection",
+                                                title = selectionTitle,
                                                 items = songSelection.map { it.toMediaItem() },
                                             ),
                                         )
@@ -831,7 +834,7 @@ fun SelectionMediaMetadataMenu(
                                         onDismiss()
                                         playerConnection.playQueue(
                                             ListQueue(
-                                                title = "Selection",
+                                                title = selectionTitle,
                                                 items = songSelection.shuffled().map { it.toMediaItem() },
                                             ),
                                         )
