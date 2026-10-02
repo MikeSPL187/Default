@@ -85,6 +85,7 @@ import com.metrolist.innertube.models.YTItem
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import com.metrolist.music.ui.utils.submitOnEnter
 import com.metrolist.music.constants.AutoRadioQueueKey
 import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.constants.MiniPlayerBottomSpacing
@@ -449,6 +450,7 @@ fun OnlineSearchResult(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .focusRequester(focusRequester)
+                    .submitOnEnter { onSearch(query.text) }
                     .onFocusChanged { focusState ->
                         if (focusState.isFocused) {
                             isSearchFocused = true
