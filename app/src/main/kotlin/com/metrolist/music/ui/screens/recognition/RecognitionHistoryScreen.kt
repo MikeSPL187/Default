@@ -54,6 +54,7 @@ import coil3.compose.AsyncImage
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.R
+import com.metrolist.music.ui.component.EmptyPlaceholder
 import com.metrolist.music.constants.ThumbnailCornerRadius
 import com.metrolist.music.db.entities.RecognitionHistory
 import com.metrolist.music.ui.component.DefaultDialog
@@ -183,22 +184,19 @@ fun RecognitionHistoryScreen(navController: NavController) {
                         .padding(paddingValues),
                 contentAlignment = Alignment.Center,
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.history),
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = stringResource(R.string.no_recognition_history),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+                EmptyPlaceholder(
+                    icon = R.drawable.mic,
+                    text = stringResource(R.string.no_recognition_history),
+                    action = stringResource(R.string.recognize_music),
+                    onAction = {
+                        // Back to the recognizer when this was opened from it, rather than a second one on top.
+                        if (navController.previousBackStackEntry?.destination?.route?.startsWith("recognition?") == true) {
+                            navController.navigateUp()
+                        } else {
+                            navController.navigate("recognition")
+                        }
+                    },
+                )
             }
         } else {
             LazyColumn(
