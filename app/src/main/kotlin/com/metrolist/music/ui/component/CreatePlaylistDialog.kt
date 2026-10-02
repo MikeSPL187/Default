@@ -62,6 +62,7 @@ fun CreatePlaylistDialog(
         title = { Text(text = stringResource(R.string.create_playlist)) },
         initialTextFieldValue = TextFieldValue(initialTextFieldValue ?: ""),
         placeholder = { Text(stringResource(R.string.playlist_name)) },
+        confirmText = stringResource(R.string.create),
         onDismiss = onDismiss,
         onDone = { playlistName ->
             syncUtils.createPlaylist(

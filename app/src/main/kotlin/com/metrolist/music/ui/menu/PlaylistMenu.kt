@@ -203,6 +203,7 @@ fun PlaylistMenu(
 
     if (showEditDialog) {
         TextFieldDialog(
+            confirmText = stringResource(R.string.save),
             icon = { Icon(painter = painterResource(R.drawable.edit), contentDescription = null) },
             title = { Text(text = stringResource(R.string.edit_playlist)) },
             onDismiss = { showEditDialog = false },

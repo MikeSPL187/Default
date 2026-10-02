@@ -349,6 +349,7 @@ fun AiSettings(navController: NavController) {
 
     if (showApiKeyDialog) {
         TextFieldDialog(
+            confirmText = stringResource(R.string.save),
             title = { Text(stringResource(R.string.ai_api_key)) },
             icon = { Icon(painterResource(R.drawable.key), null) },
             initialTextFieldValue = TextFieldValue(text = openRouterApiKey),
@@ -362,6 +363,7 @@ fun AiSettings(navController: NavController) {
 
     if (showDeeplApiKeyDialog) {
         TextFieldDialog(
+            confirmText = stringResource(R.string.save),
             title = { Text("DeepL ${stringResource(R.string.ai_api_key)}") },
             icon = { Icon(painterResource(R.drawable.key), null) },
             initialTextFieldValue = TextFieldValue(text = deeplApiKey),
@@ -396,6 +398,7 @@ fun AiSettings(navController: NavController) {
 
     if (showBaseUrlDialog && aiProvider == "Custom") {
         TextFieldDialog(
+            confirmText = stringResource(R.string.save),
             title = { Text(stringResource(R.string.ai_base_url)) },
             icon = { Icon(painterResource(R.drawable.link), null) },
             initialTextFieldValue = TextFieldValue(text = openRouterBaseUrl),
@@ -430,6 +433,7 @@ fun AiSettings(navController: NavController) {
 
     if (showCustomModelInput) {
         TextFieldDialog(
+            confirmText = stringResource(R.string.save),
             title = { Text(stringResource(R.string.ai_model)) },
             icon = { Icon(painterResource(R.drawable.discover_tune), null) },
             initialTextFieldValue = TextFieldValue(text = openRouterModel),
@@ -443,6 +447,7 @@ fun AiSettings(navController: NavController) {
 
     if (showSystemPromptDialog) {
         TextFieldDialog(
+            confirmText = stringResource(R.string.save),
             title = { Text(stringResource(R.string.ai_system_prompt)) },
             icon = { Icon(painterResource(R.drawable.edit), null) },
             initialTextFieldValue = TextFieldValue(text = aiSystemPrompt.ifBlank { DEFAULT_AI_SYSTEM_PROMPT }),

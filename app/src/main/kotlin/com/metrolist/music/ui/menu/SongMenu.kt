@@ -181,6 +181,7 @@ fun SongMenu(
 
     if (showEditDialog) {
         TextFieldDialog(
+            confirmText = stringResource(R.string.save),
             icon = {
                 Icon(
                     painter = painterResource(R.drawable.edit),

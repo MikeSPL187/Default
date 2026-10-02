@@ -332,6 +332,7 @@ fun LocalPlaylistScreen(
     if (showEditDialog) {
         playlist?.playlist?.let { playlistEntity ->
             TextFieldDialog(
+                confirmText = stringResource(R.string.save),
                 icon = {
                     Icon(
                         painter = painterResource(R.drawable.edit),

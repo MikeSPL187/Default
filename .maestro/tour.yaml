@@ -260,7 +260,7 @@ appId: com.metrolist.music
       - takeScreenshot: ${P}18d-create-playlist
       - inputText: "Road trip"
       - tapOn:
-          text: "OK"
+          text: "Create"
           optional: true
       - waitForAnimationToEnd
 - runFlow:

@@ -313,6 +313,8 @@ fun TextFieldDialog(
     onDismiss: () -> Unit,
     autoDismiss: Boolean = true,
     extraContent: (@Composable () -> Unit)? = null,
+    // The confirm button names the action ("Create") where "OK" would say less.
+    confirmText: String? = null,
 ) {
     val legacyFieldState = remember { mutableStateOf(initialTextFieldValue) }
 
@@ -350,7 +352,7 @@ fun TextFieldDialog(
                     }
                 },
             ) {
-                Text(text = stringResource(android.R.string.ok))
+                Text(text = confirmText ?: stringResource(android.R.string.ok))
             }
         },
     ) {

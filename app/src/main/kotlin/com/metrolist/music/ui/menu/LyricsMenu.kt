@@ -126,6 +126,7 @@ fun LyricsMenu(
 
     if (showEditDialog) {
         TextFieldDialog(
+            confirmText = stringResource(R.string.save),
             onDismiss = { showEditDialog = false },
             icon = { Icon(painter = painterResource(R.drawable.edit), contentDescription = null) },
             title = { Text(text = mediaMetadataProvider().title) },

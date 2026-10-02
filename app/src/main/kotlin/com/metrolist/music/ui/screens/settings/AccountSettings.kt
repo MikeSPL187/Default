@@ -196,6 +196,7 @@ fun AccountSettings(
             """.trimIndent()
 
             TextFieldDialog(
+                confirmText = stringResource(R.string.save),
                 initialTextFieldValue = TextFieldValue(text),
                 onDone = { data ->
                     var cookie = ""
