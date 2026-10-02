@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.component.shimmer
 
+import android.provider.Settings
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -20,6 +22,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import com.valentinilk.shimmer.defaultShimmerTheme
 import com.valentinilk.shimmer.shimmer
 
@@ -31,9 +34,21 @@ fun ShimmerHost(
     showGradient: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val baseModifier = modifier
-        .shimmer()
-        .graphicsLayer(alpha = 0.99f)
+    val context = LocalContext.current
+    // With the system's animations removed the moving shimmer stands still and can draw nothing,
+    // leaving a blank screen while it loads; the placeholders then stay still and faint instead.
+    val animationsOff =
+        remember(context) {
+            Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+        }
+    val baseModifier =
+        if (animationsOff) {
+            modifier.graphicsLayer(alpha = STILL_PLACEHOLDER_ALPHA)
+        } else {
+            modifier
+                .shimmer()
+                .graphicsLayer(alpha = 0.99f)
+        }
 
     Column(
         horizontalAlignment = horizontalAlignment,
@@ -72,3 +87,5 @@ val ShimmerTheme =
             Color.Unspecified.copy(alpha = 0.25f),
         ),
     )
+
+private const val STILL_PLACEHOLDER_ALPHA = 0.3f
