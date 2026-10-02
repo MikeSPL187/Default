@@ -222,6 +222,34 @@ appId: com.metrolist.music
 - waitForAnimationToEnd
 - takeScreenshot: ${P}21-history
 - back
+# The other tiles of You, each looked at once and left.
+- runFlow:
+    when:
+      visible: "Together"
+    commands:
+      - tapOn: "Together"
+      - waitForAnimationToEnd
+      - takeScreenshot: ${P}21b-together
+      - back
+      - waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Recognized"
+    commands:
+      - tapOn: "Recognized"
+      - waitForAnimationToEnd
+      - takeScreenshot: ${P}21c-recognized
+      - back
+      - waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Equalizer"
+    commands:
+      - tapOn: "Equalizer"
+      - waitForAnimationToEnd
+      - takeScreenshot: ${P}21d-equalizer
+      - back
+      - waitForAnimationToEnd
 - tapOn:
     text: "Settings"
     optional: true
