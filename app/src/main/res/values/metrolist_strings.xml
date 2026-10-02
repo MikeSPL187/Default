@@ -225,7 +225,7 @@
     <string name="import_csv">Import a CSV playlist</string>
     <string name="playlist_unavailable">Playlist unavailable</string>
     <string name="playlist_created_locally">YouTube sync failed. Playlist created locally.</string>
-    <string name="playlist_add_local_to_synced_note">NOTE: Adding local songs to synced or remote playlists is not supported. Any other combination is valid</string>
+    <string name="playlist_add_local_to_synced_note">Songs from this phone can\'t be added to playlists synced with YouTube Music</string>
     <string name="export_playlist">Export playlist</string>
     <string name="export_as_csv">Export as CSV</string>
     <string name="export_as_m3u">Export as M3U</string>
@@ -624,7 +624,7 @@
     <string name="selection_queue_title">Selected songs</string>
     <string name="remove_download_selection_confirm">Remove the downloads of the selected songs?</string>
     <string name="playlist_cover_failed">Couldn\'t change the cover. Try again</string>
-    <string name="listen_together_background_disconnect_note">NOTE: When you are connected but not in a room, Listen Together disconnects after 30 minutes in the background to save battery</string>
+    <string name="listen_together_background_disconnect_note">Connected but not in a room, Listen Together disconnects after 30 minutes in the background to save battery</string>
     <string name="listen_together_not_configured">Listen Together is not set up. Please configure the server URL in: Listen Together &gt; Settings &gt; Server URL</string>
     <string name="listen_together_suggestion_received">%1$s suggested %2$s</string>
     <string name="listen_together_suggestion_sent">Suggestion sent to host!</string>
@@ -949,7 +949,7 @@
 
     <!-- Stats time transfer -->
     <string name="time_transfer_title">Time transfer</string>
-    <string name="time_transfer_warning">WARNING: This action cannot be undone once completed. Create a backup before proceeding. Only songs with at least one registered play are eligible</string>
+    <string name="time_transfer_warning">This can\'t be undone, so make a backup first. Only songs played at least once can be chosen</string>
     <string name="time_transfer_source_song">Source song</string>
     <string name="time_transfer_target_song">Target song</string>
     <string name="time_transfer_listen_time_label">Listen time: </string>

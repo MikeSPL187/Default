@@ -93,7 +93,7 @@
     <string name="percentage_format">%d%%</string>
     <string name="import_online">Импортировать плейлист M3U</string>
     <string name="import_csv">Импортировать плейлист CSV</string>
-    <string name="playlist_add_local_to_synced_note">ПРИМЕЧАНИЕ: Добавление локальных треков в синхронизированные или удалённые плейлисты не поддерживается. Любые другие комбинации допустимы</string>
+    <string name="playlist_add_local_to_synced_note">Песни с телефона нельзя добавить в плейлисты, синхронизированные с YouTube Music</string>
     <string name="auto_download_on_like">Автоскачивание при отметке «Нравится»</string>
     <string name="auto_download_on_like_desc">Автоматически скачивать треки, отмечаемые как понравившиеся</string>
     <string name="clear_song_cache_dialog">Вы уверены, что хотите очистить все закэшированные треки?</string>
@@ -333,7 +333,7 @@
     <string name="selection_queue_title">Выбранные песни</string>
     <string name="remove_download_selection_confirm">Удалить загрузки выбранных песен?</string>
     <string name="playlist_cover_failed">Не удалось сменить обложку. Попробуйте ещё раз</string>
-    <string name="listen_together_background_disconnect_note">ПРИМЕЧАНИЕ: Если вы подключены, но не находитесь в комнате, функция Listen Together отключится через 30 минут в фоновом режиме для экономии заряда батареи</string>
+    <string name="listen_together_background_disconnect_note">Если вы подключены, но не в комнате, «Слушать вместе» отключится через 30 минут в фоне, чтобы беречь заряд</string>
     <string name="listen_together_not_configured">Listen Together не настроен. Укажите адрес сервера в: Listen Together &gt; Настройки &gt; Адрес сервера</string>
     <string name="listen_together_suggestion_received">%1$s предложил(а): %2$s</string>
     <string name="listen_together_suggestion_sent">Трек предложен хосту!</string>
@@ -701,7 +701,7 @@
     <string name="sort_ascending">Сортировать по возрастанию</string>
     <string name="sort_descending">Сортировать по убыванию</string>
     <string name="time_transfer_title">Перенос времени</string>
-    <string name="time_transfer_warning">ВНИМАНИЕ: Это действие нельзя отменить после его завершения. Создайте резервную копию перед продолжением. Доступны только треки с как минимум одним зарегистрированным воспроизведением</string>
+    <string name="time_transfer_warning">Это нельзя отменить, поэтому сначала сделайте резервную копию. Выбрать можно только песни, которые хоть раз играли</string>
     <string name="time_transfer_source_song">Исходный трек</string>
     <string name="time_transfer_target_song">Целевой трек</string>
     <string name="time_transfer_listen_time_label">Время прослушивания:</string>
