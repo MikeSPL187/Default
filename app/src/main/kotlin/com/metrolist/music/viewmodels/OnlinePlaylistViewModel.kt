@@ -210,30 +210,25 @@ class OnlinePlaylistViewModel @Inject constructor(
         savedEpisodes.forEachIndexed { index, ep ->
             timber.log.Timber.d("[SE_LOCAL] Episode $index: id=${ep.song.id}, title=${ep.song.title}, isEpisode=${ep.song.isEpisode}, inLibrary=${ep.song.inLibrary}")
         }
-        if (savedEpisodes.isNotEmpty()) {
-            // Convert local Song entities to SongItem format
-            val songItems = savedEpisodes.map { it.toSongItem() }
-            timber.log.Timber.d("[SE_LOCAL] Converted to ${songItems.size} SongItems")
-            playlist.value = PlaylistItem(
-                id = playlistId,
-                title = context.getString(R.string.episodes_for_later),
-                author = null,
-                songCountText = context.resources.getQuantityString(R.plurals.n_episode, songItems.size, songItems.size),
-                thumbnail = songItems.firstOrNull()?.thumbnail ?: "",
-                playEndpoint = null,
-                shuffleEndpoint = null,
-                radioEndpoint = null,
-            )
-            val filtered = applySongFilters(songItems)
-            timber.log.Timber.d("[SE_LOCAL] After filter: ${filtered.size} episodes, setting playlistSongs")
-            playlistSongs.value = filtered
-            _isLoading.value = false
-            timber.log.Timber.d("[SE_LOCAL] Done, isLoading=false")
-        } else {
-            timber.log.Timber.d("[SE_LOCAL] No saved episodes found")
-            _error.value = "No saved episodes"
-            _isLoading.value = false
-        }
+        // None saved yet is an empty list, not a failure to retry.
+        // Convert local Song entities to SongItem format
+        val songItems = savedEpisodes.map { it.toSongItem() }
+        timber.log.Timber.d("[SE_LOCAL] Converted to ${songItems.size} SongItems")
+        playlist.value = PlaylistItem(
+            id = playlistId,
+            title = context.getString(R.string.episodes_for_later),
+            author = null,
+            songCountText = context.resources.getQuantityString(R.plurals.n_episode, songItems.size, songItems.size),
+            thumbnail = songItems.firstOrNull()?.thumbnail ?: "",
+            playEndpoint = null,
+            shuffleEndpoint = null,
+            radioEndpoint = null,
+        )
+        val filtered = applySongFilters(songItems)
+        timber.log.Timber.d("[SE_LOCAL] After filter: ${filtered.size} episodes, setting playlistSongs")
+        playlistSongs.value = filtered
+        _isLoading.value = false
+        timber.log.Timber.d("[SE_LOCAL] Done, isLoading=false")
     }
 
     private fun startProactiveBackgroundLoading() {
