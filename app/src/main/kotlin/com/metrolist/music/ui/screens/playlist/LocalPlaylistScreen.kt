@@ -176,7 +176,6 @@ import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.utils.reportException
 import com.metrolist.music.viewmodels.LocalPlaylistViewModel
 import com.yalantis.ucrop.UCrop
-import io.ktor.client.plugins.ClientRequestException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -1151,9 +1150,8 @@ fun LocalPlaylistHeader(
                                 update(playlist.playlist.copy(thumbnailUrl = newThumbnailUrl))
                             }
                         }.onFailure {
-                            if (it is ClientRequestException) {
-                                snackbarHostState.showSnackbar("${it.response.status.value} ${it.response.status.description}")
-                            }
+                            // Any failure says so in words, not as a bare HTTP status.
+                            snackbarHostState.showSnackbar(context.getString(R.string.playlist_cover_failed))
                             reportException(it)
                         }
                 }
