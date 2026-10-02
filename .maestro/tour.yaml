@@ -80,6 +80,11 @@ appId: com.metrolist.music
     timeout: 10000
 - takeScreenshot: ${P}11-player
 # The music video on the whole screen turns it sideways; closing it must bring the player back upright.
+# The switch shows once the song's video has been looked up, which takes a moment.
+- extendedWaitUntil:
+    visible: "Video"
+    timeout: 20000
+    optional: true
 - tapOn:
     text: "Video"
     optional: true
