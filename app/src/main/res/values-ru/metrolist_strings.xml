@@ -1206,9 +1206,9 @@
     <string name="playlist_suggestions_subtitle">Похожие на этот плейлист</string>
     <string name="playlist_suggestion_add">Добавить в плейлист</string>
     <string name="playlist_all_downloaded">Всё скачано</string>
-    <string name="duration_hours_minutes">%1$d ч %2$d мин</string>
-    <string name="duration_hours">%d ч</string>
-    <string name="duration_minutes">%d мин</string>
+    <string name="duration_hours_minutes">%1$d ч %2$d мин</string>
+    <string name="duration_hours">%d ч</string>
+    <string name="duration_minutes">%d мин</string>
     <string name="playlist_sort_custom">Свой порядок</string>
     <string name="playlist_edit_order">Изменить порядок</string>
     <plurals name="download_eta_minutes">

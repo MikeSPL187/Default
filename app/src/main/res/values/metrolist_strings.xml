@@ -1307,9 +1307,9 @@
     <string name="playlist_suggestions_subtitle">Similar to this playlist</string>
     <string name="playlist_suggestion_add">Add to playlist</string>
     <string name="playlist_all_downloaded">All downloaded</string>
-    <string name="duration_hours_minutes">%1$d h %2$d min</string>
-    <string name="duration_hours">%d h</string>
-    <string name="duration_minutes">%d min</string>
+    <string name="duration_hours_minutes">%1$d h %2$d min</string>
+    <string name="duration_hours">%d h</string>
+    <string name="duration_minutes">%d min</string>
     <string name="playlist_sort_custom">Custom order</string>
     <string name="playlist_edit_order">Edit order</string>
     <plurals name="download_eta_minutes">
