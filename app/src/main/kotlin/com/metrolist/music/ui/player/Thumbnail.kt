@@ -387,7 +387,7 @@ fun Thumbnail(
                     .fillMaxWidth(),
             ) {
                 // Error view
-                AnimatedVisibility(
+                androidx.compose.animation.AnimatedVisibility(
                     visible = error != null,
                     enter = fadeIn(),
                     exit = fadeOut(),
@@ -404,7 +404,7 @@ fun Thumbnail(
                 }
 
                 // Main thumbnail view
-                AnimatedVisibility(
+                androidx.compose.animation.AnimatedVisibility(
                     visible = error == null,
                     enter = fadeIn(),
                     exit = fadeOut(),
