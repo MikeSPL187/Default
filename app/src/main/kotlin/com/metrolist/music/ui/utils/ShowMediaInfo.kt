@@ -140,7 +140,7 @@ fun ShowMediaInfo(videoId: String) {
                             R.plurals.your_plays_summary,
                             playCount,
                             playCount,
-                            formatListeningTime(song?.song?.totalPlayTime ?: 0L),
+                            formatListeningTime(context, song?.song?.totalPlayTime ?: 0L),
                         ),
                     )
 
@@ -178,13 +178,17 @@ fun ShowMediaInfo(videoId: String) {
                             stringResource(R.string.stream_client) to currentStreamClient,
                             stringResource(R.string.mime_type) to currentFormat?.mimeType,
                             stringResource(R.string.codecs) to currentFormat?.codecs,
-                            stringResource(R.string.bitrate) to currentFormat?.bitrate?.let { "${it / 1000} Kbps" },
-                            stringResource(R.string.sample_rate) to currentFormat?.sampleRate?.let { "$it Hz" },
-                            stringResource(R.string.loudness) to measuredLufs?.let {
-                                String.format(LocalLocale.current.platformLocale, "%.2f dB", it - targetLufs)
+                            // Units in the app's language and number format: "132 кбит/с", "44,1 кГц", "+3,7 дБ".
+                            stringResource(R.string.bitrate) to currentFormat?.bitrate?.let { stringResource(R.string.media_info_kbps, it / 1000) },
+                            stringResource(R.string.sample_rate) to currentFormat?.sampleRate?.let {
+                                val khz = if (it % 1000 == 0) "${it / 1000}" else String.format(LocalLocale.current.platformLocale, "%.1f", it / 1000.0)
+                                stringResource(R.string.media_info_khz, khz)
+                            },
+                            stringResource(R.string.media_info_loudness) to measuredLufs?.let {
+                                stringResource(R.string.media_info_db, String.format(LocalLocale.current.platformLocale, "%+.1f", it - targetLufs))
                             },
                             stringResource(R.string.loudness_level) to getLoudnessLevelLabel(loudnessLevel),
-                            stringResource(R.string.volume) to if (playerConnection != null) "${(playerConnection.player.volume * 100).toInt()}%" else null,
+                            stringResource(R.string.media_info_volume) to if (playerConnection != null) "${(playerConnection.player.volume * 100).toInt()}%" else null,
                             stringResource(R.string.file_size) to
                                     currentFormat?.contentLength?.let {
                                         Formatter.formatShortFileSize(
@@ -207,6 +211,8 @@ fun ShowMediaInfo(videoId: String) {
                             title = { Text(label) },
                             description = { Text(displayText) },
                             icon = painterResource(baseIconsList[index]),
+                            // A tap copies the value; no chevron, as nothing opens.
+                            trailingContent = {},
                             onClick = {
                                 cm.setPrimaryClip(ClipData.newPlainText("text", displayText))
                                 Toast.makeText(context, R.string.copied, Toast.LENGTH_SHORT).show()
@@ -220,6 +226,7 @@ fun ShowMediaInfo(videoId: String) {
                             title = { Text(label) },
                             description = { Text(displayText) },
                             icon = painterResource(iconsList[index]),
+                            trailingContent = {},
                             onClick = {
                                 cm.setPrimaryClip(ClipData.newPlainText("text", displayText))
                                 Toast.makeText(context, R.string.copied, Toast.LENGTH_SHORT).show()
@@ -243,12 +250,13 @@ fun ShowMediaInfo(videoId: String) {
 
                     val descriptionText = info?.description ?: stringResource(R.string.unknown)
 
+                    // The group already says "Description"; the card holds only the text itself.
                     Material3SettingsGroup(
                         title = stringResource(R.string.description),
                         items = listOf(
                             Material3SettingsItem(
-                                title = { Text(stringResource(R.string.description)) },
-                                description = { Text(descriptionText) },
+                                title = { Text(descriptionText, style = MaterialTheme.typography.bodyMedium) },
+                                trailingContent = {},
                                 onClick = {
                                     cm.setPrimaryClip(ClipData.newPlainText("text", descriptionText))
                                     Toast.makeText(context, R.string.copied, Toast.LENGTH_SHORT).show()
@@ -276,11 +284,18 @@ fun ShowMediaInfo(videoId: String) {
     }
 }
 
-/** Listening time as "1 h 05 min" or "4 min 12 s". */
-private fun formatListeningTime(millis: Long): String {
+/** Listening time as "1 h 5 min" or "4 min 12 s", in the app's language. */
+private fun formatListeningTime(
+    context: Context,
+    millis: Long,
+): String {
     val totalSeconds = millis / 1000
-    val hours = totalSeconds / 3600
-    val minutes = (totalSeconds % 3600) / 60
-    val seconds = totalSeconds % 60
-    return if (hours > 0) "$hours h %02d min".format(minutes) else "$minutes min %02d s".format(seconds)
+    val hours = (totalSeconds / 3600).toInt()
+    val minutes = ((totalSeconds % 3600) / 60).toInt()
+    val seconds = (totalSeconds % 60).toInt()
+    return if (hours > 0) {
+        context.getString(R.string.duration_hours_minutes, hours, minutes)
+    } else {
+        context.getString(R.string.duration_minutes_seconds, minutes, seconds)
+    }
 }

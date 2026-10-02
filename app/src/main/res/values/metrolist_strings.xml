@@ -628,6 +628,12 @@
     <string name="sleep_timer_is_default">Default</string>
     <string name="sleep_timer_start">Start</string>
     <string name="export_confirm">Export</string>
+    <string name="media_info_loudness">Track loudness</string>
+    <string name="media_info_volume">Player volume</string>
+    <string name="media_info_kbps">%d kbps</string>
+    <string name="media_info_khz">%s kHz</string>
+    <string name="media_info_db">%s dB</string>
+    <string name="duration_minutes_seconds">%1$d min %2$d s</string>
     <string name="listen_together_background_disconnect_note">Connected but not in a room, Listen Together disconnects after 30 minutes in the background to save battery</string>
     <string name="listen_together_not_configured">Listen Together is not set up. Please configure the server URL in: Listen Together &gt; Settings &gt; Server URL</string>
     <string name="listen_together_suggestion_received">%1$s suggested %2$s</string>
@@ -1500,6 +1506,9 @@
     <string name="video_quality">Video quality</string>
     <string name="video_quality_desc">How sharp music videos are in the player</string>
     <string name="video_quality_auto">Auto (720p on Wi-Fi, 480p on mobile data)</string>
+    <string name="audio_quality_auto_desc">Auto (high on Wi-Fi, low on mobile data)</string>
+    <string name="audio_quality_high_desc">High (the best YouTube offers, about 130–160 kbps)</string>
+    <string name="audio_quality_low_desc">Low (saves data)</string>
     <!-- Short enough for the search bar beside its three buttons, at any font size -->
     <string name="search_start_title">Find any song, album or artist</string>
     <string name="search_start_hint">Type a name or paste a link from YouTube Music</string>

@@ -337,6 +337,12 @@
     <string name="sleep_timer_is_default">По умолчанию</string>
     <string name="sleep_timer_start">Запустить</string>
     <string name="export_confirm">Экспортировать</string>
+    <string name="media_info_loudness">Громкость записи</string>
+    <string name="media_info_volume">Громкость плеера</string>
+    <string name="media_info_kbps">%d кбит/с</string>
+    <string name="media_info_khz">%s кГц</string>
+    <string name="media_info_db">%s дБ</string>
+    <string name="duration_minutes_seconds">%1$d мин %2$d с</string>
     <string name="listen_together_background_disconnect_note">Если вы подключены, но не в комнате, «Слушать вместе» отключится через 30 минут в фоне, чтобы беречь заряд</string>
     <string name="listen_together_not_configured">«Слушать вместе» не настроено. Укажите адрес сервера: «Слушать вместе» &gt; Настройки &gt; Адрес сервера</string>
     <string name="listen_together_suggestion_received">%1$s предложил(а): %2$s</string>
@@ -1415,6 +1421,9 @@
     <string name="video_quality">Качество клипов</string>
     <string name="video_quality_desc">Насколько чёткие клипы в плеере</string>
     <string name="video_quality_auto">Авто (720p по Wi-Fi, 480p в мобильной сети)</string>
+    <string name="audio_quality_auto_desc">Авто (высокое по Wi-Fi, низкое в мобильной сети)</string>
+    <string name="audio_quality_high_desc">Высокое (лучшее, что отдаёт YouTube, около 130–160 кбит/с)</string>
+    <string name="audio_quality_low_desc">Низкое (экономит трафик)</string>
     <string name="search_start_title">Найдите любую песню, альбом или исполнителя</string>
     <string name="search_start_hint">Введите название или вставьте ссылку из YouTube Music</string>
     <string name="search_music_hint">Поиск музыки</string>

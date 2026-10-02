@@ -274,9 +274,10 @@ fun PlayerSettings(
             values = AudioQuality.values().toList(),
             valueText = {
                 when (it) {
-                    AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
-                    AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
-                    AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
+                    // Says what each choice means, like the video quality does.
+                    AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto_desc)
+                    AudioQuality.HIGH -> stringResource(R.string.audio_quality_high_desc)
+                    AudioQuality.LOW -> stringResource(R.string.audio_quality_low_desc)
                 }
             }
         )
@@ -326,9 +327,9 @@ fun PlayerSettings(
                     description = {
                         Text(
                             when (audioQuality) {
-                                AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
-                                AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
-                                AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
+                                AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto_desc)
+                                AudioQuality.HIGH -> stringResource(R.string.audio_quality_high_desc)
+                                AudioQuality.LOW -> stringResource(R.string.audio_quality_low_desc)
                             }
                         )
                     },
