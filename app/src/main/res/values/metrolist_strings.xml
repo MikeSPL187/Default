@@ -625,6 +625,7 @@
     <string name="remove_download_selection_confirm">Remove the downloads of the selected songs?</string>
     <string name="playlist_cover_failed">Couldn\'t change the cover. Try again</string>
     <string name="playlist_empty_hint">Find a song and choose Add to playlist in its menu</string>
+    <string name="sleep_timer_is_default">Default</string>
     <string name="listen_together_background_disconnect_note">Connected but not in a room, Listen Together disconnects after 30 minutes in the background to save battery</string>
     <string name="listen_together_not_configured">Listen Together is not set up. Please configure the server URL in: Listen Together &gt; Settings &gt; Server URL</string>
     <string name="listen_together_suggestion_received">%1$s suggested %2$s</string>

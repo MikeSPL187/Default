@@ -149,7 +149,6 @@ import androidx.compose.runtime.derivedStateOf
 import com.metrolist.music.constants.SleepTimerFadeOutKey
 import com.metrolist.music.constants.SleepTimerStopAfterCurrentSongKey
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.material3.Button
 
 
 @SuppressLint("UnrememberedMutableState")
@@ -528,44 +527,27 @@ fun Queue(
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
-                                if (isAtDefault) {
-                                    Button(
-                                        onClick = {
-                                            coroutineScope.launch {
-                                                context.safeDataStoreEdit { settings ->
-                                                    settings[SleepTimerDefaultKey] = sleepTimerValue
-                                                }
+                                // At the default already, the button says so instead of offering to set it again.
+                                OutlinedButton(
+                                    enabled = !isAtDefault,
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            context.safeDataStoreEdit { settings ->
+                                                settings[SleepTimerDefaultKey] = sleepTimerValue
                                             }
-                                            Toast.makeText(
-                                                context,
-                                                String.format(sleepTimerDefaultSetTemplate, sleepTimerValue.roundToInt()),
-                                                Toast.LENGTH_SHORT,
-                                            ).show()
-                                        },
-                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.primary,
-                                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                                        ),
-                                    ) {
-                                        Text(stringResource(R.string.set_as_default))
+                                        }
+                                        Toast.makeText(
+                                            context,
+                                            String.format(sleepTimerDefaultSetTemplate, sleepTimerValue.roundToInt()),
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
+                                    },
+                                ) {
+                                    if (isAtDefault) {
+                                        Icon(painterResource(R.drawable.check), contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Spacer(Modifier.width(8.dp))
                                     }
-                                } else {
-                                    OutlinedButton(
-                                        onClick = {
-                                            coroutineScope.launch {
-                                                context.safeDataStoreEdit { settings ->
-                                                    settings[SleepTimerDefaultKey] = sleepTimerValue
-                                                }
-                                            }
-                                            Toast.makeText(
-                                                context,
-                                                String.format(sleepTimerDefaultSetTemplate, sleepTimerValue.roundToInt()),
-                                                Toast.LENGTH_SHORT,
-                                            ).show()
-                                        },
-                                    ) {
-                                        Text(stringResource(R.string.set_as_default))
-                                    }
+                                    Text(stringResource(if (isAtDefault) R.string.sleep_timer_is_default else R.string.set_as_default))
                                 }
 
                                 OutlinedButton(
