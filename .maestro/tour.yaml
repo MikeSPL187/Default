@@ -167,11 +167,24 @@ appId: com.metrolist.music
 - back
 - waitForAnimationToEnd
 
-# The artist is the top result of the search.
-- tapOn:
-    text: "Dua Lipa"
-    below: "Top result"
-    optional: true
+# The artist: the top result of the search, or the artist row among the suggestions when the
+# player's closing went one screen further back.
+- runFlow:
+    when:
+      visible: "Top result"
+    commands:
+      - tapOn:
+          text: "Dua Lipa"
+          below: "Top result"
+          optional: true
+- runFlow:
+    when:
+      visible: "dua lipa levitating"
+    commands:
+      - tapOn:
+          text: "Dua Lipa"
+          index: 1
+          optional: true
 - waitForAnimationToEnd:
     timeout: 10000
 - takeScreenshot: ${P}14-artist
