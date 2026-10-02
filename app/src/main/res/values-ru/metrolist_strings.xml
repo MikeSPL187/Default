@@ -335,6 +335,8 @@
     <string name="playlist_cover_failed">Не удалось сменить обложку. Попробуйте ещё раз</string>
     <string name="playlist_empty_hint">Найдите песню и выберите «Добавить в плейлист» в её меню</string>
     <string name="sleep_timer_is_default">По умолчанию</string>
+    <string name="sleep_timer_start">Запустить</string>
+    <string name="export_confirm">Экспортировать</string>
     <string name="listen_together_background_disconnect_note">Если вы подключены, но не в комнате, «Слушать вместе» отключится через 30 минут в фоне, чтобы беречь заряд</string>
     <string name="listen_together_not_configured">«Слушать вместе» не настроено. Укажите адрес сервера: «Слушать вместе» &gt; Настройки &gt; Адрес сервера</string>
     <string name="listen_together_suggestion_received">%1$s предложил(а): %2$s</string>

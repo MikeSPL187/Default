@@ -657,7 +657,7 @@ fun BottomSheetPlayer(
                         )
                     },
                 ) {
-                    Text(stringResource(android.R.string.ok))
+                    Text(stringResource(R.string.sleep_timer_start))
                 }
             },
             dismissButton = {

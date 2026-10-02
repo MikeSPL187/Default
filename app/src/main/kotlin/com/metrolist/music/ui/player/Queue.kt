@@ -499,6 +499,7 @@ fun Queue(
                     onReset = {
                         sleepTimerValue = sleepTimerDefault
                     },
+                    confirmText = stringResource(R.string.sleep_timer_start),
                     content = {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(

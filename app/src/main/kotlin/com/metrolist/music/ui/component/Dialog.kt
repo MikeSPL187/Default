@@ -192,6 +192,8 @@ fun ActionPromptDialog(
     onCancel: (() -> Unit)? = null,
     /** Names the action ("Clear", "Delete") and paints it as irreversible, instead of a plain OK. */
     destructiveConfirmText: String? = null,
+    /** Names the action ("Start") where a plain OK would say less. */
+    confirmText: String? = null,
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
     DefaultDialog(
@@ -236,7 +238,7 @@ fun ActionPromptDialog(
                 if (destructiveConfirmText != null) {
                     Text(destructiveConfirmText, color = MaterialTheme.colorScheme.error)
                 } else {
-                    Text(stringResource(android.R.string.ok))
+                    Text(confirmText ?: stringResource(android.R.string.ok))
                 }
             }
         },

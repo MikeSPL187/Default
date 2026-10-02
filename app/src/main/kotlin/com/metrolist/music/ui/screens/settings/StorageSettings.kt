@@ -268,6 +268,7 @@ fun StorageSettings(
                 }
             },
             onCancel = { exportAllForWatchDialog = false },
+            confirmText = stringResource(R.string.export_confirm),
             content = {
                 Text(text = stringResource(R.string.export_all_for_watch_confirm))
             },
