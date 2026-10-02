@@ -6,7 +6,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.animation.animateColorAsState
@@ -914,13 +913,10 @@ private fun QuickTile(
     val (source, scale) = rememberPress()
     var menu by remember { mutableStateOf(false) }
     Box(modifier) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        Box(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    // The cover runs the tile's full height even when a large font wraps the title.
-                    .height(IntrinsicSize.Min)
                     .heightIn(min = 56.dp)
                     .scale(scale)
                     .clip(RoundedCornerShape(14.dp))
@@ -936,45 +932,59 @@ private fun QuickTile(
                         onLongClick = if (item.recent != null) ({ menu = true }) else null,
                     ),
         ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier =
-                    Modifier
-                        .width(56.dp)
-                        .fillMaxHeight()
-                        .then(
-                            when {
-                                item.liked -> Modifier.background(LikedGradient)
-                                item.icon != null -> Modifier.background(colors.primaryContainer)
-                                else -> Modifier.background(colors.surfaceContainerHighest)
-                            },
-                        ),
-            ) {
-                when {
-                    item.liked -> Icon(painterResource(R.drawable.favorite), contentDescription = null, tint = Color.White, modifier = Modifier.size(26.dp))
-                    item.thumbnail != null ->
-                        AsyncImage(
-                            model = item.thumbnail,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier =
-                                Modifier
-                                    .fillMaxSize()
-                                    .then(if (item.round) Modifier.padding(7.dp).aspectRatio(1f).clip(CircleShape) else Modifier),
-                        )
-                    item.icon != null -> Icon(painterResource(item.icon), contentDescription = null, tint = colors.onPrimaryContainer, modifier = Modifier.size(24.dp))
-                    else -> Icon(painterResource(R.drawable.queue_music), contentDescription = null, tint = colors.onSurfaceVariant)
+            // The cover runs the tile's full height even when a large font wraps the title. It takes
+            // the height the title gave the tile; asking the title for its intrinsic height instead
+            // crashes, as the title is laid out by subcomposition.
+            Box(Modifier.matchParentSize()) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier =
+                        Modifier
+                            .width(56.dp)
+                            .fillMaxHeight()
+                            .then(
+                                when {
+                                    item.liked -> Modifier.background(LikedGradient)
+                                    item.icon != null -> Modifier.background(colors.primaryContainer)
+                                    else -> Modifier.background(colors.surfaceContainerHighest)
+                                },
+                            ),
+                ) {
+                    when {
+                        item.liked -> Icon(painterResource(R.drawable.favorite), contentDescription = null, tint = Color.White, modifier = Modifier.size(26.dp))
+                        item.thumbnail != null ->
+                            AsyncImage(
+                                model = item.thumbnail,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier =
+                                    Modifier
+                                        .fillMaxSize()
+                                        .then(if (item.round) Modifier.padding(7.dp).aspectRatio(1f).clip(CircleShape) else Modifier),
+                            )
+                        item.icon != null -> Icon(painterResource(item.icon), contentDescription = null, tint = colors.onPrimaryContainer, modifier = Modifier.size(24.dp))
+                        else -> Icon(painterResource(R.drawable.queue_music), contentDescription = null, tint = colors.onSurfaceVariant)
+                    }
                 }
             }
-            WholeWordsText(
-                item.title,
-                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier =
                     Modifier
-                        .weight(1f)
-                        .padding(horizontal = 10.dp),
-            )
-            if (playing) EqualizerBars(Modifier.padding(end = 12.dp).size(14.dp))
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp)
+                        .padding(start = 56.dp),
+            ) {
+                WholeWordsText(
+                    item.title,
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .padding(horizontal = 10.dp),
+                )
+                if (playing) EqualizerBars(Modifier.padding(end = 12.dp).size(14.dp))
+            }
         }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
             DropdownMenuItem(
