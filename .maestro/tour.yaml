@@ -141,15 +141,6 @@ appId: com.metrolist.music
       - takeScreenshot: ${P}11d-sleep-timer
       - back
       - waitForAnimationToEnd
-- runFlow:
-    when:
-      visible: "More options"
-    commands:
-      - tapOn: "More options"
-      - waitForAnimationToEnd
-      - takeScreenshot: ${P}11e-player-menu
-      - back
-      - waitForAnimationToEnd
 - tapOn:
     text: "Lyrics"
     optional: true
@@ -169,6 +160,20 @@ appId: com.metrolist.music
     when:
       visible: "Save queue as playlist"
     commands:
+      - back
+      - waitForAnimationToEnd
+# The player's menu last, once lyrics and queue are seen: should it not open, the back that
+# follows only closes the player a step early.
+- runFlow:
+    when:
+      visible: "Timer"
+    commands:
+      - tapOn:
+          text: "More options"
+          index: 0
+          optional: true
+      - waitForAnimationToEnd
+      - takeScreenshot: ${P}11e-player-menu
       - back
       - waitForAnimationToEnd
 - runFlow:
