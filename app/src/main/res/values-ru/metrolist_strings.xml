@@ -334,12 +334,12 @@
     <string name="remove_download_selection_confirm">Удалить загрузки выбранных песен?</string>
     <string name="playlist_cover_failed">Не удалось сменить обложку. Попробуйте ещё раз</string>
     <string name="listen_together_background_disconnect_note">Если вы подключены, но не в комнате, «Слушать вместе» отключится через 30 минут в фоне, чтобы беречь заряд</string>
-    <string name="listen_together_not_configured">Listen Together не настроен. Укажите адрес сервера в: Listen Together &gt; Настройки &gt; Адрес сервера</string>
+    <string name="listen_together_not_configured">«Слушать вместе» не настроено. Укажите адрес сервера: «Слушать вместе» &gt; Настройки &gt; Адрес сервера</string>
     <string name="listen_together_suggestion_received">%1$s предложил(а): %2$s</string>
     <string name="listen_together_suggestion_sent">Трек предложен хосту!</string>
     <string name="listen_together_join_request_notification">%1$s хочет присоединиться к комнате</string>
-    <string name="listen_together_notification_channel_name">Listen Together</string>
-    <string name="listen_together_notification_channel_desc">Уведомления о событиях Listen Together</string>
+    <string name="listen_together_notification_channel_name">Слушать вместе</string>
+    <string name="listen_together_notification_channel_desc">Уведомления о событиях «Слушать вместе»</string>
     <string name="listen_together_room_created">Комната создана: %s</string>
     <string name="listen_together_cannot_edit_username_in_room">Имя пользователя нельзя изменить, находясь в комнате</string>
     <string name="waiting_for_approval">Ожидание одобрения от хоста…</string>
@@ -489,8 +489,8 @@
     <string name="crossfade_gapless_desc">Отключить кроссфейд для альбомов, воспроизводимых без пауз</string>
     <string name="audio_offload_disabled_by_crossfade">Отключено, так как включён кроссфейд</string>
     <string name="hide_youtube_shorts">Скрывать YouTube Shorts</string>
-    <string name="listen_together_in_top_bar">Listen Together в верхней панели</string>
-    <string name="listen_together_in_top_bar_desc">Показывать Listen Together в верхней панели вместо панели навигации</string>
+    <string name="listen_together_in_top_bar">«Слушать вместе» в верхней панели</string>
+    <string name="listen_together_in_top_bar_desc">Показывать «Слушать вместе» в верхней панели вместо панели навигации</string>
     <string name="discord_advanced_mode_description">Настраивайте каждое поле Rich Presence с помощью плейсхолдеров</string>
     <string name="discord_activity_playing">Играет</string>
     <string name="discord_activity_listening">Слушает</string>
