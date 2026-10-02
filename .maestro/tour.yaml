@@ -120,6 +120,25 @@ appId: com.metrolist.music
 - tapOn:
     text: "Song"
     optional: true
+# The player's own menu and the sleep timer, each opened and closed.
+- runFlow:
+    when:
+      visible: "Timer"
+    commands:
+      - tapOn: "Timer"
+      - waitForAnimationToEnd
+      - takeScreenshot: ${P}11d-sleep-timer
+      - back
+      - waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "More options"
+    commands:
+      - tapOn: "More options"
+      - waitForAnimationToEnd
+      - takeScreenshot: ${P}11e-player-menu
+      - back
+      - waitForAnimationToEnd
 - tapOn:
     text: "Lyrics"
     optional: true
@@ -188,6 +207,30 @@ appId: com.metrolist.music
 - waitForAnimationToEnd
 - takeScreenshot: ${P}18c-import
 - back
+# A playlist of one's own: the create dialog once, then the new empty playlist.
+- runFlow:
+    when:
+      notVisible: "Road trip"
+    commands:
+      - tapOn:
+          text: "Create playlist"
+          optional: true
+      - waitForAnimationToEnd
+      - takeScreenshot: ${P}18d-create-playlist
+      - inputText: "Road trip"
+      - tapOn:
+          text: "OK"
+          optional: true
+      - waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Road trip"
+    commands:
+      - tapOn: "Road trip"
+      - waitForAnimationToEnd
+      - takeScreenshot: ${P}18e-own-playlist
+      - back
+      - waitForAnimationToEnd
 - tapOn:
     text: "Playlists"
     optional: true
