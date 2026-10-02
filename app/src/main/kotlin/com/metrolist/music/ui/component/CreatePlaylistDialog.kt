@@ -61,6 +61,7 @@ fun CreatePlaylistDialog(
         icon = { Icon(painter = painterResource(R.drawable.add), contentDescription = null) },
         title = { Text(text = stringResource(R.string.create_playlist)) },
         initialTextFieldValue = TextFieldValue(initialTextFieldValue ?: ""),
+        placeholder = { Text(stringResource(R.string.playlist_name)) },
         onDismiss = onDismiss,
         onDone = { playlistName ->
             syncUtils.createPlaylist(

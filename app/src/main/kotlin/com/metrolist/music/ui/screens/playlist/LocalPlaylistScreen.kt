@@ -167,6 +167,7 @@ import com.metrolist.music.ui.component.SongListItem
 import com.metrolist.music.ui.component.TextFieldDialog
 import com.metrolist.music.ui.menu.CustomThumbnailMenu
 import com.metrolist.music.ui.menu.LocalPlaylistMenu
+import com.metrolist.music.ui.screens.Screens
 import com.metrolist.music.ui.menu.SelectionSongMenu
 import com.metrolist.music.ui.menu.SongMenu
 import com.metrolist.music.ui.screens.settings.DarkMode
@@ -532,32 +533,35 @@ fun LocalPlaylistScreen(
             contentPadding = LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime).asPaddingValues(),
         ) {
             playlist?.let { playlist ->
-                if (playlist.songCount == 0 && playlist.playlist.remoteSongCount == 0) {
+                // A new playlist keeps its header (name, edit, delete) and says how songs get into it.
+                if (!isSearching) {
+                    item(key = "playlist_header") {
+                        LocalPlaylistHeader(
+                            playlist = playlist,
+                            songs = songs,
+                            onlinePlaylist = onlinePlaylist,
+                            onShowEditDialog = { showEditDialog = true },
+                            onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
+                            onshowDeletePlaylistDialog = { showDeletePlaylistDialog = true },
+                            onStartSearch = { isSearching = true },
+                            snackbarHostState = snackbarHostState,
+                            downloads = playlistDownloads,
+                            modifier = Modifier.animateItem(),
+                        )
+                    }
+                }
+                if (playlist.songCount == 0 && (playlist.playlist.remoteSongCount ?: 0) == 0) {
                     item(key = "empty_placeholder") {
                         EmptyPlaceholder(
                             icon = R.drawable.music_note,
                             text = stringResource(R.string.playlist_is_empty),
+                            hint = stringResource(R.string.playlist_empty_hint),
+                            action = stringResource(R.string.empty_find_music),
+                            onAction = { navController.navigate(Screens.Search.route) },
                             modifier = Modifier.animateItem(),
                         )
                     }
                 } else {
-                    if (!isSearching) {
-                        item(key = "playlist_header") {
-                            LocalPlaylistHeader(
-                                playlist = playlist,
-                                songs = songs,
-                                onlinePlaylist = onlinePlaylist,
-                                onShowEditDialog = { showEditDialog = true },
-                                onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
-                                onshowDeletePlaylistDialog = { showDeletePlaylistDialog = true },
-                                onStartSearch = { isSearching = true },
-                                snackbarHostState = snackbarHostState,
-                                downloads = playlistDownloads,
-                                modifier = Modifier.animateItem(),
-                            )
-                        }
-                    }
-
                     item(key = "controls_row") {
                         Column(Modifier.animateItem()) {
                         DownloadFilterChips(
@@ -967,14 +971,16 @@ fun LocalPlaylistScreen(
                         )
                     }
                 } else if (!isSearching) {
-                    // Only search button remains in TopAppBar
-                    IconButton(
-                        onClick = { isSearching = true },
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.search),
-                            contentDescription = stringResource(R.string.search),
-                        )
+                    // Nothing to search in an empty playlist.
+                    if (songs.isNotEmpty()) {
+                        IconButton(
+                            onClick = { isSearching = true },
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.search),
+                                contentDescription = stringResource(R.string.search),
+                            )
+                        }
                     }
                     if (showTopBarTitle && songs.isNotEmpty()) {
                         FilledIconButton(
@@ -1503,25 +1509,28 @@ fun LocalPlaylistHeader(
             horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            CollectionSideAction(
-                icon = R.drawable.smart_shuffle,
-                contentDescription = stringResource(R.string.smart_shuffle),
-                onClick = { playerConnection.service.playSmartShuffle(title = playlist.playlist.name, items = songs.map { it.song.toMediaItem() }) },
-            )
+            // Shuffling or downloading an empty playlist would do nothing, so only its menu stays.
+            if (songs.isNotEmpty()) {
+                CollectionSideAction(
+                    icon = R.drawable.smart_shuffle,
+                    contentDescription = stringResource(R.string.smart_shuffle),
+                    onClick = { playerConnection.service.playSmartShuffle(title = playlist.playlist.name, items = songs.map { it.song.toMediaItem() }) },
+                )
 
-            DownloadRingButton(
-                state = downloads,
-                onClick = {
-                    when {
-                        downloads.complete -> onShowRemoveDownloadDialog()
-                        downloads.downloading -> if (downloads.paused) downloadUtil.resumeAll() else downloadUtil.pauseAll()
-                        else ->
-                            songs
-                                .filter { downloadUtil.downloads.value[it.song.id]?.state != Download.STATE_COMPLETED }
-                                .forEach { downloadUtil.download(it.song) }
-                    }
-                },
-            )
+                DownloadRingButton(
+                    state = downloads,
+                    onClick = {
+                        when {
+                            downloads.complete -> onShowRemoveDownloadDialog()
+                            downloads.downloading -> if (downloads.paused) downloadUtil.resumeAll() else downloadUtil.pauseAll()
+                            else ->
+                                songs
+                                    .filter { downloadUtil.downloads.value[it.song.id]?.state != Download.STATE_COMPLETED }
+                                    .forEach { downloadUtil.download(it.song) }
+                        }
+                    },
+                )
+            }
 
             CollectionSideAction(
                 icon = R.drawable.more_vert,
