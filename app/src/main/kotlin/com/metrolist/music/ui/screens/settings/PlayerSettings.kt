@@ -404,7 +404,8 @@ fun PlayerSettings(
                     title = { Text(stringResource(R.string.history_duration)) },
                     description = {
                         Column {
-                            Text(historyDuration.roundToInt().toString())
+                            // Seconds of listening before a song counts as played.
+                            Text(stringResource(R.string.history_duration_value, historyDuration.roundToInt()))
                             Slider(
                                 value = historyDuration,
                                 onValueChange = onHistoryDurationChange,

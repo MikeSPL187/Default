@@ -108,6 +108,7 @@
     <string name="past_year">Прошлый год</string>
     <string name="top_length">Размер моего топ-листа</string>
     <string name="history_duration">Длительность истории</string>
+    <string name="history_duration_value">Песня попадает в историю после %d с прослушивания</string>
     <string name="information">Информация</string>
     <string name="description">Описание</string>
     <string name="sensitivity_percentage">%1$d%%</string>

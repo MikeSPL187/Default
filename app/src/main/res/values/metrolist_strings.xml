@@ -273,6 +273,7 @@
     <string name="past_year">Past year</string>
     <string name="top_length">My Top list length</string>
     <string name="history_duration">History duration</string>
+    <string name="history_duration_value">A song enters history after %d s of listening</string>
     <string name="information">Information</string>
     <string name="description">Description</string>
     <string name="views">Views</string>
