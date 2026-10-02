@@ -248,10 +248,10 @@ appId: com.metrolist.music
 - waitForAnimationToEnd
 - takeScreenshot: ${P}18c-import
 - back
-# A playlist of one's own: the create dialog once, then the new empty playlist.
+# A playlist of one's own: made in the first pass only, then opened in every pass.
 - runFlow:
     when:
-      notVisible: "Road trip"
+      true: ${P == 'light-'}
     commands:
       - tapOn:
           text: "Create playlist"
