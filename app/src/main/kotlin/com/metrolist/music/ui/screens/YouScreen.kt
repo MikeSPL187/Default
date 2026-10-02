@@ -144,7 +144,8 @@ fun YouScreen(
                         info?.channelHandle ?: info?.email ?: stringResource(if (signedIn) R.string.you_account_sub else R.string.you_sign_in_sub),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
+                        // An address stays on one line; the explanation may take two at a large font.
+                        maxLines = if ((info?.channelHandle ?: info?.email) != null) 1 else 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }

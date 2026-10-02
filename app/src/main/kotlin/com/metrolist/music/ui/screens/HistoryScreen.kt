@@ -230,17 +230,14 @@ fun HistoryScreen(
         ) {
             item(key = "large_title") { LargeScreenTitle(stringResource(R.string.history)) }
 
-            item(key = "chips_row") {
+            // Signed out there is only this phone's history, and a lone chip would choose nothing.
+            if (isLoggedIn) item(key = "chips_row") {
                 ChipsRow(
                     chips =
-                        if (isLoggedIn) {
-                            listOf(
-                                HistorySource.LOCAL to stringResource(R.string.local_history),
-                                HistorySource.REMOTE to stringResource(R.string.remote_history),
-                            )
-                        } else {
-                            listOf(HistorySource.LOCAL to stringResource(R.string.local_history))
-                        },
+                        listOf(
+                            HistorySource.LOCAL to stringResource(R.string.local_history),
+                            HistorySource.REMOTE to stringResource(R.string.remote_history),
+                        ),
                     currentValue = historySource,
                     onValueUpdate = {
                         viewModel.historySource.value = it

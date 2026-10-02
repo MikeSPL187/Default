@@ -100,6 +100,7 @@ import com.metrolist.music.ui.component.AlbumListItem
 import com.metrolist.music.ui.component.ArtistGridItem
 import com.metrolist.music.ui.component.ArtistListItem
 import com.metrolist.music.ui.component.CreatePlaylistDialog
+import com.metrolist.music.ui.component.EmptyPlaceholder
 import com.metrolist.music.ui.component.LibrarySearchEmptyPlaceholder
 import com.metrolist.music.ui.component.LibrarySearchHeader
 import com.metrolist.music.ui.component.LocalMenuState
@@ -789,6 +790,17 @@ fun LibraryMixScreen(
                             LibrarySearchEmptyPlaceholder(modifier = Modifier.animateItem())
                         }
                     }
+                    // Nothing saved yet: say what lands here instead of leaving the space blank.
+                    if (allItems.isEmpty() && searchQuery.isBlank()) {
+                        item(key = "empty_library") {
+                            EmptyPlaceholder(
+                                icon = R.drawable.library_music,
+                                text = stringResource(R.string.library_mix_empty),
+                                hint = stringResource(R.string.library_mix_empty_hint),
+                                modifier = Modifier.animateItem(),
+                            )
+                        }
+                    }
                 }
             }
 
@@ -1068,6 +1080,16 @@ fun LibraryMixScreen(
                             span = { GridItemSpan(maxLineSpan) },
                         ) {
                             LibrarySearchEmptyPlaceholder(modifier = Modifier.animateItem())
+                        }
+                    }
+                    if (allItems.isEmpty() && searchQuery.isBlank()) {
+                        item(key = "empty_library", span = { GridItemSpan(maxLineSpan) }) {
+                            EmptyPlaceholder(
+                                icon = R.drawable.library_music,
+                                text = stringResource(R.string.library_mix_empty),
+                                hint = stringResource(R.string.library_mix_empty_hint),
+                                modifier = Modifier.animateItem(),
+                            )
                         }
                     }
                 }

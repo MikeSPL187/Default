@@ -757,9 +757,9 @@
     <string name="cd_system_mode">System mode</string>
     <string name="cd_palette_item">%1$s palette</string>
     <string name="play_all">Play all</string>
-    <string name="enable_high_refresh_rate">Enable high refresh rate</string>
-    <string name="enable_high_refresh_rate_desc">Forces the display to run at its highest supported refresh rate (e.g. 120Hz)</string>
-    <string name="enable_landscape_scaling">Landscape Scaling</string>
+    <string name="enable_high_refresh_rate">High refresh rate</string>
+    <string name="enable_high_refresh_rate_desc">Smoother scrolling at the screen\'s highest rate, such as 120 Hz. Uses more battery</string>
+    <string name="enable_landscape_scaling">Landscape scaling</string>
     <string name="enable_landscape_scaling_desc">Scale UI in landscape mode for larger screens</string>
 
     <!-- Music Recognition -->
@@ -1417,6 +1417,9 @@
     <string name="offline_flow_live">Flow · playing</string>
     <string name="podcast_latest">Latest episode</string>
     <string name="stats_nothing_yet">Nothing played in this period yet</string>
+    <string name="stats_nothing_yet_hint">Your time, top songs, artists and albums show up here as you listen</string>
+    <string name="library_mix_empty">Your albums, artists and playlists will show up here</string>
+    <string name="library_mix_empty_hint">Save an album, subscribe to an artist or create a playlist with +</string>
     <string name="stats_week">Week</string>
     <string name="stats_month">Month</string>
     <string name="stats_year">Year</string>

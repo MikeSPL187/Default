@@ -48,6 +48,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -399,7 +401,9 @@ fun StatsScreen(
                 )
             }
 
-            if (!isSearching && sArtists.isEmpty()) {
+            val nothingPlayed = mostPlayedSongsStats.isEmpty() && mostPlayedArtists.isEmpty() && mostPlayedAlbums.isEmpty()
+            // An empty period says so once, below, rather than also as rows of zeros.
+            if (!isSearching && sArtists.isEmpty() && !nothingPlayed) {
                 item(key = "summary") {
                     StatsSummary(
                         totalMs = mostPlayedSongsStats.sumOf { it.timeListened ?: 0L },
@@ -689,11 +693,12 @@ fun StatsScreen(
                 }
             }
 
-            if (!isSearching && mostPlayedSongsStats.isEmpty() && mostPlayedArtists.isEmpty() && mostPlayedAlbums.isEmpty()) {
+            if (!isSearching && nothingPlayed) {
                 item(key = "nothing_yet") {
                     EmptyPlaceholder(
                         icon = R.drawable.trending_up,
                         text = stringResource(R.string.stats_nothing_yet),
+                        hint = stringResource(R.string.stats_nothing_yet_hint),
                         modifier = Modifier.animateItem(),
                     )
                 }
@@ -831,14 +836,22 @@ fun StatsScreen(
                         contentDescription = stringResource(R.string.search),
                     )
                 }
-                IconButton(
-                    onClick = { showTimeTransfer = true },
-                    onLongClick = { showTimeTransfer = true },
-                ) {
-                    Icon(
-                        painterResource(R.drawable.sync),
-                        contentDescription = stringResource(R.string.cd_time_transfer),
-                    )
+                // A rare repair of the counts, so it is named in a menu instead of a bare icon.
+                Box {
+                    var moreMenu by remember { mutableStateOf(false) }
+                    androidx.compose.material3.IconButton(onClick = { moreMenu = true }) {
+                        Icon(painterResource(R.drawable.more_vert), contentDescription = stringResource(R.string.more_options))
+                    }
+                    DropdownMenu(expanded = moreMenu, onDismissRequest = { moreMenu = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.cd_time_transfer)) },
+                            leadingIcon = { Icon(painterResource(R.drawable.sync), contentDescription = null) },
+                            onClick = {
+                                moreMenu = false
+                                showTimeTransfer = true
+                            },
+                        )
+                    }
                 }
             }
         },
@@ -894,7 +907,7 @@ private fun StatsPeriodRow(
             onCheckedChange = { onToggleArchive() },
             modifier = Modifier.padding(start = 6.dp),
         ) {
-            Icon(painterResource(R.drawable.history), contentDescription = stringResource(R.string.stats_earlier))
+            Icon(painterResource(R.drawable.baseline_event_repeat_24), contentDescription = stringResource(R.string.stats_earlier))
         }
     }
 }

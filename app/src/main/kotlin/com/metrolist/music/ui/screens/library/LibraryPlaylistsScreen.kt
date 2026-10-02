@@ -191,16 +191,7 @@ fun LibraryPlaylistsScreen(
                     ),
                 )
             }
-            if (showCachedPlaylists) {
-                add(
-                    VisiblePlaylistItem(
-                        key = "cachedPlaylist",
-                        playlist = cachedPlaylist,
-                        autoPlaylist = true,
-                        route = "cache_playlist/cached",
-                    ),
-                )
-            }
+            // Same order as the tiles at the top of the library.
             if (showTopPlaylists) {
                 add(
                     VisiblePlaylistItem(
@@ -208,6 +199,16 @@ fun LibraryPlaylistsScreen(
                         playlist = topPlaylist,
                         autoPlaylist = true,
                         route = "top_playlist/$topSize",
+                    ),
+                )
+            }
+            if (showCachedPlaylists) {
+                add(
+                    VisiblePlaylistItem(
+                        key = "cachedPlaylist",
+                        playlist = cachedPlaylist,
+                        autoPlaylist = true,
+                        route = "cache_playlist/cached",
                     ),
                 )
             }

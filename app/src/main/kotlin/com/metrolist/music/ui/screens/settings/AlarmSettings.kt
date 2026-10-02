@@ -226,6 +226,8 @@ fun AlarmSettingsSection(showTitle: Boolean = true) {
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.add_circle),
                     title = { Text(stringResource(R.string.alarm_add)) },
+                    // With no alarms yet, the button itself says what an alarm does, instead of a second row.
+                    description = if (alarms.isEmpty()) ({ Text(stringResource(R.string.alarm_empty)) }) else null,
                     onClick = {
                         editorTarget = null
                         showEditor = true
@@ -233,14 +235,7 @@ fun AlarmSettingsSection(showTitle: Boolean = true) {
                 )
             )
 
-            if (alarms.isEmpty()) {
-                add(
-                    Material3SettingsItem(
-                        icon = painterResource(R.drawable.bedtime),
-                        title = { Text(stringResource(R.string.alarm_empty)) }
-                    )
-                )
-            } else {
+            if (alarms.isNotEmpty()) {
                 addAll(
                     alarms.map { alarm ->
                         val playlistTitle =
@@ -312,7 +307,8 @@ fun AlarmSettingsSection(showTitle: Boolean = true) {
                 )
             }
 
-            addAll(systemItems)
+            // The system permissions matter only once an alarm is set to go off.
+            if (alarms.any { it.enabled }) addAll(systemItems)
         }
     )
 }

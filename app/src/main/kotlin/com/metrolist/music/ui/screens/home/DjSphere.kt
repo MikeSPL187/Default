@@ -543,6 +543,8 @@ fun DjTuneSheet(
                             onMode(option)
                         },
                         shape = SegmentedButtonDefaults.itemShape(index = index, count = DjMode.entries.size),
+                        // The check mark would squeeze a long label ("Вперемешку") to a small size; the fill shows the choice.
+                        icon = {},
                         label = { SegmentLabel(stringResource(option.label)) },
                     )
                 }

@@ -296,7 +296,8 @@ fun HomeFeedScreen(
     val likedTitle = stringResource(R.string.liked)
     val quickPicksTitle = stringResource(R.string.quick_picks)
     val chartTitleText = stringResource(R.string.home_block_chart)
-    val fillers = listOf(stringResource(R.string.downloaded_songs) to "auto_playlist/downloaded", stringResource(R.string.history) to "history")
+    // Named and drawn as in the library, where the same collection is a tile too.
+    val fillers = listOf(stringResource(R.string.offline) to "auto_playlist/downloaded", stringResource(R.string.history) to "history")
     val quickItems =
         remember(recents, keepListening, likedTitle, fillers) { quickAccessItems(recents, keepListening.orEmpty(), likedTitle, fillers) }
     val daylistTitle = daylist?.let { stringResource(it.part.titleRes) }
@@ -866,7 +867,7 @@ private fun quickAccessItems(
         }
     val items = (listOf(liked) + fromRecents + favourites).distinctBy { it.route }.take(QUICK_ACCESS)
     // Tiles come in pairs; an odd one out gets a place the user goes anyway, so no row has a hole.
-    val filler = fillers.map { (title, route) -> QuickItem(title, null, route, icon = if (route == "history") R.drawable.history else R.drawable.download) }.firstOrNull { f -> items.none { it.route == f.route } }
+    val filler = fillers.map { (title, route) -> QuickItem(title, null, route, icon = if (route == "history") R.drawable.history else R.drawable.offline) }.firstOrNull { f -> items.none { it.route == f.route } }
     return if (items.size % 2 == 1 && filler != null) items + filler else items
 }
 
