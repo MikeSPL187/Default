@@ -58,6 +58,17 @@ appId: com.metrolist.music
 - pressKey: Enter
 - waitForAnimationToEnd:
     timeout: 10000
+# Should the emulator's keyboard keep Enter to itself, the query from history runs the search.
+- runFlow:
+    when:
+      visible: "dua lipa levitating"
+    commands:
+      - tapOn:
+          text: "dua lipa"
+          index: 1
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 10000
 - takeScreenshot: ${P}08-search-results
 - longPressOn:
     text: "Levitating.*"
