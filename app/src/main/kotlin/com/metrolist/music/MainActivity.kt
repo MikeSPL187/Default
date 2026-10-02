@@ -201,6 +201,7 @@ import com.metrolist.music.ui.component.rememberBottomSheetState
 import com.metrolist.music.ui.component.shimmer.ShimmerTheme
 import com.metrolist.music.ui.menu.YouTubeSongMenu
 import com.metrolist.music.ui.player.BottomSheetPlayer
+import com.metrolist.music.ui.player.PlayerVideoFullscreen
 import com.metrolist.music.ui.screens.Screens
 import com.metrolist.music.ui.screens.home.HomeEvents
 import com.metrolist.music.ui.screens.navigationBuilder
@@ -1473,6 +1474,8 @@ class MainActivity : FragmentActivity() {
                         state = LocalBottomSheetPageState.current,
                         modifier = Modifier.align(Alignment.BottomCenter),
                     )
+
+                    PlayerVideoFullscreen()
 
                     // First launch of a new listener: pick a few artists before landing on home.
                     var showOnboarding by remember { mutableStateOf(false) }

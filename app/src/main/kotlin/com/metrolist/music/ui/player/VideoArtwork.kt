@@ -67,6 +67,7 @@ import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.C
 import com.metrolist.music.LocalPlayerConnection
@@ -74,6 +75,7 @@ import com.metrolist.music.R
 import com.metrolist.music.ui.component.PlayPauseIcon
 import com.metrolist.music.utils.makeTimeString
 import com.metrolist.music.video.VideoPlayback
+import com.metrolist.music.viewmodels.PlayerVideoViewModel
 import kotlinx.coroutines.delay
 
 /**
@@ -200,11 +202,22 @@ fun VideoInCover(
 }
 
 /**
+ * The player's video on the whole screen, while it is asked for. Shown by the activity rather than
+ * by the player, whose layout is swapped when the screen turns sideways.
+ */
+@Composable
+fun PlayerVideoFullscreen() {
+    val playerVideo: PlayerVideoViewModel = hiltViewModel()
+    val playback = playerVideo.playback?.takeIf { playerVideo.fullscreen } ?: return
+    VideoFullscreen(playback, onDismiss = { playerVideo.fullscreen = false })
+}
+
+/**
  * The video on the whole screen, turned sideways for a wide picture, with the song's controls on
  * a tap. The song keeps playing as before; closing this returns to the player.
  */
 @Composable
-fun VideoFullscreen(
+private fun VideoFullscreen(
     playback: VideoPlayback,
     onDismiss: () -> Unit,
 ) {
@@ -220,12 +233,17 @@ fun VideoFullscreen(
     var controls by remember { mutableStateOf(true) }
     var interactedAt by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
-    // A wide picture turns the screen sideways; the orientation it had comes back on closing.
+    // A wide picture turns the screen sideways, which rebuilds the activity; this comes back with
+    // it. Only a real closing gives the screen back to the device's own rotation (the app never
+    // fixes it otherwise).
     DisposableEffect(aspectRatio > 1f) {
         val activity = context.findActivity()
-        val previous = activity?.requestedOrientation
         if (aspectRatio > 1f) activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-        onDispose { if (previous != null) activity?.requestedOrientation = previous }
+        onDispose {
+            if (activity != null && !activity.isChangingConfigurations) {
+                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            }
+        }
     }
     // The controls step aside after a few seconds of watching.
     LaunchedEffect(controls, interactedAt, playing) {

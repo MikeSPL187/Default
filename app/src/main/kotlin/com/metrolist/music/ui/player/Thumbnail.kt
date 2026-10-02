@@ -96,6 +96,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.runtime.DisposableEffect
 import androidx.core.content.getSystemService
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.currentStateAsState
@@ -106,6 +107,7 @@ import com.metrolist.music.offline.LocalOfflineMode
 import com.metrolist.music.video.VideoClip
 import com.metrolist.music.video.VideoClips
 import com.metrolist.music.video.VideoPlayback
+import com.metrolist.music.viewmodels.PlayerVideoViewModel
 
 /**
  * Pre-calculated thumbnail dimensions to avoid repeated calculations during recomposition.
@@ -268,16 +270,14 @@ fun Thumbnail(
     }
     val lookup = found?.takeIf { it.first == mediaMetadata?.id }
     val clip = lookup?.second
-    var playback by remember { mutableStateOf<VideoPlayback?>(null) }
     // One picture player for as long as videos are on and watched, so songs change without rebuilding it.
     val videoActive = videoMode && visible && !offline && !hidePlayerThumbnail && !isListenTogetherGuest
+    val playerVideo: PlayerVideoViewModel = hiltViewModel()
     DisposableEffect(videoActive) {
-        if (videoActive) playback = VideoPlayback(context, playerConnection.player)
-        onDispose {
-            playback?.release()
-            playback = null
-        }
+        if (videoActive) playerVideo.use(playerConnection.player)
+        onDispose { if (videoActive) playerVideo.letGo() }
     }
+    val playback = playerVideo.playback.takeIf { videoActive }
     val maxVideoHeight =
         videoQuality.maxHeight
             ?: if (context.getSystemService<ConnectivityManager>()?.isActiveNetworkMetered != false) 480 else 720
@@ -285,10 +285,11 @@ fun Thumbnail(
         val songId = mediaMetadata?.id ?: return@LaunchedEffect
         if (clip != null) playback?.show(songId, clip, maxVideoHeight)
     }
-    var fullscreen by remember { mutableStateOf(false) }
-    // Full screen stays open from song to song, and closes on one that has no video.
+    // Full screen (shown by the activity, see PlayerVideoFullscreen) stays open from song to song,
+    // and closes on one that has no video.
+    val fullscreen = playerVideo.fullscreen
     val noVideo = lookup != null && lookup.second == null
-    LaunchedEffect(playback, noVideo) { if (playback == null || noVideo) fullscreen = false }
+    LaunchedEffect(noVideo) { if (noVideo) playerVideo.fullscreen = false }
     
     // Grid state
     val thumbnailLazyGridState = rememberLazyGridState()
@@ -483,7 +484,7 @@ fun Thumbnail(
                                 currentMediaThumbnail = mediaMetadata?.thumbnailUrl,
                                 onLongPress = onMore,
                                 video = playback.takeIf { clip != null && item.mediaId == mediaMetadata?.id && !fullscreen },
-                                onFullscreen = { fullscreen = true },
+                                onFullscreen = { playerVideo.fullscreen = true },
                             )
                         }
                     }
@@ -497,10 +498,6 @@ fun Thumbnail(
                 delay(1000)
                 showSeekEffect = false
             }
-        }
-
-        playback?.takeIf { fullscreen }?.let { active ->
-            VideoFullscreen(active, onDismiss = { fullscreen = false })
         }
 
         AnimatedVisibility(

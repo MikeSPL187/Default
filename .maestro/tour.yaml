@@ -79,6 +79,42 @@ appId: com.metrolist.music
 - waitForAnimationToEnd:
     timeout: 10000
 - takeScreenshot: ${P}11-player
+# The music video on the whole screen turns it sideways; closing it must bring the player back upright.
+- tapOn:
+    text: "Video"
+    optional: true
+- extendedWaitUntil:
+    visible: "Watch full screen"
+    timeout: 30000
+    optional: true
+- takeScreenshot: ${P}11a-player-video
+- runFlow:
+    when:
+      visible: "Watch full screen"
+    commands:
+      - tapOn:
+          text: "Watch full screen"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 10000
+      - takeScreenshot: ${P}11b-video-fullscreen
+      # The controls step aside while it plays; a tap away from the buttons brings them back.
+      - runFlow:
+          when:
+            notVisible: "Exit full screen"
+          commands:
+            - tapOn:
+                point: "85%,70%"
+                optional: true
+      - tapOn:
+          text: "Exit full screen"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 10000
+      - takeScreenshot: ${P}11c-video-closed
+- tapOn:
+    text: "Song"
+    optional: true
 - tapOn:
     text: "Lyrics"
     optional: true
