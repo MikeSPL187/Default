@@ -364,7 +364,35 @@ appId: com.metrolist.music
     optional: true
 - waitForAnimationToEnd
 - takeScreenshot: ${P}24-appearance
+- scroll
+- takeScreenshot: ${P}24b-appearance-2
+- scroll
+- takeScreenshot: ${P}24c-appearance-3
 - back
+- waitForAnimationToEnd
+# The longer settings screens, beyond their first screenful.
+- runFlow:
+    when:
+      visible: "Player and audio"
+    commands:
+      - tapOn: "Player and audio"
+      - waitForAnimationToEnd
+      - scroll
+      - takeScreenshot: ${P}24d-player-audio-2
+      - scroll
+      - takeScreenshot: ${P}24e-player-audio-3
+      - back
+      - waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Content"
+    commands:
+      - tapOn: "Content"
+      - waitForAnimationToEnd
+      - scroll
+      - takeScreenshot: ${P}24f-content-2
+      - back
+      - waitForAnimationToEnd
 - back
 
 # Charts and new releases from home
