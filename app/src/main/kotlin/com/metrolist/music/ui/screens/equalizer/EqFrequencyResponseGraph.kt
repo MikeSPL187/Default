@@ -47,10 +47,11 @@ private data class BiquadCoeffs(
 private const val SAMPLE_RATE = 48000
 private const val MIN_FREQ = 20.0
 private const val MAX_FREQ = 20000.0
-private const val GRAPH_PADDING_LEFT = 40f
-private const val GRAPH_PADDING_RIGHT = 8f
-private const val GRAPH_PADDING_TOP = 8f
-private const val GRAPH_PADDING_BOTTOM = 24f
+// In dp, so a label such as "-2.5" fits beside the plot at any screen density.
+private val GRAPH_PADDING_LEFT = 34.dp
+private val GRAPH_PADDING_RIGHT = 8.dp
+private val GRAPH_PADDING_TOP = 8.dp
+private val GRAPH_PADDING_BOTTOM = 18.dp
 
 /**
  * Frequency response graph for an EQ profile.
@@ -90,10 +91,10 @@ fun EqFrequencyResponseGraph(
                 .height(200.dp)
                 .padding(4.dp)
         ) {
-            val plotLeft = GRAPH_PADDING_LEFT
-            val plotRight = size.width - GRAPH_PADDING_RIGHT
-            val plotTop = GRAPH_PADDING_TOP
-            val plotBottom = size.height - GRAPH_PADDING_BOTTOM
+            val plotLeft = GRAPH_PADDING_LEFT.toPx()
+            val plotRight = size.width - GRAPH_PADDING_RIGHT.toPx()
+            val plotTop = GRAPH_PADDING_TOP.toPx()
+            val plotBottom = size.height - GRAPH_PADDING_BOTTOM.toPx()
             val plotWidth = plotRight - plotLeft
             val plotHeight = plotBottom - plotTop
 
@@ -159,10 +160,12 @@ fun EqFrequencyResponseGraph(
                     val curvePath = Path()
                     val fillPath = Path()
 
+                    // The fill shows the boost or cut, so it runs to the 0 dB line rather than the bottom.
+                    val zeroY = dbToY(0.0)
                     val firstX = freqToX(graphData.points.first().first)
                     val firstY = dbToY(graphData.points.first().second)
                     curvePath.moveTo(firstX, firstY)
-                    fillPath.moveTo(firstX, plotBottom)
+                    fillPath.moveTo(firstX, zeroY)
                     fillPath.lineTo(firstX, firstY)
 
                     for (i in 1 until graphData.points.size) {
@@ -173,9 +176,9 @@ fun EqFrequencyResponseGraph(
                         fillPath.lineTo(x, y)
                     }
 
-                    // Close fill path down to bottom of plot
+                    // Close the fill back on the 0 dB line
                     val lastX = freqToX(graphData.points.last().first)
-                    fillPath.lineTo(lastX, plotBottom)
+                    fillPath.lineTo(lastX, zeroY)
                     fillPath.close()
 
                     drawPath(fillPath, color = fillColor)
