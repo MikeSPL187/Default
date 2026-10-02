@@ -564,7 +564,8 @@ fun HistoryScreen(
                         contentDescription = stringResource(R.string.more_options),
                     )
                 }
-            } else if (!isSearching) {
+            } else if (!isSearching && !(historySource == HistorySource.LOCAL && events.isEmpty())) {
+                // Nothing to search in an empty history.
                 IconButton(
                     onClick = { isSearching = true },
                 ) {

@@ -107,7 +107,7 @@
     <string name="restart_required">Restart required!</string>
     <string name="density_restart_message">The display density change will take effect after restarting the app. Restart now?</string>
     <string name="wavy">Wavy</string>
-    <string name="enable_swipe_thumbnail">Enable swipe to change song</string>
+    <string name="enable_swipe_thumbnail">Swipe to change song</string>
     <string name="swipe_song_to_add">Swipe left to add the song to the queue, or right to play it next</string>
     <string name="swipe_song_to_remove">Swipe to remove the song from the playlist</string>
     <string name="lyrics_click_change">Change lyrics on tap</string>
@@ -121,7 +121,7 @@
     <string name="show_interval_indicator_desc">Shows a progress bar during long instrumental gaps</string>
     <string name="respect_agent_positioning">Respect agent positioning</string>
     <string name="respect_agent_positioning_desc">Align lyrics based on the agent role (e.g. background vocals)</string>
-    <string name="lyrics_glow_effect">Enable glowing lyrics effect</string>
+    <string name="lyrics_glow_effect">Glowing lyrics</string>
     <string name="lyrics_glow_effect_desc">Adds a glowing animation and bounce effect to the active lyric line</string>
     <string name="lyrics_animation_style">Lyrics animation style</string>
     <string name="lyrics_animation_none">None</string>
@@ -154,7 +154,7 @@
     <string name="show_downloaded_playlist">Show Downloaded playlist</string>
     <string name="show_top_playlist">Show Top playlist</string>
     <string name="show_cached_playlist">Show Cached playlist</string>
-    <string name="enable_song_cache">Enable song cache</string>
+    <string name="enable_song_cache">Song cache</string>
     <string name="enable_song_cache_desc">Automatically cache songs for faster future playback</string>
     <string name="show_uploaded_playlist">Show Uploaded playlist</string>
     <string name="show_most_stats_playlists">Show Weekly and Monthly Most playlists</string>
@@ -212,7 +212,7 @@
 
     <string name="auto_radio_queue">Auto radio queue</string>
     <string name="auto_radio_queue_desc">Automatically create a radio queue when playing a song from search or home</string>
-    <string name="enable_similar_content">Enable similar content</string>
+    <string name="enable_similar_content">Similar content</string>
     <string name="similar_content_desc">Automatically adds more similar songs when the end of the queue is reached</string>
     <string name="persistent_shuffle_title">Persistent shuffle</string>
     <string name="persistent_shuffle_desc">Keep shuffle enabled when starting new songs or playlists</string>
@@ -291,7 +291,7 @@
     <!-- Sleep timer -->
     <string name="set_as_default">Set as default</string>
     <string name="sleep_timer_default_set">Sleep timer default set to %d minutes</string>
-    <string name="enable_automatic_sleeptimer">Enable automatic sleep timer</string>
+    <string name="enable_automatic_sleeptimer">Automatic sleep timer</string>
     <string name="sleeptimer_description">Automatically starts the sleep timer at a set time using the default duration</string>
     <string name="sleep_timer_repeat_description">Set a recurring day and time for the sleep timer to activate automatically</string>
     <string name="sleep_timer_repeat">Repeat</string>
@@ -393,13 +393,13 @@
     <string name="kmp_upgrade_later">Not now</string>
 
     <!-- Offload -->
-    <string name="audio_offload">Enable audio offload</string>
+    <string name="audio_offload">Audio offload</string>
     <string name="audio_offload_description">Uses the hardware audio offload path for playback. Disabling this may increase battery usage, but can help if you experience issues with playback or audio post-processing</string>
     <string name="audio_offload_disabled_by_crossfade">Disabled because crossfade is active</string>
 
     <!-- Varispeed -->
     <string name="speed">Playback Speed</string>
-    <string name="varispeed">Enable varispeed</string>
+    <string name="varispeed">Varispeed</string>
     <string name="varispeed_description">Link pitch to playback speed, resulting in tape-style speedup and slowdown effects</string>
 
     <!-- AudioTrack Playback Parameters -->
@@ -418,7 +418,7 @@
 
     <!-- Last.fm -->
     <string name="lastfm_integration">Last.fm integration</string>
-    <string name="enable_scrobbling">Enable scrobbling</string>
+    <string name="enable_scrobbling">Scrobbling</string>
     <string name="lastfm_now_playing">Send Now Playing status</string>
     <string name="last_fm_send_likes">Sync Loved and Unloved</string>
     <string name="last_fm_send_likes_description">Love or unlove songs in Last.fm when you like or unlike them in Metrolist</string>
@@ -812,7 +812,7 @@
     <string name="discord_error_banner_title">Discord error</string>
     <string name="discord_rpc_preview">Rich Presence preview</string>
     <string name="discord_integration">Discord Integration</string>
-    <string name="enable_discord_rpc">Enable Rich Presence</string>
+    <string name="enable_discord_rpc">Rich Presence</string>
     <string name="discord_advanced_mode">Advanced mode</string>
     <string name="discord_advanced_mode_description">Customize every field of your Rich Presence with placeholders</string>
     <string name="discord_presence">Presence</string>

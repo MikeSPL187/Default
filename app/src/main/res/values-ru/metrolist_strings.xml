@@ -19,10 +19,10 @@
     <string name="proxy">Прокси</string>
     <string name="last_song_listened">На основе последнего прослушанного трека</string>
     <string name="app_language">Язык приложения</string>
-    <string name="enable_similar_content">Включить похожий контент</string>
+    <string name="enable_similar_content">Похожий контент</string>
     <string name="similar_content_desc">Автоматически добавляет больше похожих треков при достижении конца очереди</string>
     <string name="views">Просмотры</string>
-    <string name="enable_swipe_thumbnail">Включить переключение треков свайпом</string>
+    <string name="enable_swipe_thumbnail">Переключение треков свайпом</string>
     <string name="copy_link">Скопировать ссылку</string>
     <plurals name="seconds">
         <item quantity="one">%d секунда</item>
@@ -151,7 +151,7 @@
     <string name="edit_playlist_cover_note_wait">После выбора изображения подождите немного, пока новая обложка появится в вашем плейлисте</string>
     <string name="remove_custom_image">Удалить собственное изображение</string>
     <string name="choose_from_library">Выбрать из библиотеки</string>
-    <string name="audio_offload">Включить аппаратное ускорение аудио</string>
+    <string name="audio_offload">Аппаратное ускорение аудио</string>
     <string name="audio_offload_description">Использует аппаратный путь вывода аудио для воспроизведения. Отключение может увеличить расход батареи, но может помочь при проблемах с воспроизведением или постобработкой звука</string>
     <string name="uploaded_playlist">Загруженные</string>
     <string name="filter_uploaded">Загруженные</string>
@@ -166,7 +166,7 @@
     <string name="username">Имя пользователя</string>
     <string name="password">Пароль</string>
     <string name="lastfm_integration">Интеграция с Last.fm</string>
-    <string name="enable_scrobbling">Включить скробблинг</string>
+    <string name="enable_scrobbling">Скробблинг</string>
     <string name="lastfm_now_playing">Отправлять статус «Сейчас играет»</string>
     <string name="scrobbling_configuration">Настройки скробблинга</string>
     <string name="scrobble_min_track_duration">Скробблить треки длиннее (в секундах)</string>
@@ -213,7 +213,7 @@
     <string name="lyrics_line_spacing">Межстрочный интервал</string>
     <string name="shuffle_playlist_first">Сначала перемешать плейлист или альбом</string>
     <string name="shuffle_playlist_first_desc">При перемешивании проигрывать все треки из текущего плейлиста или альбома перед переходом к похожему контенту</string>
-    <string name="lyrics_glow_effect">Включить эффект свечения текста</string>
+    <string name="lyrics_glow_effect">Свечение текста</string>
     <string name="lyrics_glow_effect_desc">Добавляет свечение и эффект отскока для текущей строки</string>
     <string name="show_wrapped_card">Показать карточку Wrapped</string>
     <string name="album_art_for">Обложка альбома для %s</string>
@@ -643,7 +643,7 @@
     </plurals>
     <string name="view_channel">Перейти к каналу</string>
     <string name="filter_profiles">Профили</string>
-    <string name="enable_automatic_sleeptimer">Включить автоматический таймер сна</string>
+    <string name="enable_automatic_sleeptimer">Автоматический таймер сна</string>
     <string name="sleeptimer_description">Автоматически запускает таймер сна в заданное время с длительностью по умолчанию</string>
     <string name="sleep_timer_repeat_description">Настройте расписание для автоматического запуска таймера</string>
     <string name="sleep_timer_repeat">Повтор</string>
@@ -687,7 +687,7 @@
     <string name="ai_provider_mistral_help">Откройте https://console.mistral.ai/api-keys</string>
     <string name="weekly_most_playlist_name">Топ за неделю</string>
     <string name="monthly_most_playlist_name">Топ за месяц</string>
-    <string name="enable_song_cache">Включить кэширование аудио</string>
+    <string name="enable_song_cache">Кэширование аудио</string>
     <string name="enable_song_cache_desc">Автоматически кэшировать аудио для более быстрого последующего воспроизведения</string>
     <string name="sleep_timer_stop_after_current_song_title">Остановить в конце текущего трека</string>
     <string name="sleep_timer_stop_after_current_song_description">Ожидает окончания текущего трека перед остановкой</string>
@@ -778,7 +778,7 @@
     <string name="lyrics_animation_style_title">Стиль анимации по словам</string>
     <string name="parsed_from_link">Получено по ссылке</string>
     <string name="speed">Скорость воспроизведения</string>
-    <string name="varispeed">Включить Varispeed</string>
+    <string name="varispeed">Varispeed</string>
     <string name="varispeed_description">Связать высоту тона со скоростью воспроизведения, создавая эффект ускорения и замедления как у магнитной ленты</string>
     <string name="back">Назад</string>
     <string name="clear_search">Очистить поиск</string>
@@ -890,7 +890,7 @@
     <string name="update_available_message">Metrolist %s готов к загрузке.</string>
     <string name="update_action">Обновить</string>
     <string name="discord_integration">Интеграция с Discord</string>
-    <string name="enable_discord_rpc">Включить Rich Presence</string>
+    <string name="enable_discord_rpc">Rich Presence</string>
     <string name="force_bottom_navbar">Всегда использовать нижнюю панель навигации</string>
 
     <!-- Huawei Watch export -->
