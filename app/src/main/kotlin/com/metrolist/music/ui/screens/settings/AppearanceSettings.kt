@@ -935,7 +935,7 @@ fun AppearanceSettings(
                         add(
                             Material3SettingsItem(
                                 icon = painterResource(R.drawable.auto_awesome),
-                                title = { Text(stringResource(R.string.enable_dynamic_theme)) },
+                                title = { Text(stringResource(R.string.dynamic_theme_switch)) },
                                 trailingContent = {
                                     Switch(
                                         checked = dynamicTheme,

@@ -985,7 +985,8 @@
 
     <!-- Stream sources -->
     <string name="enable_dynamic_icon">Dynamic icon colors</string>
-    <string name="enable_dynamic_icon_desc">Use dynamic theme colors for the app icon. When disabled, the icon uses solid colors.</string>
+    <string name="enable_dynamic_icon_desc">The app icon takes the theme\'s colors</string>
+    <string name="dynamic_theme_switch">Dynamic theme</string>
     <string name="stream_sources">Stream sources</string>
     <string name="stream_source_order">Stream order</string>
     <string name="stream_source_web_clients">Web clients</string>
