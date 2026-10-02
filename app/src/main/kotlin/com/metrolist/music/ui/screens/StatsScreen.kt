@@ -828,13 +828,17 @@ fun StatsScreen(
         },
         actions = {
             if (!isSearching) {
-                androidx.compose.material3.IconButton(
-                    onClick = { isSearching = true },
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.search),
-                        contentDescription = stringResource(R.string.search),
-                    )
+                // Filtering by artist needs something played in the period first.
+                val anythingPlayed = mostPlayedSongsStats.isNotEmpty() || mostPlayedArtists.isNotEmpty() || mostPlayedAlbums.isNotEmpty()
+                if (anythingPlayed || sArtists.isNotEmpty()) {
+                    androidx.compose.material3.IconButton(
+                        onClick = { isSearching = true },
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.search),
+                            contentDescription = stringResource(R.string.search),
+                        )
+                    }
                 }
                 // A rare repair of the counts, so it is named in a menu instead of a bare icon.
                 Box {
