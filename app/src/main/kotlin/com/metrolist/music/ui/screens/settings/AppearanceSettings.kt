@@ -923,50 +923,10 @@ fun AppearanceSettings(
                 buildList {
                     add(
                         Material3SettingsItem(
-                            icon = painterResource(R.drawable.speed),
-                            title = { Text(stringResource(R.string.enable_high_refresh_rate)) },
-                            description = { Text(stringResource(R.string.enable_high_refresh_rate_desc)) },
-                            trailingContent = {
-                                Switch(
-                                    checked = enableHighRefreshRate,
-                                    onCheckedChange = onEnableHighRefreshRateChange,
-                                    thumbContent = {
-                                        Icon(
-                                            painter =
-                                                painterResource(
-                                                    id = if (enableHighRefreshRate) R.drawable.check else R.drawable.close,
-                                                ),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(SwitchDefaults.IconSize),
-                                        )
-                                    },
-                                )
-                            },
-                            onClick = { onEnableHighRefreshRateChange(!enableHighRefreshRate) },
-                        ),
-                    )
-                    add(
-                        Material3SettingsItem(
-                            icon = painterResource(R.drawable.fullscreen),
-                            title = { Text(stringResource(R.string.enable_landscape_scaling)) },
-                            description = { Text(stringResource(R.string.enable_landscape_scaling_desc)) },
-                            trailingContent = {
-                                Switch(
-                                    checked = enableLandscapeScaling,
-                                    onCheckedChange = onEnableLandscapeScalingChange,
-                                    thumbContent = {
-                                        Icon(
-                                            painter =
-                                                painterResource(
-                                                    id = if (enableLandscapeScaling) R.drawable.check else R.drawable.close,
-                                                ),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(SwitchDefaults.IconSize),
-                                        )
-                                    },
-                                )
-                            },
-                            onClick = { onEnableLandscapeScalingChange(!enableLandscapeScaling) },
+                            icon = painterResource(R.drawable.palette),
+                            title = { Text(stringResource(R.string.theme_colors)) },
+                            description = { Text(stringResource(R.string.theme_desc)) },
+                            onClick = { navController.navigate("settings/appearance/theme") },
                         ),
                     )
                     // Only show dynamic theme option when using the default/dynamic color
@@ -974,7 +934,7 @@ fun AppearanceSettings(
                     if (!isUsingCustomColor) {
                         add(
                             Material3SettingsItem(
-                                icon = painterResource(R.drawable.palette),
+                                icon = painterResource(R.drawable.auto_awesome),
                                 title = { Text(stringResource(R.string.enable_dynamic_theme)) },
                                 trailingContent = {
                                     Switch(
@@ -998,7 +958,7 @@ fun AppearanceSettings(
                     }
                     add(
                         Material3SettingsItem(
-                            icon = painterResource(R.drawable.palette),
+                            icon = painterResource(R.drawable.small_icon),
                             title = { Text(stringResource(R.string.enable_dynamic_icon)) },
                             description = { Text(stringResource(R.string.enable_dynamic_icon_desc)) },
                             trailingContent = {
@@ -1018,14 +978,6 @@ fun AppearanceSettings(
                                 )
                             },
                             onClick = { onEnableDynamicIconChange(!enableDynamicIcon) },
-                        ),
-                    )
-                    add(
-                        Material3SettingsItem(
-                            icon = painterResource(R.drawable.palette),
-                            title = { Text(stringResource(R.string.theme)) },
-                            description = { Text(stringResource(R.string.theme_desc)) },
-                            onClick = { navController.navigate("settings/appearance/theme") },
                         ),
                     )
                 },
@@ -1569,7 +1521,7 @@ fun AppearanceSettings(
         Spacer(modifier = Modifier.height(27.dp))
 
         Material3SettingsGroup(
-            title = stringResource(R.string.misc),
+            title = stringResource(R.string.appearance_section_display),
             items =
                 listOf(
                     Material3SettingsItem(
@@ -1729,6 +1681,50 @@ fun AppearanceSettings(
                             Text(DensityScale.fromValue(densityScale).label)
                         },
                         onClick = { showDensityScaleDialog = true },
+                    ),
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.speed),
+                        title = { Text(stringResource(R.string.enable_high_refresh_rate)) },
+                        description = { Text(stringResource(R.string.enable_high_refresh_rate_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = enableHighRefreshRate,
+                                onCheckedChange = onEnableHighRefreshRateChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter =
+                                            painterResource(
+                                                id = if (enableHighRefreshRate) R.drawable.check else R.drawable.close,
+                                            ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize),
+                                    )
+                                },
+                            )
+                        },
+                        onClick = { onEnableHighRefreshRateChange(!enableHighRefreshRate) },
+                    ),
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.fullscreen),
+                        title = { Text(stringResource(R.string.enable_landscape_scaling)) },
+                        description = { Text(stringResource(R.string.enable_landscape_scaling_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = enableLandscapeScaling,
+                                onCheckedChange = onEnableLandscapeScalingChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter =
+                                            painterResource(
+                                                id = if (enableLandscapeScaling) R.drawable.check else R.drawable.close,
+                                            ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize),
+                                    )
+                                },
+                            )
+                        },
+                        onClick = { onEnableLandscapeScalingChange(!enableLandscapeScaling) },
                     ),
                 ),
         )

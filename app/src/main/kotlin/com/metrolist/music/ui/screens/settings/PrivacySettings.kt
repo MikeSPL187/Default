@@ -225,7 +225,7 @@ fun PrivacySettings(
         Spacer(modifier = Modifier.height(27.dp))
 
         Material3SettingsGroup(
-            title = stringResource(R.string.misc),
+            title = stringResource(R.string.privacy_section_screenshots),
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.screenshot),

@@ -172,6 +172,7 @@
     <string name="skip_silence_desc">Fast-forward through silent parts of songs</string>
     <string name="skip_silence_instant">Instantly skip silence</string>
     <string name="skip_silence_instant_desc">Jump ahead during silent moments instead of speeding up playback</string>
+    <string name="skip_silence_instant_needs">Works with Skip silence turned on</string>
 
     <string name="advanced_login">Log in with token</string>
     <string name="token_hidden">Tap to show token</string>
@@ -372,6 +373,10 @@
     <string name="settings_section_player_content">Player &amp; Content</string>
     <string name="settings_section_storage">Storage &amp; Data</string>
     <string name="settings_section_system">System &amp; About</string>
+    <string name="settings_section_listening">Listening</string>
+    <string name="settings_section_privacy_data">Privacy &amp; Data</string>
+    <string name="appearance_section_display">Display &amp; Navigation</string>
+    <string name="privacy_section_screenshots">Screenshots</string>
 
     <!-- Updater -->
     <string name="updater">Updater</string>
@@ -682,6 +687,8 @@
     <string name="ai_translation_mode">Translation mode</string>
     <string name="ai_target_language">Target language</string>
     <string name="ai_setup_guide">API credentials</string>
+    <string name="ai_section_service">Service</string>
+    <string name="ai_section_translation">Translation</string>
     <string name="ai_translation_literal">Translation</string>
     <string name="ai_translation_literal_desc">Translates the meaning into the target language</string>
     <string name="ai_translation_transcribed">Transcription</string>
@@ -1079,6 +1086,10 @@
 
     <!-- Watch playlist sync summary -->
     <string name="watch_synced_playlists_desc">%1$d synced. Turn on in a playlist\'s menu</string>
+    <string name="storage_section_downloads">Downloads</string>
+    <string name="storage_section_watch">Watch</string>
+    <string name="downloaded_songs_none">Nothing downloaded yet</string>
+    <string name="downloaded_songs_summary">%1$s · %2$s</string>
 
     <!-- Smart downloads -->
     <string name="smart_downloads">Smart downloads</string>

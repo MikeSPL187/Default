@@ -133,6 +133,10 @@
     <string name="settings_section_player_content">Плеер и контент</string>
     <string name="settings_section_storage">Хранилище и данные</string>
     <string name="settings_section_system">Система и сведения</string>
+    <string name="settings_section_listening">Прослушивание</string>
+    <string name="settings_section_privacy_data">Конфиденциальность и данные</string>
+    <string name="appearance_section_display">Экран и навигация</string>
+    <string name="privacy_section_screenshots">Снимки экрана</string>
     <string name="starting_radio">Запускаем радио…</string>
     <string name="config_proxy">Настроить прокси</string>
     <string name="proxy_username">Имя пользователя прокси</string>
@@ -288,6 +292,7 @@
     <string name="skip_silence_desc">Ускорять воспроизведение тишины в треках</string>
     <string name="skip_silence_instant">Мгновенно пропускать тишину</string>
     <string name="skip_silence_instant_desc">Перескакивать тишину вместо её ускорения</string>
+    <string name="skip_silence_instant_needs">Работает, когда включено «Пропускать тишину»</string>
     <string name="about_artist">О исполнителе</string>
     <string name="show_more">Показать больше</string>
     <string name="show_less">Показать меньше</string>
@@ -435,6 +440,8 @@
     <string name="ai_translation_mode">Режим перевода</string>
     <string name="ai_target_language">Язык перевода</string>
     <string name="ai_setup_guide">Учётные данные API</string>
+    <string name="ai_section_service">Сервис</string>
+    <string name="ai_section_translation">Перевод</string>
     <string name="ai_translation_literal">Перевод</string>
     <string name="ai_translation_transcribed">Транскрипция</string>
     <string name="ai_api_key_required">Требуется ключ API</string>
@@ -972,6 +979,10 @@
 
     <!-- Watch playlist sync summary -->
     <string name="watch_synced_playlists_desc">Синхронизируется: %1$d. Включается в меню плейлиста</string>
+    <string name="storage_section_downloads">Скачивание</string>
+    <string name="storage_section_watch">Часы</string>
+    <string name="downloaded_songs_none">Пока ничего не скачано</string>
+    <string name="downloaded_songs_summary">%1$s · %2$s</string>
 
     <!-- Smart downloads -->
     <string name="smart_downloads">Умные загрузки</string>

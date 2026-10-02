@@ -498,8 +498,10 @@ fun AiSettings(navController: NavController) {
         )
         LargeScreenTitle(stringResource(R.string.ai_lyrics_translation), horizontalPadding = 4.dp)
 
+        // The service and its keys in one group, how lyrics are translated in the other, so no
+        // heading only repeats the row under it.
         Material3SettingsGroup(
-            title = stringResource(R.string.ai_provider),
+            title = stringResource(R.string.ai_section_service),
             items =
                 listOf(
                     Material3SettingsItem(
@@ -527,15 +529,8 @@ fun AiSettings(navController: NavController) {
                     } else {
                         null
                     },
-                ).filterNotNull(),
-        )
-
-        Spacer(modifier = Modifier.height(27.dp))
-
-        Material3SettingsGroup(
-            title = stringResource(R.string.ai_setup_guide),
-            items =
-                buildList {
+                ).filterNotNull() +
+                buildList<Material3SettingsItem> {
                     if (aiProvider == "DeepL") {
                         add(
                             Material3SettingsItem(
@@ -602,7 +597,7 @@ fun AiSettings(navController: NavController) {
         Spacer(modifier = Modifier.height(27.dp))
 
         Material3SettingsGroup(
-            title = stringResource(R.string.ai_translation_mode),
+            title = stringResource(R.string.ai_section_translation),
             items =
                 buildList {
                     if (aiProvider != "DeepL") {

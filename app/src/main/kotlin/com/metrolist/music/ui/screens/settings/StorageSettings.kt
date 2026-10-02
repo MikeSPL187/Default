@@ -49,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -56,6 +57,7 @@ import coil3.annotation.ExperimentalCoilApi
 import coil3.imageLoader
 import android.widget.Toast
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadService
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalDownloadUtil
@@ -119,6 +121,8 @@ fun StorageSettings(
     val watchSyncedPlaylistIds by downloadUtil.watchPlaylistSync.syncedPlaylistIds
         .collectAsStateWithLifecycle(initialValue = emptySet())
     val watchExportBatch by downloadUtil.watchExportManager.batchState.collectAsStateWithLifecycle()
+    val downloads by downloadUtil.downloads.collectAsStateWithLifecycle()
+    val downloadedCount = remember(downloads) { downloads.values.count { it.state == Download.STATE_COMPLETED } }
     val requestExportAllForWatch = rememberSharedStorageAction { exportAllForWatchDialog = true }
     val (autoExportForWatch, onAutoExportForWatchChange) = rememberPreference(
         key = AutoExportForWatchKey,
@@ -362,14 +366,24 @@ fun StorageSettings(
         )
         LargeScreenTitle(stringResource(R.string.storage), horizontalPadding = 4.dp)
         Material3SettingsGroup(
-            title = stringResource(R.string.storage),
+            title = stringResource(R.string.storage_section_downloads),
             items =
                 listOf(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.storage),
                         title = { Text(stringResource(R.string.downloaded_songs)) },
                         description = {
-                            Text(text = Formatter.formatShortFileSize(context, downloadCacheSize))
+                            Text(
+                                if (downloadedCount == 0 && downloadCacheSize == 0L) {
+                                    stringResource(R.string.downloaded_songs_none)
+                                } else {
+                                    stringResource(
+                                        R.string.downloaded_songs_summary,
+                                        pluralStringResource(R.plurals.n_song, downloadedCount, downloadedCount),
+                                        Formatter.formatShortFileSize(context, downloadCacheSize),
+                                    )
+                                },
+                            )
                         },
                     ),
                     Material3SettingsItem(
@@ -440,6 +454,22 @@ fun StorageSettings(
                         },
                     ),
                     Material3SettingsItem(
+                        icon = painterResource(R.drawable.clear_all),
+                        title = { Text(stringResource(R.string.clear_all_downloads)) },
+                        // Nothing to clear yet.
+                        enabled = downloadedCount > 0 || downloadCacheSize > 0L,
+                        onClick = {
+                            clearDownloads = true
+                        },
+                    ),
+                ),
+        )
+
+        Material3SettingsGroup(
+            title = stringResource(R.string.storage_section_watch),
+            items =
+                listOf(
+                    Material3SettingsItem(
                         icon = painterResource(R.drawable.watch_check),
                         title = { Text(stringResource(R.string.export_all_for_watch)) },
                         description = {
@@ -494,13 +524,6 @@ fun StorageSettings(
                         title = { Text(stringResource(R.string.watch_synced_playlists)) },
                         description = {
                             Text(stringResource(R.string.watch_synced_playlists_desc, watchSyncedPlaylistIds.size))
-                        },
-                    ),
-                    Material3SettingsItem(
-                        icon = painterResource(R.drawable.clear_all),
-                        title = { Text(stringResource(R.string.clear_all_downloads)) },
-                        onClick = {
-                            clearDownloads = true
                         },
                     ),
                 ),

@@ -438,7 +438,10 @@ fun PlayerSettings(
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.skip_next),
                     title = { Text(stringResource(R.string.skip_silence_instant)) },
-                    description = { Text(stringResource(R.string.skip_silence_instant_desc)) },
+                    description = {
+                        Text(stringResource(if (skipSilence) R.string.skip_silence_instant_desc else R.string.skip_silence_instant_needs))
+                    },
+                    enabled = skipSilence,
                     trailingContent = {
                         Switch(
                             checked = skipSilenceInstant,
