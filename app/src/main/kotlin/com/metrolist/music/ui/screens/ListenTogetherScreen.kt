@@ -1244,6 +1244,17 @@ private fun JoinCreateRoomSection(
             val hasUsername = usernameInput.trim().isNotBlank() || savedUsername.isNotBlank()
             val hasRoomCode = roomCodeInput.length == 8
 
+            // Without a name neither button shows, so the screen says what comes next.
+            AnimatedVisibility(visible = !hasUsername) {
+                Text(
+                    text = stringResource(R.string.listen_together_name_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
             // Create Room button - visible when username is provided
             AnimatedVisibility(visible = hasUsername && !hasRoomCode) {
                 Button(

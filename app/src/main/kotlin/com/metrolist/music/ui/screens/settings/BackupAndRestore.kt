@@ -214,7 +214,7 @@ fun BackupAndRestore(
                                 },
                             )
                         },
-                        icon = painterResource(R.drawable.backup),
+                        icon = painterResource(R.drawable.baseline_event_repeat_24),
                         trailingContent = {
                             Switch(
                                 checked = autoBackup,
