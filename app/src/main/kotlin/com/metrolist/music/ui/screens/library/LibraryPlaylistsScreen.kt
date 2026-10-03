@@ -409,6 +409,9 @@ fun LibraryPlaylistsScreen(
                                     modifier = Modifier.animateItem(),
                                     icon = R.drawable.playlist_play,
                                     text = stringResource(R.string.library_playlist_empty),
+                                    hint = stringResource(R.string.library_playlist_empty_hint),
+                                    action = stringResource(R.string.playlist_import_title),
+                                    onAction = { navController.navigate("playlist_import") },
                                 )
                             }
                         }
@@ -477,6 +480,9 @@ fun LibraryPlaylistsScreen(
                                     modifier = Modifier.animateItem(),
                                     icon = R.drawable.playlist_play,
                                     text = stringResource(R.string.library_playlist_empty),
+                                    hint = stringResource(R.string.library_playlist_empty_hint),
+                                    action = stringResource(R.string.playlist_import_title),
+                                    onAction = { navController.navigate("playlist_import") },
                                 )
                             }
                         }

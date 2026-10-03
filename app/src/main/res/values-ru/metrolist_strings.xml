@@ -1388,6 +1388,10 @@
     <string name="empty_liked_hint">Нажмите ♡ у любого трека — он появится здесь.</string>
     <string name="empty_downloaded_hint">Скачивайте треки и плейлисты, чтобы слушать без интернета.</string>
     <string name="empty_find_music">Найти музыку</string>
+    <string name="library_album_empty_hint">Сохраните альбом на его странице — и он появится здесь</string>
+    <string name="library_song_empty_hint">Отметьте песню ♡ или добавьте её в медиатеку — и она появится здесь</string>
+    <string name="library_artist_empty_hint">Подпишитесь на исполнителя на его странице — и он появится здесь</string>
+    <string name="library_playlist_empty_hint">Создайте плейлист кнопкой + или перенесите свои из Яндекс Музыки или Spotify</string>
     <string name="empty_history_hint">Здесь по дням появится всё, что вы слушали.</string>
     <string name="player_error_title">Не удалось включить трек</string>
     <string name="player_error_hint">YouTube не отдал этот трек. Попробуйте ещё раз или включите следующий.</string>

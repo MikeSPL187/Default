@@ -1490,6 +1490,10 @@
     <string name="empty_liked_hint">Tap ♡ on any song and it will appear here.</string>
     <string name="empty_downloaded_hint">Download songs and playlists to listen without internet.</string>
     <string name="empty_find_music">Find music</string>
+    <string name="library_album_empty_hint">Save an album from its page and it will appear here</string>
+    <string name="library_song_empty_hint">Like a song or add it to your library and it will appear here</string>
+    <string name="library_artist_empty_hint">Subscribe to an artist on their page and they will appear here</string>
+    <string name="library_playlist_empty_hint">Create one with + or bring yours from Yandex Music or Spotify</string>
     <string name="empty_history_hint">What you listen to will show up here, day by day.</string>
     <string name="player_error_title">Couldn\'t play this track</string>
     <string name="player_error_hint">YouTube didn\'t give us this track. Try again or skip to the next one.</string>

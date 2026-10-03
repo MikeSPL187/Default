@@ -66,6 +66,7 @@ import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.LocalSyncUtils
 import com.metrolist.music.R
+import com.metrolist.music.ui.component.EmptyPlaceholder
 import com.metrolist.music.constants.CONTENT_TYPE_HEADER
 import com.metrolist.music.constants.CONTENT_TYPE_SONG
 import com.metrolist.music.constants.PodcastFilter
@@ -323,19 +324,10 @@ fun LibraryPodcastsScreen(
 
                     if (podcastChannels.isEmpty()) {
                         item(key = "empty") {
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 48.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.no_subscribed_channels),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
+                            EmptyPlaceholder(
+                                icon = R.drawable.subscribe,
+                                text = stringResource(R.string.no_subscribed_channels),
+                            )
                         }
                     }
                 }
@@ -446,19 +438,10 @@ fun LibraryPodcastsScreen(
 
                     if (downloadedEpisodes.isEmpty()) {
                         item(key = "empty") {
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 48.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.no_downloaded_episodes),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
+                            EmptyPlaceholder(
+                                icon = R.drawable.offline,
+                                text = stringResource(R.string.no_downloaded_episodes),
+                            )
                         }
                     }
                 }

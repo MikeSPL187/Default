@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.screens.library
 
+import kotlinx.coroutines.delay
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -64,6 +65,7 @@ import com.metrolist.innertube.YouTube
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import com.metrolist.music.ui.screens.Screens
 import com.metrolist.music.constants.CONTENT_TYPE_HEADER
 import com.metrolist.music.constants.CONTENT_TYPE_SONG
 import com.metrolist.music.constants.HideExplicitKey
@@ -128,6 +130,12 @@ fun LibrarySongsScreen(
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
 
     val songs by viewModel.allSongs.collectAsStateWithLifecycle()
+    // The list starts empty until the database answers; the empty screen waits a moment so it never flashes.
+    var settled by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        delay(400)
+        settled = true
+    }
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val debouncedSearchQuery by viewModel.debouncedSearchQuery.collectAsStateWithLifecycle()
@@ -425,6 +433,20 @@ fun LibrarySongsScreen(
                     contentType = CONTENT_TYPE_HEADER,
                 ) {
                     LibrarySearchEmptyPlaceholder(modifier = Modifier.animateItem())
+                }
+            } else if (filteredSongs.isEmpty() && settled) {
+                item(
+                    key = "empty_library",
+                    contentType = CONTENT_TYPE_HEADER,
+                ) {
+                    LibrarySearchEmptyPlaceholder(
+                        icon = R.drawable.music_note,
+                        text = stringResource(R.string.library_song_empty),
+                        hint = stringResource(R.string.library_song_empty_hint),
+                        action = stringResource(R.string.empty_find_music),
+                        onAction = { navController.navigate(Screens.Search.route) },
+                        modifier = Modifier.animateItem(),
+                    )
                 }
             }
 

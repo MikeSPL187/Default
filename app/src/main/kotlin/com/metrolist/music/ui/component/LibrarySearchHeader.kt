@@ -97,10 +97,16 @@ fun LibrarySearchEmptyPlaceholder(
     modifier: Modifier = Modifier,
     icon: Int = R.drawable.search,
     text: String? = null,
+    hint: String? = null,
+    action: String? = null,
+    onAction: (() -> Unit)? = null,
 ) {
     EmptyPlaceholder(
         icon = icon,
         text = text ?: stringResource(R.string.no_results_found),
+        hint = hint,
+        action = action,
+        onAction = onAction,
         modifier = modifier,
     )
 }

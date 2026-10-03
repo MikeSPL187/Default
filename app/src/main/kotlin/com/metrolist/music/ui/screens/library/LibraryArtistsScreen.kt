@@ -49,6 +49,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.R
+import com.metrolist.music.ui.screens.Screens
 import com.metrolist.music.constants.ArtistFilter
 import com.metrolist.music.constants.ArtistFilterKey
 import com.metrolist.music.constants.ArtistSortDescendingKey
@@ -262,6 +263,9 @@ fun LibraryArtistsScreen(
                                     LibrarySearchEmptyPlaceholder(
                                         icon = R.drawable.artist,
                                         text = stringResource(R.string.library_artist_empty),
+                                        hint = stringResource(R.string.library_artist_empty_hint),
+                                        action = stringResource(R.string.empty_find_music),
+                                        onAction = { navController.navigate(Screens.Search.route) },
                                         modifier = Modifier.animateItem(),
                                     )
                                 }
@@ -321,6 +325,9 @@ fun LibraryArtistsScreen(
                                     LibrarySearchEmptyPlaceholder(
                                         icon = R.drawable.artist,
                                         text = stringResource(R.string.library_artist_empty),
+                                        hint = stringResource(R.string.library_artist_empty_hint),
+                                        action = stringResource(R.string.empty_find_music),
+                                        onAction = { navController.navigate(Screens.Search.route) },
                                         modifier = Modifier.animateItem(),
                                     )
                                 }
