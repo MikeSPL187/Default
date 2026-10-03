@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -60,6 +61,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -145,15 +147,23 @@ fun PlaylistImportScreen(
 
     var filter by rememberSaveable { mutableStateOf(TrackFilter.ALL) }
     var pickIndex by rememberSaveable { mutableStateOf<Int?>(null) }
+    val listState = rememberLazyListState()
+    // The bar lies over the cover's glow at the top and takes a background once the list runs under it.
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     // A little buzz when a transfer finishes while the screen is open, not on coming back to it.
     var lastPhase by remember { mutableStateOf(state.phase) }
     LaunchedEffect(state.phase) {
-        if (lastPhase == ImportState.Phase.IMPORTING && state.phase == ImportState.Phase.DONE) {
+        val previous = lastPhase
+        lastPhase = state.phase
+        if (previous == ImportState.Phase.IMPORTING && state.phase == ImportState.Phase.DONE) {
             haptic.performHapticFeedback(HapticFeedbackType.Confirm)
         }
         if (state.phase != ImportState.Phase.DONE) filter = TrackFilter.ALL
-        lastPhase = state.phase
+        // The ring and the result sit at the top: a list read down to its end comes back up to them.
+        if (previous != state.phase && (state.phase == ImportState.Phase.IMPORTING || state.phase == ImportState.Phase.DONE)) {
+            listState.animateScrollToItem(0)
+        }
     }
 
     val accent by animateColorAsState(
@@ -163,7 +173,7 @@ fun PlaylistImportScreen(
     )
     val bottomAction = state.phase == ImportState.Phase.PREVIEW || state.phase == ImportState.Phase.IMPORTING
 
-    Box(Modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection)) {
         if (playlist != null) {
             Box(
                 Modifier
@@ -186,6 +196,7 @@ fun PlaylistImportScreen(
             }
 
         LazyColumn(
+            state = listState,
             contentPadding =
                 PaddingValues(
                     top = insets.only(WindowInsetsSides.Top).asPaddingValues().calculateTopPadding(),
@@ -278,7 +289,8 @@ fun PlaylistImportScreen(
                     Icon(painterResource(R.drawable.arrow_back), contentDescription = stringResource(R.string.back))
                 }
             },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = colors.surfaceContainer),
+            scrollBehavior = scrollBehavior,
         )
     }
 
