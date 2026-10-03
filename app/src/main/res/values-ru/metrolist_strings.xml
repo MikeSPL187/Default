@@ -148,7 +148,7 @@
     <string name="line_by_line_option_title">Определять язык построчно</string>
     <string name="romanize_current_track">Романизировать текущий трек</string>
     <string name="edit_playlist_cover">Редактировать обложку плейлиста</string>
-    <string name="edit_playlist_cover_note">ПРИМЕЧАНИЕ: Для изменения обложки плейлиста аккаунт должен быть привязан к номеру телефона и подтверждён в YouTube Music</string>
+    <string name="edit_playlist_cover_note">Чтобы сменить обложку, аккаунт YouTube Music должен быть подтверждён номером телефона</string>
     <string name="edit_playlist_cover_note_wait">После выбора изображения подождите немного, пока новая обложка появится в вашем плейлисте</string>
     <string name="remove_custom_image">Удалить собственное изображение</string>
     <string name="choose_from_library">Выбрать из библиотеки</string>
@@ -206,7 +206,7 @@
     <string name="share_playlist_desc">Поделиться этим плейлистом с другими</string>
     <string name="delete_playlist_desc">Удалить этот плейлист навсегда</string>
     <string name="sync_playlist_desc">Синхронизировать этот плейлист с YouTube Music</string>
-    <string name="enable_better_lyrics">Включить Better Lyrics</string>
+    <string name="enable_better_lyrics">Better Lyrics</string>
     <string name="enable_better_lyrics_desc">Послоговая синхронизация текстов — идеально для караоке</string>
     <string name="lyrics_animation_style">Стиль анимации текста</string>
     <string name="none">Нет</string>
@@ -545,8 +545,8 @@
     <string name="density_restart_message">Изменение плотности интерфейса вступит в силу после перезапуска приложения. Перезапустить сейчас?</string>
     <string name="enable_lrclib_desc">База синхронизированных текстов от сообщества</string>
     <string name="enable_kugou_desc">Загружает тексты из популярной китайской платформы KuGou</string>
-    <string name="youtube_music_lyrics_note">ПРИМЕЧАНИЕ: Тексты из YouTube Music отображаются автоматически при отсутствии других источников. Обычно они не синхронизированы</string>
-    <string name="enable_lyricsplus">Включить LyricsPlus</string>
+    <string name="youtube_music_lyrics_note">Если в других источниках текста нет, показывается текст из YouTube Music. Обычно он не синхронизирован</string>
+    <string name="enable_lyricsplus">LyricsPlus</string>
     <string name="enable_lyricsplus_desc">Синхронизированные тексты из нескольких источников</string>
     <string name="lyrics_provider_selection">Выбор источников</string>
     <string name="lyrics_provider_selection_desc">Выберите, какие источники текстов использовать</string>
@@ -784,10 +784,10 @@
     <string name="lyrics_animation_slide">Скольжение</string>
     <string name="lyrics_animation_karaoke">Караоке</string>
     <string name="lyrics_animation_apple">В стиле Apple Music</string>
-    <string name="enable_paxsenix">Включить Paxsenix</string>
+    <string name="enable_paxsenix">Paxsenix</string>
     <string name="enable_paxsenix_desc">Высококачественные синхронизированные тексты через API Paxsenix</string>
-    <string name="experimental_lyrics">Экспериментальный текст</string>
-    <string name="experimental_lyrics_desc">Включить новый экспериментальный компонент текста с улучшенной анимацией и производительностью</string>
+    <string name="experimental_lyrics">Экспериментальные тексты</string>
+    <string name="experimental_lyrics_desc">Новый вид текстов с более плавной анимацией</string>
     <string name="experimental_lyrics_beta_title">Экспериментальная функция</string>
     <string name="experimental_lyrics_beta_message">Новый компонент текста сейчас находится в разработке и может содержать ошибки. Вы уверены, что хотите включить его?</string>
     <string name="lyrics_animation_style_title">Стиль анимации по словам</string>
@@ -909,7 +909,7 @@
     <string name="error_offline_playback">Вы не в сети. Подключитесь к интернету или включите трек, скачанный для прослушивания офлайн.</string>
     <string name="playlist_created_locally">Ошибка синхронизации с YouTube. Плейлист создан локально.</string>
     <string name="ai_provider_inception_help">Откройте https://platform.inceptionlabs.ai для получения ключей API</string>
-    <string name="enable_zemer">Включить Zemer</string>
+    <string name="enable_zemer">Zemer</string>
     <string name="enable_zemer_desc">Тексты еврейских песен</string>
     <string name="update_available_message">Metrolist %s готов к загрузке.</string>
     <string name="update_action">Обновить</string>

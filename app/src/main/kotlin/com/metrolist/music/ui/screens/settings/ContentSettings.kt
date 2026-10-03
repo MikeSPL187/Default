@@ -432,13 +432,13 @@ fun ContentSettings(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     ProviderSwitchRow(
-                        title = stringResource(R.string.enable_lrclib),
+                        title = stringResource(R.string.lyrics_provider_lrclib),
                         description = stringResource(R.string.enable_lrclib_desc),
                         checked = enableLrclib,
                         onCheckedChange = onEnableLrclibChange,
                     )
                     ProviderSwitchRow(
-                        title = stringResource(R.string.enable_kugou),
+                        title = stringResource(R.string.lyrics_provider_kugou),
                         description = stringResource(R.string.enable_kugou_desc),
                         checked = enableKugou,
                         onCheckedChange = onEnableKugouChange,

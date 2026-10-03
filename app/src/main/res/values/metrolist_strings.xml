@@ -135,14 +135,16 @@
     <string name="lyrics_line_spacing">Lyrics line spacing</string>
     <string name="enable_lrclib_desc">Community-driven synchronized lyrics database</string>
     <string name="enable_kugou_desc">Pulls lyrics from KuGou, a popular Chinese music platform</string>
-    <string name="youtube_music_lyrics_note">NOTE: YouTube Music lyrics will be shown automatically when no other source is available. They are usually not synchronized</string>
-    <string name="enable_zemer">Enable Zemer</string>
+    <string name="lyrics_provider_lrclib" translatable="false">LrcLib</string>
+    <string name="lyrics_provider_kugou" translatable="false">KuGou</string>
+    <string name="youtube_music_lyrics_note">When no other source has the lyrics, YouTube Music\'s are shown. They are usually not synced</string>
+    <string name="enable_zemer">Zemer</string>
     <string name="enable_zemer_desc">Lyrics for Jewish music</string>
-    <string name="enable_better_lyrics">Enable Better Lyrics</string>
+    <string name="enable_better_lyrics">Better Lyrics</string>
     <string name="enable_better_lyrics_desc">Syllable-synced lyrics for any song, perfect for karaoke</string>
-    <string name="enable_paxsenix">Enable Paxsenix</string>
+    <string name="enable_paxsenix">Paxsenix</string>
     <string name="enable_paxsenix_desc">High-quality synchronized lyrics from Paxsenix API</string>
-    <string name="enable_lyricsplus">Enable LyricsPlus</string>
+    <string name="enable_lyricsplus">LyricsPlus</string>
     <string name="enable_lyricsplus_desc">Synchronized lyrics from multiple sources</string>
     <string name="lyrics_provider_selection">Provider selection</string>
     <string name="lyrics_provider_selection_desc">Choose which lyrics providers are enabled</string>
@@ -187,7 +189,7 @@
 
     <!-- Playlist cover edit -->
     <string name="edit_playlist_cover">Edit playlist cover</string>
-    <string name="edit_playlist_cover_note">NOTE: Your account must be linked to a phone number and verified on YouTube Music to change the playlist cover</string>
+    <string name="edit_playlist_cover_note">Changing the cover needs a YouTube Music account verified with a phone number</string>
     <string name="edit_playlist_cover_note_wait">After selecting an image, please wait a moment for the new cover to appear in your playlist</string>
     <string name="choose_from_library">Choose from library</string>
     <string name="remove_custom_image">Remove custom image</string>
@@ -202,7 +204,7 @@
     <string name="lyrics_provider_priority">Lyrics provider priority</string>
     <string name="lyrics_provider_priority_desc">Drag to reorder providers by preference. Higher position means higher priority</string>
     <string name="experimental_lyrics">Experimental lyrics</string>
-    <string name="experimental_lyrics_desc">Enable the new experimental lyrics component with enhanced animations and performance</string>
+    <string name="experimental_lyrics_desc">A new lyrics view with smoother animations</string>
     <string name="experimental_lyrics_beta_title">Experimental feature</string>
     <string name="experimental_lyrics_beta_message">The new lyrics component is currently in development and may contain bugs. Are you sure you want to enable it?</string>
     <string name="config_proxy">Configure proxy</string>
