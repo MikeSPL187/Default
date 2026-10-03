@@ -524,12 +524,14 @@ fun Queue(
 
                             Spacer(Modifier.height(8.dp))
 
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
+                            // Two choices side by side, of one width, instead of a stack of uneven buttons.
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth(),
                             ) {
                                 // At the default already, the button says so instead of offering to set it again.
                                 OutlinedButton(
+                                    modifier = Modifier.weight(1f),
                                     enabled = !isAtDefault,
                                     onClick = {
                                         coroutineScope.launch {
@@ -548,10 +550,11 @@ fun Queue(
                                         Icon(painterResource(R.drawable.check), contentDescription = null, modifier = Modifier.size(18.dp))
                                         Spacer(Modifier.width(8.dp))
                                     }
-                                    Text(stringResource(if (isAtDefault) R.string.sleep_timer_is_default else R.string.set_as_default))
+                                    Text(stringResource(if (isAtDefault) R.string.sleep_timer_is_default else R.string.set_as_default), textAlign = TextAlign.Center)
                                 }
 
                                 OutlinedButton(
+                                    modifier = Modifier.weight(1f),
                                     onClick = {
                                         showSleepTimerDialog = false
                                         playerConnection.service.sleepTimer?.start(
@@ -559,7 +562,7 @@ fun Queue(
                                         )
                                     },
                                 ) {
-                                    Text(stringResource(R.string.end_of_song))
+                                    Text(stringResource(R.string.end_of_song), textAlign = TextAlign.Center)
                                 }
                             }
                         }
