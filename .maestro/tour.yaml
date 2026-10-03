@@ -401,6 +401,13 @@ appId: com.metrolist.music
       - takeScreenshot: ${P}23c-changelog
       - back
       - waitForAnimationToEnd
+      # A back pressed while the sheet still opens can be swallowed.
+      - runFlow:
+          when:
+            visible: "View on GitHub"
+          commands:
+            - back
+            - waitForAnimationToEnd
 - scrollUntilVisible:
     element: "About"
     optional: true
