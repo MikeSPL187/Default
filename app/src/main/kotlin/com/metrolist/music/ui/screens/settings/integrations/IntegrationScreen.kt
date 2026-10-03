@@ -6,6 +6,9 @@
 package com.metrolist.music.ui.screens.settings.integrations
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -15,6 +18,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -25,6 +31,8 @@ import com.metrolist.music.R
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.IntegrationCard
 import com.metrolist.music.ui.component.IntegrationCardItem
+import com.metrolist.music.ui.component.LargeScreenTitle
+import com.metrolist.music.ui.component.TITLE_SCROLL_PX
 import com.metrolist.music.ui.utils.backToMain
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,12 +40,16 @@ import com.metrolist.music.ui.utils.backToMain
 fun IntegrationScreen(
     navController: NavController
 ) {
+    val scrollState = rememberScrollState()
+    val titleInBar by remember { derivedStateOf { scrollState.value > TITLE_SCROLL_PX } }
     Column(
         Modifier
-            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
-            .verticalScroll(rememberScrollState())
+            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp),
     ) {
+        Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
+        LargeScreenTitle(stringResource(R.string.integrations), horizontalPadding = 4.dp)
         IntegrationCard(
             title = stringResource(R.string.general),
             items = listOf(
@@ -58,7 +70,7 @@ fun IntegrationScreen(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.integrations)) },
+        title = { if (titleInBar) Text(stringResource(R.string.integrations)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,

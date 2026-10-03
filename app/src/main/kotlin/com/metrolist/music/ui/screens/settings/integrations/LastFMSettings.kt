@@ -64,6 +64,9 @@ import com.metrolist.music.constants.ScrobbleDelaySecondsKey
 import com.metrolist.music.constants.ScrobbleMinSongDurationKey
 import com.metrolist.music.ui.component.DefaultDialog
 import com.metrolist.music.ui.component.IconButton
+import androidx.compose.runtime.derivedStateOf
+import com.metrolist.music.ui.component.TITLE_SCROLL_PX
+import com.metrolist.music.ui.component.LargeScreenTitle
 import com.metrolist.music.ui.component.Material3SettingsGroup
 import com.metrolist.music.ui.component.Material3SettingsItem
 import com.metrolist.music.ui.utils.backToMain
@@ -271,6 +274,8 @@ fun LastFMSettings(
         )
     }
 
+    val scrollState = rememberScrollState()
+    val titleInBar by remember { derivedStateOf { scrollState.value > TITLE_SCROLL_PX } }
     Column(
         modifier = Modifier
             .windowInsetsPadding(
@@ -278,7 +283,7 @@ fun LastFMSettings(
                     WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
                 )
             )
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp)
     ) {
         Spacer(
@@ -288,6 +293,7 @@ fun LastFMSettings(
                 )
             )
         )
+        LargeScreenTitle(stringResource(R.string.lastfm_integration), horizontalPadding = 4.dp)
 
         // Options section (card-based)
         Material3SettingsGroup(
@@ -617,7 +623,7 @@ fun LastFMSettings(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.lastfm_integration)) },
+        title = { if (titleInBar) Text(stringResource(R.string.lastfm_integration)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,

@@ -91,6 +91,9 @@ import com.metrolist.music.listentogether.LogLevel
 import com.metrolist.music.listentogether.RoomRole
 import com.metrolist.music.ui.component.DefaultDialog
 import com.metrolist.music.ui.component.IconButton
+import androidx.compose.runtime.derivedStateOf
+import com.metrolist.music.ui.component.TITLE_SCROLL_PX
+import com.metrolist.music.ui.component.LargeScreenTitle
 import com.metrolist.music.ui.component.IntegrationCard
 import com.metrolist.music.ui.component.IntegrationCardItem
 import com.metrolist.music.ui.utils.backToMain
@@ -348,16 +351,19 @@ fun ListenTogetherSettings(navController: NavController) {
         )
     }
 
+    val scrollState = rememberScrollState()
+    val titleInBar by remember { derivedStateOf { scrollState.value > TITLE_SCROLL_PX } }
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(scrollState),
     ) {
         Spacer(
             Modifier.windowInsetsPadding(
                 LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top),
             ),
         )
+        LargeScreenTitle(stringResource(R.string.listen_together), horizontalPadding = 20.dp)
 
         // Settings section using IntegrationCard
         val selectedServer = remember(serverUrl) { ListenTogetherServers.findByUrl(serverUrl) }
@@ -514,7 +520,7 @@ fun ListenTogetherSettings(navController: NavController) {
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.listen_together)) },
+        title = { if (titleInBar) Text(stringResource(R.string.listen_together)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
