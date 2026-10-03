@@ -105,6 +105,7 @@ import com.metrolist.music.ui.component.SegmentLabel
 import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.playlistimport.ImportError
+import com.metrolist.music.playlistimport.ImportLink
 import com.metrolist.music.playlistimport.ImportSource
 import com.metrolist.music.playlistimport.ImportState
 import com.metrolist.music.playlistimport.ImportedPlaylist
@@ -112,6 +113,8 @@ import com.metrolist.music.playlistimport.ImportedTrack
 import com.metrolist.music.playlistimport.PlaylistImportService
 import com.metrolist.music.playlistimport.PlaylistImporter
 import com.metrolist.music.playlistimport.TrackStatus
+import com.metrolist.music.playlistimport.parseImportLink
+import com.metrolist.music.playlistimport.parseTrackList
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.screens.wrapped.components.rememberArtworkAccent
 import com.metrolist.music.ui.utils.backToMain
@@ -174,14 +177,13 @@ fun PlaylistImportScreen(
     val bottomAction = state.phase == ImportState.Phase.PREVIEW || state.phase == ImportState.Phase.IMPORTING
 
     Box(Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection)) {
-        if (playlist != null) {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(420.dp)
-                    .background(Brush.verticalGradient(listOf(accent.copy(alpha = 0.5f), Color.Transparent))),
-            )
-        }
+        // The cover's colour glows behind the playlist; before there is one, the theme's own.
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(420.dp)
+                .background(Brush.verticalGradient(listOf(accent.copy(alpha = if (playlist != null) 0.5f else 0.35f), Color.Transparent))),
+        )
 
         val indices =
             remember(playlist, state.statuses, filter) {
@@ -324,40 +326,61 @@ private fun ImportForm(
     val loading = state.phase == ImportState.Phase.LOADING
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
+    val colors = MaterialTheme.colorScheme
     val defaultName = stringResource(R.string.playlist_import_default_name)
+    val fieldShape = RoundedCornerShape(18.dp)
 
     Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        TransferHero()
         Text(
             text = stringResource(R.string.playlist_import_intro),
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = colors.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
         )
         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
             SegmentedButton(
                 selected = !byList,
                 onClick = { byList = false },
                 shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                icon = { SegmentedButtonDefaults.Icon(active = !byList, inactiveContent = { Icon(painterResource(R.drawable.link), contentDescription = null, modifier = Modifier.size(18.dp)) }) },
                 label = { SegmentLabel(stringResource(R.string.playlist_import_by_link)) },
             )
             SegmentedButton(
                 selected = byList,
                 onClick = { byList = true },
                 shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                icon = { SegmentedButtonDefaults.Icon(active = byList, inactiveContent = { Icon(painterResource(R.drawable.list), contentDescription = null, modifier = Modifier.size(18.dp)) }) },
                 label = { SegmentLabel(stringResource(R.string.playlist_import_by_list)) },
             )
         }
 
         val error = state.error?.let { errorText(it) }
         if (!byList) {
+            // What the link points to, as soon as it is pasted: the source and whether it is a playlist or an album.
+            val recognised = remember(link) { parseImportLink(link) }
             OutlinedTextField(
                 value = link,
                 onValueChange = { link = it },
                 label = { Text(stringResource(R.string.playlist_import_link_label)) },
-                supportingText = { Text(error ?: stringResource(R.string.playlist_import_link_hint)) },
+                supportingText =
+                    when {
+                        error != null -> { { Text(error) } }
+                        recognised != null -> { { Text(linkKind(recognised), color = colors.primary, fontWeight = FontWeight.Medium) } }
+                        else -> null
+                    },
                 isError = error != null,
                 singleLine = true,
                 enabled = !loading,
-                leadingIcon = { Icon(painterResource(R.drawable.link), contentDescription = null) },
+                shape = fieldShape,
+                leadingIcon = {
+                    Icon(
+                        painterResource(if (recognised != null) R.drawable.check else R.drawable.link),
+                        contentDescription = null,
+                        tint = if (recognised != null) colors.primary else colors.onSurfaceVariant,
+                    )
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go),
                 keyboardActions = KeyboardActions(onGo = { if (link.isNotBlank() && !loading) onLoadLink(link) }),
                 trailingIcon = {
@@ -375,21 +398,29 @@ private fun ImportForm(
             Button(
                 onClick = { onLoadLink(link) },
                 enabled = link.isNotBlank() && !loading,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(52.dp),
             ) {
                 if (loading) {
                     CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
                 } else {
-                    Text(stringResource(R.string.playlist_import_find))
+                    Icon(painterResource(R.drawable.search), contentDescription = null, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.playlist_import_find), style = MaterialTheme.typography.titleMedium)
                 }
             }
+            HintCard(title = stringResource(R.string.playlist_import_how_title)) {
+                listOf(R.string.playlist_import_step_open, R.string.playlist_import_step_share, R.string.playlist_import_step_paste)
+                    .forEachIndexed { index, step -> HintStep(number = index + 1, text = stringResource(step)) }
+            }
         } else {
+            val count = remember(listText) { parseTrackList(listText).size }
             OutlinedTextField(
                 value = listTitle,
                 onValueChange = { listTitle = it },
                 label = { Text(stringResource(R.string.playlist_import_name_label)) },
                 placeholder = { Text(defaultName) },
                 singleLine = true,
+                shape = fieldShape,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Next),
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -398,22 +429,98 @@ private fun ImportForm(
                 onValueChange = { listText = it },
                 label = { Text(stringResource(R.string.playlist_import_list_label)) },
                 placeholder = { Text(stringResource(R.string.playlist_import_list_hint)) },
-                supportingText = if (error != null) { { Text(error) } } else null,
+                supportingText =
+                    when {
+                        error != null -> { { Text(error) } }
+                        count > 0 -> { { Text(pluralStringResource(R.plurals.playlist_import_track_count, count, count), color = colors.primary, fontWeight = FontWeight.Medium) } }
+                        else -> null
+                    },
                 isError = error != null,
                 minLines = 6,
                 maxLines = 14,
+                shape = fieldShape,
                 modifier = Modifier.fillMaxWidth(),
             )
             Button(
                 onClick = { onLoadList(listTitle.ifBlank { defaultName }, listText) },
-                enabled = listText.isNotBlank(),
-                modifier = Modifier.fillMaxWidth(),
+                enabled = count > 0,
+                modifier = Modifier.fillMaxWidth().height(52.dp),
             ) {
-                Text(stringResource(R.string.playlist_import_continue))
+                Text(stringResource(R.string.playlist_import_continue), style = MaterialTheme.typography.titleMedium)
+            }
+            HintCard(title = stringResource(R.string.playlist_import_list_tip_title)) {
+                Text(stringResource(R.string.playlist_import_list_tip), style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
             }
         }
     }
 }
+
+/** A playlist on its way into the app: what is transferred, at a glance. */
+@Composable
+private fun TransferHero() {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+    ) {
+        Box(
+            Modifier.size(76.dp).clip(RoundedCornerShape(24.dp)).background(colors.surfaceContainerHighest),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(painterResource(R.drawable.queue_music), contentDescription = null, tint = colors.onSurfaceVariant, modifier = Modifier.size(36.dp))
+        }
+        Icon(painterResource(R.drawable.arrow_forward), contentDescription = null, tint = colors.primary, modifier = Modifier.size(28.dp))
+        Box(
+            Modifier.size(76.dp).clip(RoundedCornerShape(24.dp)).background(colors.primary),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(painterResource(R.drawable.app_logo), contentDescription = null, tint = colors.onPrimary, modifier = Modifier.size(40.dp))
+        }
+    }
+}
+
+@Composable
+private fun HintCard(
+    title: String,
+    content: @Composable () -> Unit,
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            content()
+        }
+    }
+}
+
+@Composable
+private fun HintStep(
+    number: Int,
+    text: String,
+) {
+    val colors = MaterialTheme.colorScheme
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(28.dp).clip(CircleShape).background(colors.primaryContainer), contentAlignment = Alignment.Center) {
+            Text(number.toString(), style = MaterialTheme.typography.labelLarge, color = colors.onPrimaryContainer, fontWeight = FontWeight.SemiBold)
+        }
+        Spacer(Modifier.width(12.dp))
+        Text(text, style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun linkKind(link: ImportLink): String =
+    when (link) {
+        is ImportLink.SpotifyPlaylist -> stringResource(R.string.playlist_import_link_playlist, stringResource(R.string.playlist_import_source_spotify))
+        is ImportLink.SpotifyAlbum -> stringResource(R.string.playlist_import_link_album, stringResource(R.string.playlist_import_source_spotify))
+        is ImportLink.YandexAlbum -> stringResource(R.string.playlist_import_link_album, stringResource(R.string.playlist_import_source_yandex))
+        is ImportLink.YandexPlaylist, is ImportLink.YandexUserPlaylist ->
+            stringResource(R.string.playlist_import_link_playlist, stringResource(R.string.playlist_import_source_yandex))
+    }
 
 @Composable
 private fun errorText(error: ImportError): String =

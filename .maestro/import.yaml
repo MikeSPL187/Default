@@ -22,6 +22,7 @@ appId: com.metrolist.music
     optional: true
 - inputText: "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M"
 - hideKeyboard
+- takeScreenshot: import-01b-link-recognised
 - tapOn:
     text: "Find playlist"
     optional: true
