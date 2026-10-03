@@ -876,7 +876,7 @@ fun PlayerSettings(
                     onClick = { onAutoplayChange(!autoplay) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.fast_forward),
+                    icon = painterResource(R.drawable.cached),
                     title = { Text(stringResource(R.string.preload_next_song)) },
                     description = { Text(stringResource(R.string.preload_next_song_desc)) },
                     trailingContent = {
@@ -960,7 +960,7 @@ fun PlayerSettings(
                     onClick = { similarContentEnabledChange(!similarContentEnabled) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.shuffle),
+                    icon = painterResource(R.drawable.shuffle_on),
                     title = { Text(stringResource(R.string.persistent_shuffle_title)) },
                     description = { Text(stringResource(R.string.persistent_shuffle_desc)) },
                     trailingContent = {
@@ -981,7 +981,7 @@ fun PlayerSettings(
                     onClick = { onPersistentShuffleAcrossQueuesChange(!persistentShuffleAcrossQueues) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.shuffle),
+                    icon = painterResource(R.drawable.repeat_on),
                     title = { Text(stringResource(R.string.remember_shuffle_and_repeat)) },
                     description = { Text(stringResource(R.string.remember_shuffle_and_repeat_desc)) },
                     trailingContent = {
@@ -1023,7 +1023,7 @@ fun PlayerSettings(
                     onClick = { onShufflePlaylistFirstChange(!shufflePlaylistFirst) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.queue_music),
+                    icon = painterResource(R.drawable.content_copy),
                     title = { Text(stringResource(R.string.prevent_duplicate_tracks_in_queue)) },
                     description = { Text(stringResource(R.string.prevent_duplicate_tracks_in_queue_desc)) },
                     trailingContent = {
@@ -1044,7 +1044,7 @@ fun PlayerSettings(
                     onClick = { onPreventDuplicateTracksInQueueChange(!preventDuplicateTracksInQueue) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.skip_next),
+                    icon = painterResource(R.drawable.error),
                     title = { Text(stringResource(R.string.auto_skip_next_on_error)) },
                     description = { Text(stringResource(R.string.auto_skip_next_on_error_desc)) },
                     trailingContent = {
