@@ -1367,6 +1367,7 @@
     <string name="output_kind_wired">Проводные</string>
     <string name="output_playing_here">Играет здесь</string>
     <string name="output_connect_device">Подключить устройство</string>
+    <string name="search_source_library">Медиатека</string>
     <string name="collection_play">Слушать</string>
     <string name="collection_album">Альбом</string>
     <string name="search_recognize">Распознать песню</string>

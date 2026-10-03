@@ -46,7 +46,7 @@ fun SectionHeader(
             modifier
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
-                .padding(start = 20.dp, end = 8.dp, top = 22.dp, bottom = 10.dp),
+                .padding(start = 16.dp, end = 8.dp, top = 22.dp, bottom = 10.dp),
     ) {
         Column(
             Modifier

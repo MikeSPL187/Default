@@ -5,6 +5,10 @@
 
 package com.metrolist.music.ui.screens.search
 
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.text.style.TextOverflow
 import android.app.Activity
 import android.content.Intent
@@ -313,35 +317,6 @@ fun SearchScreen(
                                     )
                                 }
                             }
-                            IconButton(
-                                onClick = {
-                                    searchSource =
-                                        if (searchSource == SearchSource.ONLINE) {
-                                            SearchSource.LOCAL
-                                        } else {
-                                            SearchSource.ONLINE
-                                        }
-                                },
-                            ) {
-                                Icon(
-                                    painter =
-                                        painterResource(
-                                            when (searchSource) {
-                                                SearchSource.LOCAL -> R.drawable.library_music
-                                                SearchSource.ONLINE -> R.drawable.language
-                                            },
-                                        ),
-                                    // Says where a tap takes the search, as the icon alone does not.
-                                    contentDescription =
-                                        stringResource(
-                                            when (searchSource) {
-                                                SearchSource.LOCAL -> R.string.search_switch_online
-                                                SearchSource.ONLINE -> R.string.search_switch_library
-                                            },
-                                        ),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
                             FilledTonalIconButton(
                                 onClick = { navController.navigate("recognition") },
                                 colors =
@@ -383,6 +358,28 @@ fun SearchScreen(
                     .padding(top = paddingValues.calculateTopPadding())
                     .fillMaxSize(),
         ) {
+            Column(Modifier.fillMaxSize()) {
+            // Where the search looks, named in words: a globe in the bar said too little.
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            ) {
+                listOf(SearchSource.ONLINE to R.string.search_source_online, SearchSource.LOCAL to R.string.search_source_library).forEach { (source, label) ->
+                    FilterChip(
+                        selected = searchSource == source,
+                        onClick = { searchSource = source },
+                        label = { Text(stringResource(label)) },
+                        leadingIcon = {
+                            Icon(
+                                painterResource(if (source == SearchSource.ONLINE) R.drawable.search else R.drawable.library_music),
+                                contentDescription = null,
+                                modifier = Modifier.size(FilterChipDefaults.IconSize),
+                            )
+                        },
+                    )
+                }
+            }
+            Box(Modifier.weight(1f)) {
             when (searchSource) {
                 SearchSource.LOCAL -> {
                     LocalSearchScreen(
@@ -401,6 +398,8 @@ fun SearchScreen(
                         pureBlack = pureBlack,
                     )
                 }
+            }
+            }
             }
 
         }
