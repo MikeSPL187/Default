@@ -369,6 +369,42 @@ appId: com.metrolist.music
 - waitForAnimationToEnd
 - takeScreenshot: ${P}23b-updater
 - back
+# The rest of System & About, each opened once.
+- runFlow:
+    when:
+      visible: "Changelog"
+    commands:
+      - tapOn: "Changelog"
+      - waitForAnimationToEnd:
+          timeout: 10000
+      - takeScreenshot: ${P}23c-changelog
+      - back
+      - waitForAnimationToEnd
+- scrollUntilVisible:
+    element: "About"
+    optional: true
+- runFlow:
+    when:
+      visible: "About"
+    commands:
+      - tapOn: "About"
+      - waitForAnimationToEnd
+      - takeScreenshot: ${P}23d-about
+      - back
+      - waitForAnimationToEnd
+- scrollUntilVisible:
+    element: "Android Auto"
+    direction: UP
+    optional: true
+- runFlow:
+    when:
+      visible: "Android Auto"
+    commands:
+      - tapOn: "Android Auto"
+      - waitForAnimationToEnd
+      - takeScreenshot: ${P}23e-android-auto
+      - back
+      - waitForAnimationToEnd
 - scrollUntilVisible:
     element: "Appearance"
     direction: UP
