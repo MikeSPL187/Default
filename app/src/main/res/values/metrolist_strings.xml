@@ -523,6 +523,8 @@
     <string name="wizard_select_model">Select Model</string>
     <string name="wizard_select_profiles">Select Profiles</string>
     <string name="wizard_search_model_hint">Search for your headphone or earphone model</string>
+    <string name="wizard_intro_title">Tune the sound to your headphones</string>
+    <string name="wizard_intro_hint">AutoEQ has measured thousands of headphones. Download its database once to find yours.</string>
     <string name="wizard_model_name">Model Name</string>
     <string name="wizard_model_placeholder">e.g., Sony WH-1000XM4, Bose QuietComfort 45</string>
     <string name="wizard_no_models">No models found</string>

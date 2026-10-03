@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.R
+import com.metrolist.music.ui.component.EmptyPlaceholder
 
 /**
  * EQ Wizard - Device Setup Flow
@@ -92,10 +93,9 @@ private fun WizardScreenContent(
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
-                HorizontalDivider()
-
                 AnimatedContent(
                     targetState = state.currentStep,
+                    modifier = Modifier.fillMaxSize(),
                     label = "wizard_step",
                     transitionSpec = {
                         (slideInHorizontally { it } + fadeIn()).togetherWith(slideOutHorizontally { -it } + fadeOut())
@@ -159,11 +159,11 @@ private fun ModelSelectionStep(
     }
 
     if (!isDatabaseReady) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            if (isLoading) {
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator()
                     Spacer(modifier = Modifier.height(16.dp))
@@ -173,17 +173,16 @@ private fun ModelSelectionStep(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-            } else {
-                Button(onClick = onDownloadDatabase) {
-                    Icon(
-                        painter = painterResource(R.drawable.download),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.eq_download_db))
-                }
             }
+        } else {
+            // Says what the download is for, at the top like every other empty screen.
+            EmptyPlaceholder(
+                icon = R.drawable.headphones,
+                text = stringResource(R.string.wizard_intro_title),
+                hint = stringResource(R.string.wizard_intro_hint),
+                action = stringResource(R.string.eq_download_db),
+                onAction = onDownloadDatabase,
+            )
         }
         return
     }

@@ -814,6 +814,8 @@
     <string name="wizard_select_model">Выберите модель</string>
     <string name="wizard_select_profiles">Выберите профили</string>
     <string name="wizard_search_model_hint">Найдите свою модель наушников</string>
+    <string name="wizard_intro_title">Звук под ваши наушники</string>
+    <string name="wizard_intro_hint">AutoEQ измерил тысячи моделей наушников. Скачайте его базу один раз, чтобы найти свои.</string>
     <string name="wizard_model_name">Название модели</string>
     <string name="wizard_model_placeholder">например, Sony WH-1000XM4, Bose QuietComfort 45</string>
     <string name="wizard_no_models">Модели не найдены</string>

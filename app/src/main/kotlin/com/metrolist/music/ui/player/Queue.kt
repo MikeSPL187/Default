@@ -7,6 +7,7 @@ package com.metrolist.music.ui.player
 
 import com.metrolist.music.ui.component.collectionDuration
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.heightIn
 import com.metrolist.music.ui.menu.AddToPlaylistDialog
 import com.metrolist.music.LocalDatabase
@@ -529,10 +530,13 @@ fun Queue(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
-                                // At the default already, the button says so instead of offering to set it again.
+                                // At the default already, the button says so instead of offering to set it again,
+                                // keeping its outline so the row still reads as two buttons.
+                                val outline = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                                 OutlinedButton(
                                     modifier = Modifier.weight(1f),
                                     enabled = !isAtDefault,
+                                    border = outline,
                                     onClick = {
                                         coroutineScope.launch {
                                             context.safeDataStoreEdit { settings ->
@@ -555,6 +559,7 @@ fun Queue(
 
                                 OutlinedButton(
                                     modifier = Modifier.weight(1f),
+                                    border = outline,
                                     onClick = {
                                         showSleepTimerDialog = false
                                         playerConnection.service.sleepTimer?.start(

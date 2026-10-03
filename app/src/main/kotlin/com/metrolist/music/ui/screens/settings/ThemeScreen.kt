@@ -24,6 +24,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -197,22 +200,27 @@ fun PortraitThemeLayout(
             .padding(innerPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.weight(1f))
-
+        // The preview takes whatever height the controls leave, as a phone-shaped screen.
         Box(
             modifier = Modifier
-                .width(120.dp)
-                .height(240.dp),
+                .weight(1f)
+                .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(top = 64.dp, bottom = 16.dp),
             contentAlignment = Alignment.Center
         ) {
-            ThemeMockupPortrait(
-                darkMode = darkMode,
-                pureBlack = pureBlack,
-                themeColor = selectedThemeColor
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .aspectRatio(0.5f)
+            ) {
+                ThemeMockupPortrait(
+                    darkMode = darkMode,
+                    pureBlack = pureBlack,
+                    themeColor = selectedThemeColor
+                )
+            }
         }
-
-        Spacer(modifier = Modifier.weight(1f))
 
         ThemeControls(
             darkMode = darkMode,
@@ -787,95 +795,104 @@ fun ThemeMockupPortrait(
         pureBlack = pureBlack,
         themeColor = themeColor
     ) {
+        val colors = MaterialTheme.colorScheme
+        // A miniature of the app itself: title, a hero card, two rows, the mini-player and the navigation bar.
         Card(
-            modifier = Modifier
-                .fillMaxSize(),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            modifier = Modifier.fillMaxSize(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = colors.surface),
+            border = BorderStroke(1.dp, colors.outlineVariant),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Column(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 10.dp, end = 10.dp, top = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Header (20% of height)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.45f)
+                        .height(10.dp)
+                        .background(colors.onSurface, RoundedCornerShape(5.dp))
+                )
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(0.2f)
-                        .background(MaterialTheme.colorScheme.surfaceContainer)
-                        .padding(6.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(12.dp)
-                                .background(MaterialTheme.colorScheme.primary, CircleShape)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .size(12.dp)
-                                .background(MaterialTheme.colorScheme.secondary, CircleShape)
-                        )
-                    }
-                }
-
-                // Main Content (60% of height)
-                Column(
-                    modifier = Modifier
-                        .weight(0.6f)
-                        .padding(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                        .weight(1f)
+                        .background(colors.primaryContainer, RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
                 ) {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(4.dp))
+                            .size(28.dp)
+                            .background(colors.primary, CircleShape)
                     )
-                    
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1.2f),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
+                }
+                repeat(2) { row ->
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Box(
                             modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(4.dp))
+                                .size(22.dp)
+                                .background(if (row == 0) colors.secondaryContainer else colors.tertiaryContainer, RoundedCornerShape(6.dp))
                         )
-                        
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .background(MaterialTheme.colorScheme.tertiary, RoundedCornerShape(4.dp))
-                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(if (row == 0) 0.8f else 0.6f)
+                                    .height(5.dp)
+                                    .background(colors.onSurface.copy(alpha = 0.7f), RoundedCornerShape(3.dp))
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(0.45f)
+                                    .height(4.dp)
+                                    .background(colors.onSurfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(2.dp))
+                            )
+                        }
                     }
                 }
-
-                // FAB Area (20% of height)
-                Box(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(0.2f)
-                        .padding(6.dp),
-                    contentAlignment = Alignment.BottomEnd
+                        .height(26.dp)
+                        .background(colors.surfaceContainerHigh, RoundedCornerShape(13.dp))
+                        .padding(horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Box(
                         modifier = Modifier
                             .size(18.dp)
-                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                            .background(colors.secondary, CircleShape)
                     )
+                    Box(
+                        modifier = Modifier
+                            .size(18.dp)
+                            .background(colors.onSurface, CircleShape)
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(30.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    repeat(4) { tab ->
+                        Box(
+                            modifier = Modifier
+                                .size(width = 26.dp, height = 14.dp)
+                                .background(if (tab == 0) colors.secondaryContainer else Color.Transparent, RoundedCornerShape(7.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(6.dp)
+                                    .background(if (tab == 0) colors.onSecondaryContainer else colors.onSurfaceVariant, CircleShape)
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import coil3.compose.AsyncImage
 import com.metrolist.music.viewmodels.StatsTimeline
@@ -76,6 +77,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -881,6 +883,25 @@ private fun StatsPeriodRow(
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 8.dp, bottom = 4.dp),
     ) {
+        val labels =
+            StatsPeriods.map { period ->
+                stringResource(
+                    when (period) {
+                        StatPeriod.WEEK_1 -> R.string.stats_week
+                        StatPeriod.MONTH_1 -> R.string.stats_month
+                        StatPeriod.YEAR_1 -> R.string.stats_year
+                        else -> R.string.stats_all_time
+                    },
+                )
+            }
+        // Each segment as wide as its label needs, so a long one ("Всё время") is not shrunk while "Год" has room to spare.
+        val measurer = rememberTextMeasurer()
+        val labelStyle = MaterialTheme.typography.labelLarge
+        val padPx = with(LocalDensity.current) { 24.dp.toPx() }
+        val weights =
+            remember(labels, labelStyle, padPx) {
+                labels.map { measurer.measure(it, labelStyle, maxLines = 1).size.width + padPx }
+            }
         SingleChoiceSegmentedButtonRow(Modifier.weight(1f)) {
             StatsPeriods.forEachIndexed { index, period ->
                 SegmentedButton(
@@ -890,21 +911,11 @@ private fun StatsPeriodRow(
                         onSelect(period)
                     },
                     shape = SegmentedButtonDefaults.itemShape(index = index, count = StatsPeriods.size),
+                    modifier = Modifier.weight(weights[index]),
                     contentPadding = SegmentPadding,
                     // Four segments leave no room for a check mark; the fill already shows the choice.
                     icon = {},
-                    label = {
-                        SegmentLabel(
-                            stringResource(
-                                when (period) {
-                                    StatPeriod.WEEK_1 -> R.string.stats_week
-                                    StatPeriod.MONTH_1 -> R.string.stats_month
-                                    StatPeriod.YEAR_1 -> R.string.stats_year
-                                    else -> R.string.stats_all_time
-                                },
-                            ),
-                        )
-                    },
+                    label = { SegmentLabel(labels[index]) },
                 )
             }
         }
