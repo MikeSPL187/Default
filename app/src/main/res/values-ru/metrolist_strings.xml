@@ -86,7 +86,8 @@
     <string name="show_cached_playlist">Показывать плейлист «Кэшированные»</string>
     <string name="advanced_login">Вход по токену</string>
     <string name="yt_sync">Автосинхронизация с аккаунтом</string>
-    <string name="more_content">Доп. контент</string>
+    <string name="more_content">Обзор от имени аккаунта</string>
+    <string name="more_content_desc">Главная, чарты и другие страницы загружаются так же, как у вас в YouTube Music</string>
     <string name="general">Общие</string>
     <string name="default_lib_chips">Изменение чипа библиотеки (по умолчанию)</string>
     <string name="set_quick_picks">Выбрать тип рекомендаций</string>

@@ -338,7 +338,8 @@ fun AccountSettings(
                 ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.more_content)) },
-                    icon = painterResource(R.drawable.cached),
+                    description = { Text(stringResource(R.string.more_content_desc)) },
+                    icon = painterResource(R.drawable.explore_outlined),
                     trailingContent = {
                         Switch(
                             enabled = isLoggedIn,
@@ -358,11 +359,15 @@ fun AccountSettings(
                             }
                         )
                     },
-                    enabled = isLoggedIn
+                    enabled = isLoggedIn,
+                    onClick = {
+                        YouTube.useLoginForBrowse = !useLoginForBrowse
+                        onUseLoginForBrowseChange(!useLoginForBrowse)
+                    }
                 ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.yt_sync)) },
-                    icon = painterResource(R.drawable.cached),
+                    icon = painterResource(R.drawable.sync),
                     trailingContent = {
                         Switch(
                             enabled = isLoggedIn,
@@ -379,7 +384,8 @@ fun AccountSettings(
                             }
                         )
                     },
-                    enabled = isLoggedIn
+                    enabled = isLoggedIn,
+                    onClick = { onYtmSyncChange(!ytmSync) }
                 )
             ),
             useLowContrast = true
