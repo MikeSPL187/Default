@@ -244,14 +244,14 @@ fun BackupAndRestore(
                     ),
                     Material3SettingsItem(
                         title = { Text(stringResource(R.string.import_online)) },
-                        icon = painterResource(R.drawable.playlist_add),
+                        icon = painterResource(R.drawable.music_note),
                         onClick = {
                             importM3uLauncherOnline.launch(arrayOf("audio/*"))
                         },
                     ),
                     Material3SettingsItem(
                         title = { Text(stringResource(R.string.import_csv)) },
-                        icon = painterResource(R.drawable.playlist_add),
+                        icon = painterResource(R.drawable.list),
                         onClick = {
                             importPlaylistFromCsv.launch(
                                 arrayOf("text/csv", "text/comma-separated-values", "application/csv", "text/plain"),

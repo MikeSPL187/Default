@@ -498,7 +498,7 @@ fun StorageSettings(
                         },
                     ),
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.watch_check),
+                        icon = painterResource(R.drawable.download),
                         title = { Text(stringResource(R.string.auto_export_for_watch)) },
                         description = { Text(stringResource(R.string.auto_export_for_watch_desc)) },
                         trailingContent = {

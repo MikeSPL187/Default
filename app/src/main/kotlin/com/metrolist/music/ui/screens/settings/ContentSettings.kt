@@ -813,7 +813,7 @@ fun ContentSettings(
                     onClick = { onShowArtistDescriptionChange(!showArtistDescription) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.person),
+                    icon = painterResource(R.drawable.group),
                     title = { Text(stringResource(R.string.show_artist_subscriber_count)) },
                     trailingContent = {
                         Switch(
@@ -833,7 +833,7 @@ fun ContentSettings(
                     onClick = { onShowArtistSubscriberCountChange(!showArtistSubscriberCount) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.person),
+                    icon = painterResource(R.drawable.headphones),
                     title = { Text(stringResource(R.string.show_artist_monthly_listeners)) },
                     trailingContent = {
                         Switch(
@@ -861,7 +861,7 @@ fun ContentSettings(
             title = stringResource(R.string.app_language),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.language),
+                    icon = painterResource(R.drawable.translate),
                     title = { Text(stringResource(R.string.app_language)) },
                     description = {
                         Text(
@@ -924,13 +924,13 @@ fun ContentSettings(
                     onClick = { showProviderSelectionDialog = true }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.lyrics),
+                    icon = painterResource(R.drawable.sort),
                     title = { Text(stringResource(R.string.lyrics_provider_priority)) },
                     description = { Text(stringResource(R.string.lyrics_provider_priority_desc)) },
                     onClick = { showProviderPriorityDialog = true }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.lyrics),
+                    icon = painterResource(R.drawable.timer),
                     title = { Text(stringResource(R.string.prefer_synced_lyrics)) },
                     description = { Text(stringResource(R.string.prefer_synced_lyrics_desc)) },
                     trailingContent = {
