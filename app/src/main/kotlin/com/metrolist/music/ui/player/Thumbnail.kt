@@ -5,6 +5,10 @@
 
 package com.metrolist.music.ui.player
 
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.draw.blur
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -768,15 +772,29 @@ private fun ThumbnailImage(
     ) {
         // For videos, the sharper 16:9 frame first; the stored thumbnail if that one does not exist.
         var model by remember(artworkUri) { mutableStateOf(artworkUri?.widescreenVideoThumbnail() ?: artworkUri) }
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
+        val request =
+            ImageRequest.Builder(LocalContext.current)
                 .data(model)
                 .memoryCachePolicy(CachePolicy.ENABLED)
                 .diskCachePolicy(CachePolicy.ENABLED)
                 .networkCachePolicy(CachePolicy.ENABLED)
-                .build(),
+                .build()
+        val contentScale = artworkContentScale(artworkUri, cropArtwork)
+        // A cover that is not square, shown whole, leaves bands at its sides: the same cover,
+        // blurred and dimmed, fills them instead of a grey background.
+        if (contentScale == ContentScale.Fit) {
+            AsyncImage(
+                model = request,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                colorFilter = ColorFilter.tint(Color.Black.copy(alpha = 0.25f), BlendMode.Darken),
+                modifier = Modifier.fillMaxSize().blur(28.dp),
+            )
+        }
+        AsyncImage(
+            model = request,
             contentDescription = null,
-            contentScale = artworkContentScale(artworkUri, cropArtwork),
+            contentScale = contentScale,
             onError = { if (model != artworkUri) model = artworkUri },
             modifier = Modifier.fillMaxSize()
         )

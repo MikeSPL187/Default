@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.component
 
+import androidx.compose.foundation.background
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,14 +31,22 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.unit.dp
 
 /**
- * A group of menu actions. Takt: plain rows, an icon and a verb, one after another; only an item
- * that carries its own colours (a warning, a state) gets a card behind it.
+ * A group of menu actions: rows of an icon and a verb on one soft card, as settings groups are;
+ * an item that carries its own colours (a warning, a state) gets a card of its own inside it.
  */
 @Composable
 fun Material3MenuGroup(
     items: List<Material3MenuItemData>
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    if (items.isEmpty()) return
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                .padding(vertical = 4.dp),
+    ) {
         items.forEach { item ->
             if (item.cardColors != null) {
                 Card(
