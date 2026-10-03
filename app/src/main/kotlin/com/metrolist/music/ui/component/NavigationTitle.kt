@@ -54,7 +54,7 @@ fun NavigationTitle(
             .clickable(enabled = onClick != null) {
                 onClick?.invoke()
             }
-            .padding(start = 20.dp, end = 12.dp, top = 22.dp, bottom = 10.dp)
+            .padding(start = 16.dp, end = 12.dp, top = 22.dp, bottom = 10.dp)
     ) {
         thumbnail?.invoke()
 
