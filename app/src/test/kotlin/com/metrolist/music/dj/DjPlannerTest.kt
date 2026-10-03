@@ -61,9 +61,9 @@ class DjPlannerTest {
 
     @Test
     fun `a skipped artist weighs far less`() {
-        val fresh = DjPlanner.favouriteWeight(rank = 0, liked = false, fitsHour = false, artistSkips = 0)
-        val skipped = DjPlanner.favouriteWeight(rank = 0, liked = false, fitsHour = false, artistSkips = 1)
-        val loved = DjPlanner.favouriteWeight(rank = 0, liked = true, fitsHour = true, artistSkips = 0)
+        val fresh = DjPlanner.favouriteWeight(rank = 0, liked = false, fitsHour = false, artistSkips = 0.0)
+        val skipped = DjPlanner.favouriteWeight(rank = 0, liked = false, fitsHour = false, artistSkips = 1.0)
+        val loved = DjPlanner.favouriteWeight(rank = 0, liked = true, fitsHour = true, artistSkips = 0.0)
         assertTrue(skipped < fresh / 2)
         assertTrue(loved > fresh * 2)
     }
@@ -102,5 +102,65 @@ class DjPlannerTest {
         assertTrue(DjPlanner.isKept(170_000, 200_000))
         assertTrue(!DjPlanner.isKept(100_000, 200_000))
         assertTrue(!DjPlanner.isKept(100_000, -1))
+    }
+
+    @Test
+    fun `an artist waits a few songs before coming back`() {
+        val known = listOf(S("k1", "A"), S("k2", "A"), S("k3", "B"), S("k4", "C"), S("k5", "D"))
+        val set = DjPlanner.mix(known, emptyList(), 1.0, 5) { it.artist }
+        val firstA = set.indexOfFirst { it.artist == "A" }
+        val secondA = set.indexOfLast { it.artist == "A" }
+        assertTrue("A at $firstA and $secondA", secondA - firstA > DjPlanner.ARTIST_SPACING - 1)
+    }
+
+    @Test
+    fun `the end of the last set keeps its artists from the start of the next`() {
+        val known = listOf(S("k1", "A"), S("k2", "B"), S("k3", "C"))
+        val set = DjPlanner.mix(known, emptyList(), 1.0, 3, recentArtists = listOf("A")) { it.artist }
+        assertTrue(set.first().artist != "A")
+    }
+
+    @Test
+    fun `a new find plays right after the favourite that led to it`() {
+        val known = listOf(S("k1", "A"), S("k2", "B"), S("k3", "C"))
+        val fresh = listOf(S("n1", "X"), S("n2", "Y"), S("fromB", "Z"))
+        val leads = mapOf("n1" to "k3", "n2" to "k3", "fromB" to "k2")
+        val set =
+            DjPlanner.mix(known, fresh, 0.5, 6, follows = { previous, next -> leads[next.id] == previous.id }) { it.artist }
+        assertEquals(6, set.size)
+        assertEquals("fromB", set[set.indexOfFirst { it.id == "k2" } + 1].id)
+    }
+
+    @Test
+    fun `following the lead keeps the share of favourites`() {
+        val known = (1..10).map { S("k$it", "ka$it") }
+        val fresh = (1..10).map { S("n$it", "na$it") }
+        val set = DjPlanner.mix(known, fresh, 0.5, 10, follows = { _, next -> next.id.startsWith("n") }) { it.artist }
+        assertTrue(set.count { it.id.startsWith("k") } in 4..6)
+    }
+
+    @Test
+    fun `a find belongs to the seed whose radio lists it first`() {
+        val leads = DjPlanner.leadSeeds(listOf("s1", "s2"), listOf(listOf("a", "b", "c"), listOf("c", "d"))) { it }
+        assertEquals("s1", leads["a"])
+        assertEquals("s2", leads["c"])
+        assertEquals("s2", leads["d"])
+    }
+
+    @Test
+    fun `an early leave of a new song says the most`() {
+        val early = DjPlanner.skipWeight(5_000, 200_000, familiar = false)
+        val late = DjPlanner.skipWeight(25_000, 200_000, familiar = false)
+        val favourite = DjPlanner.skipWeight(5_000, 200_000, familiar = true)
+        assertTrue(early > late)
+        assertTrue(favourite < early)
+        assertEquals(0.0, DjPlanner.skipWeight(150_000, 200_000, familiar = false), 1e-9)
+    }
+
+    @Test
+    fun `a forgotten favourite is wanted more`() {
+        val usual = DjPlanner.favouriteWeight(rank = 10, liked = false, fitsHour = false, artistSkips = 0.0)
+        val forgotten = DjPlanner.favouriteWeight(rank = 10, liked = false, fitsHour = false, artistSkips = 0.0, throwback = true)
+        assertTrue(forgotten > usual)
     }
 }

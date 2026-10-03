@@ -2461,10 +2461,11 @@ class MusicService :
     /** Swaps the DJ's upcoming songs for a set of its new tuning; the song playing now plays on. */
     fun retuneDj() {
         val queue = currentQueue as? DjQueue ?: return
+        val nowPlaying = player.currentMediaItem?.mediaId
         scope.launch(SilentHandler) {
             val items =
                 withContext(Dispatchers.IO) {
-                    queue.nextPage()
+                    queue.retunedPage(nowPlaying)
                         .filterExplicit(cachedHideExplicit)
                         .filterVideoSongs(cachedHideVideoSongs)
                         .filterNotRecommended(notRecommended())
@@ -2485,9 +2486,9 @@ class MusicService :
     fun favourInDj() {
         val queue = currentQueue as? DjQueue ?: return
         val id = player.currentMediaItem?.mediaId ?: return
-        queue.favour(id)
         scope.launch {
-            if (currentSong.first()?.song?.liked == false) toggleLike()
+            // The like itself tells the DJ; an already liked song is told here.
+            if (currentSong.first()?.song?.liked == false) toggleLike() else queue.favour(id)
         }
     }
 
@@ -2507,6 +2508,8 @@ class MusicService :
                 }
 
                 val song = songEntity.toggleLike(syncToYouTube = false)
+                // A like in the DJ says as much as "Spot on".
+                if (song.liked) (currentQueue as? DjQueue)?.favour(song.id)
 
                 updateNotification(isLiked = song.liked)
                 updateWidgetUI(player.isPlaying, isLiked = song.liked)
@@ -4466,7 +4469,8 @@ class MusicService :
         val window = eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window())
         val mediaItem = window.mediaItem
         val historyDurationMs = preferences()[HistoryDuration]?.times(1000f) ?: 30000f
-        (currentQueue as? DjQueue)?.onPlayed(mediaItem.mediaId, playbackStats.totalPlayTimeMs, window.durationMs)
+        // Skips in a row in the DJ: the songs it lined up before them are chosen again.
+        if ((currentQueue as? DjQueue)?.onPlayed(mediaItem.mediaId, playbackStats.totalPlayTimeMs, window.durationMs) == true) retuneDj()
 
         if (playbackStats.totalPlayTimeMs >= historyDurationMs &&
             !pref(PauseListenHistoryKey, false)

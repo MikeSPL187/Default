@@ -34,8 +34,10 @@ import java.time.LocalDateTime
 /**
  * The DJ: an endless set of the user's favourites and songs new to them, in the share its mode
  * asks for, and from a mood when one is chosen. It learns while it plays: a new song heard through
- * leads the next set and asks for more new ones, a skipped one asks for fewer, and an artist
- * skipped tonight comes back far less.
+ * leads the next set and asks for more new ones, a skipped one asks for fewer, an artist skipped
+ * tonight comes back far less, and a song whose radio brought only skipped finds stops leading.
+ * New finds play right after the song that led to them, and favourites not heard for a month come
+ * back more often.
  */
 class DjQueue(
     private val title: String,
@@ -49,12 +51,22 @@ class DjQueue(
     private val lock = Any()
     private val played = HashSet<String>()
     private val picks = HashMap<String, Pick>()
-    private val artistSkips = HashMap<String, Int>()
+    private val artistSkips = HashMap<String, Double>()
+
+    /** For each new find, the song whose radio brought it. */
+    private val leadOf = HashMap<String, String>()
+
+    /** How well the finds a song led to went: up for each heard through, down for each skipped. */
+    private val seedScore = HashMap<String, Double>()
+    private var skipsInRow = 0
     private val kept = ArrayDeque<String>()
     private var discoveriesKept = 0
     private var discoveriesSkipped = 0
     private var favouritesSkipped = 0
     private val moodSongs = HashMap<String, List<SongItem>>()
+
+    /** Artists at the end of the last set, kept apart from the start of the next. */
+    private val lastArtists = ArrayList<String>()
     private var starter: List<SongItem>? = null
 
     override suspend fun getInitialStatus(): Queue.Status {
@@ -67,40 +79,70 @@ class DjQueue(
 
     override suspend fun nextPage(): List<MediaItem> = nextBatch(BATCH)
 
-    /** What the player saw of a song of this set when it moved on. */
+    /** A new set to follow [nowPlaying] in place of the songs lined up after it. */
+    suspend fun retunedPage(nowPlaying: String?): List<MediaItem> {
+        synchronized(lock) {
+            lastArtists.clear()
+            nowPlaying?.let { picks[it] }?.artist?.let(lastArtists::add)
+        }
+        return nextBatch(BATCH)
+    }
+
+    /**
+     * What the player saw of a song of this set when it moved on. True once songs were skipped
+     * [DjPlanner.SKIPS_TO_RETUNE] times in a row: the songs lined up were chosen before that and
+     * should be chosen again.
+     */
     fun onPlayed(
         songId: String,
         playedMs: Long,
         durationMs: Long,
-    ) = synchronized(lock) {
-        val pick = picks[songId] ?: return
-        when {
-            DjPlanner.isSkip(playedMs, durationMs) -> {
-                pick.artist?.let { artistSkips[it] = (artistSkips[it] ?: 0) + 1 }
-                if (pick is Pick.Fresh) discoveriesSkipped++ else favouritesSkipped++
+    ): Boolean {
+        synchronized(lock) {
+            val pick = picks[songId] ?: return false
+            val skip = DjPlanner.skipWeight(playedMs, durationMs, familiar = pick is Pick.Known)
+            when {
+                skip > 0 -> {
+                    pick.artist?.let { artistSkips[it] = (artistSkips[it] ?: 0.0) + skip }
+                    if (pick is Pick.Fresh) discoveriesSkipped++ else favouritesSkipped++
+                    leadOf[songId]?.let { seedScore[it] = (seedScore[it] ?: 0.0) - skip }
+                    skipsInRow++
+                }
+                DjPlanner.isKept(playedMs, durationMs) -> {
+                    if (pick is Pick.Fresh) discoveriesKept++
+                    leadOf[songId]?.let { seedScore[it] = (seedScore[it] ?: 0.0) + 1 }
+                    keep(songId)
+                    skipsInRow = 0
+                }
+                else -> skipsInRow = 0
             }
-            DjPlanner.isKept(playedMs, durationMs) -> {
-                if (pick is Pick.Fresh) discoveriesKept++
-                kept.addFirst(songId)
-                while (kept.size > SEEDS * 2) kept.removeLast()
-            }
+            if (skipsInRow < DjPlanner.SKIPS_TO_RETUNE) return false
+            skipsInRow = 0
+            return true
         }
     }
 
-    /** "Not this": its artist does not come back tonight. */
+    /** "Not this": its artist does not come back tonight, and what led to it leads less. */
     fun dislike(songId: String) =
         synchronized(lock) {
             picks[songId]?.artist?.let { artistSkips[it] = ARTIST_SKIPS_TO_DROP }
+            leadOf[songId]?.let { seedScore[it] = (seedScore[it] ?: 0.0) - 2 }
         }
 
-    /** "Spot on": the song leads the next new finds. */
-    fun favour(songId: String) =
+    /** "Spot on", or a like: the song leads the next new finds, and so does what led to it. */
+    fun favour(songId: String) {
         synchronized(lock) {
             if (songId !in picks) return
-            kept.remove(songId)
-            kept.addFirst(songId)
-            while (kept.size > SEEDS * 2) kept.removeLast()
+            leadOf[songId]?.let { seedScore[it] = (seedScore[it] ?: 0.0) + 2 }
+            keep(songId)
         }
+    }
+
+    private fun keep(songId: String) {
+        kept.remove(songId)
+        kept.addFirst(songId)
+        while (kept.size > SEEDS * 2) kept.removeLast()
+    }
 
     /** Whether the DJ brought [songId] as a new find, or null if it is not one of its songs. */
     fun isDiscovery(songId: String): Boolean? = synchronized(lock) { picks[songId]?.let { it is Pick.Fresh } }
@@ -127,10 +169,12 @@ class DjQueue(
             val hideVideos = context.dataStore.read(HideVideoSongsKey, false)
             val mode = context.dataStore.read(DjModeKey, DjMode.MIXED.name).let { name -> DjMode.entries.firstOrNull { it.name == name } ?: DjMode.MIXED }
             val mood = DjSession.mood.value
+            val recentArtists = synchronized(lock) { lastArtists.toList() }
             val (skips, adapted, recentKeeps) =
                 synchronized(lock) {
                     Triple(HashMap(artistSkips), DjPlanner.adaptShare(discoveriesKept, discoveriesSkipped, favouritesSkipped, mode), kept.toList())
                 }
+            val failedSeeds = synchronized(lock) { seedScore.filterValues { it <= -SEED_FAILS_TO_DROP }.keys }
             // Favourites know nothing of moods, so a mood leaves most of the set to its own songs.
             val share = if (mood != null) adapted.coerceAtMost(MOOD_FAMILIAR) else adapted
             // Songs heard in the last hours, in the DJ or not, wait for another day.
@@ -138,13 +182,19 @@ class DjQueue(
             val excluded = synchronized(lock) { played + recent }
 
             val mostPlayed = database.mostPlayedSongs(LocalDateTime.now().minusDays(FAVOURITES_DAYS), limit = FAVOURITES_POOL).first()
+            // Long-time favourites not heard for a month: the songs one forgot one loved.
+            val heardLately = database.songIdsPlayedSince(LocalDateTime.now().minusDays(THROWBACK_DAYS)).toHashSet()
+            val throwbacks =
+                database.mostPlayedSongs(LocalDateTime.now().minusYears(THROWBACK_YEARS), limit = THROWBACK_POOL).first()
+                    .filterNot { it.id in heardLately }
+            val throwbackIds = throwbacks.mapTo(HashSet()) { it.id }
             val liked = database.likedSongsByCreateDateAsc().first().takeLast(FAVOURITES_POOL)
             val ofThisHour = database.songsPlayedAtHours(DayPart.now().hours, LocalDateTime.now().minusDays(HOUR_DAYS), HOUR_POOL)
             val likedIds = liked.mapTo(HashSet()) { it.id }
             val hourIds = ofThisHour.mapTo(HashSet()) { it.id }
             val rank = mostPlayed.withIndex().associate { it.value.id to it.index }
             val candidates =
-                (mostPlayed + ofThisHour + liked)
+                (mostPlayed + ofThisHour + liked + throwbacks)
                     .distinctBy { it.id }
                     .filterNot { it.song.isEpisode || it.id in excluded }
                     .filterNotRecommended(blocked)
@@ -156,19 +206,25 @@ class DjQueue(
                         rank = rank[song.id] ?: mostPlayed.size,
                         liked = song.id in likedIds,
                         fitsHour = song.id in hourIds,
-                        artistSkips = song.artists.firstOrNull()?.id?.let { skips[it] } ?: 0,
+                        artistSkips = song.artists.firstOrNull()?.id?.let { skips[it] } ?: 0.0,
+                        throwback = song.id in throwbackIds,
                     )
                 }
 
             // New songs grow from what was just heard through, else from strong favourites; with a
             // mood, from the mood's own songs and what was heard through of them.
-            val learned = if (mood != null) recentKeeps.take(SEEDS) else (recentKeeps + favourites.map { it.id }).distinct().take(SEEDS)
+            val learned =
+                (if (mood != null) recentKeeps else recentKeeps + favourites.map { it.id })
+                    .distinct()
+                    .filterNot { it in failedSeeds }
+                    .take(SEEDS)
             // With nothing heard yet (a new listener), the set starts from the artists they picked,
             // else from the global chart, instead of coming out empty.
             val starter = if (learned.isEmpty() && mood == null) starterSongs().filterNot { it.id in excluded } else emptyList()
             val seeds = learned.ifEmpty { starter.shuffled().take(SEEDS).map { it.id } }
             val knownIds = candidates.mapTo(HashSet()) { it.id } + likedIds
             val radios = coroutineScope { seeds.map { async { radioOf(it) } }.awaitAll() }
+            val leads = DjPlanner.leadSeeds(seeds, radios) { it.id }
             val pool =
                 when {
                     mood != null -> listOf(songsOfMood(mood.params)) + radios
@@ -180,7 +236,7 @@ class DjQueue(
                     .filterNot { song ->
                         song.id in excluded || song.id in knownIds ||
                             (hideExplicit && song.explicit) || (hideVideos && song.isVideoSong) ||
-                            (song.artists.firstOrNull()?.id?.let { (skips[it] ?: 0) >= ARTIST_SKIPS_TO_DROP } ?: false)
+                            (song.artists.firstOrNull()?.id?.let { (skips[it] ?: 0.0) >= ARTIST_SKIPS_TO_DROP } ?: false)
                     }.filterNotRecommended(blocked)
 
             val set =
@@ -190,13 +246,22 @@ class DjQueue(
                     familiarShare = share,
                     size = size,
                     perArtist = PER_ARTIST,
+                    recentArtists = recentArtists,
+                    // A new find follows the song that led to it, or another find of the same lead.
+                    follows = { previous, next ->
+                        val lead = leads[next.id]
+                        next is Pick.Fresh && lead != null && (lead == previous.id || (previous is Pick.Fresh && leads[previous.id] == lead))
+                    },
                     artistOf = { it.artist },
                 )
             synchronized(lock) {
                 set.forEach {
                     played += it.id
                     picks[it.id] = it
+                    leads[it.id]?.let { lead -> leadOf[it.id] = lead }
                 }
+                lastArtists.clear()
+                set.takeLast(DjPlanner.ARTIST_SPACING).mapNotNullTo(lastArtists) { it.artist }
             }
             set.map { pick ->
                 when (pick) {
@@ -268,12 +333,16 @@ class DjQueue(
         const val BATCH = 20
         const val SEEDS = 4
         const val PER_ARTIST = 2
-        const val ARTIST_SKIPS_TO_DROP = 2
+        const val ARTIST_SKIPS_TO_DROP = 2.0
+        const val SEED_FAILS_TO_DROP = 1.5
         const val FAVOURITES_POOL = 150
         const val FAVOURITES_DAYS = 120L
         const val HOUR_POOL = 40
         const val HOUR_DAYS = 60L
         const val RECENT_HOURS = 3L
+        const val THROWBACK_DAYS = 30L
+        const val THROWBACK_YEARS = 5L
+        const val THROWBACK_POOL = 60
         const val MOOD_FAMILIAR = 0.35
         const val MOOD_MIN_SONGS = 30
         const val MOOD_PLAYLISTS = 3
