@@ -182,7 +182,8 @@ fun RecognitionHistoryScreen(navController: NavController) {
                     Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
-                contentAlignment = Alignment.Center,
+                // At the top, where every other empty screen in the app says it.
+                contentAlignment = Alignment.TopCenter,
             ) {
                 EmptyPlaceholder(
                     icon = R.drawable.mic,

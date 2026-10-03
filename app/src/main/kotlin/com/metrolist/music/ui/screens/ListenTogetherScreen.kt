@@ -426,7 +426,8 @@ fun ListenTogetherScreen(
 
     if (shouldShowTopBar) {
         TopAppBar(
-            title = { Text(stringResource(R.string.together)) },
+            // The screen names itself in large type just below; the bar does not repeat it.
+            title = {},
             navigationIcon = {
                 IconButton(
                     onClick = navController::navigateUp,
@@ -1339,10 +1340,9 @@ private fun SettingsLinkCard(onClick: () -> Unit) {
                 )
             }
             Icon(
-                painter = painterResource(R.drawable.arrow_forward),
+                painter = painterResource(R.drawable.navigate_next),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
