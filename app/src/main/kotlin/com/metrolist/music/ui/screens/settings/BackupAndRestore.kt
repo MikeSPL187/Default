@@ -35,8 +35,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -60,20 +58,13 @@ import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.utils.AutoBackupWorker
 import com.metrolist.music.constants.LastAutoBackupKey
 import com.metrolist.music.constants.AutoBackupKey
-import com.metrolist.music.db.entities.Song
 import com.metrolist.music.ui.component.DefaultDialog
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.Material3SettingsGroup
 import com.metrolist.music.ui.component.Material3SettingsItem
-import com.metrolist.music.ui.menu.AddToPlaylistDialogOnline
-import com.metrolist.music.ui.menu.CsvColumnMappingDialog
-import com.metrolist.music.ui.menu.CsvImportProgressDialog
-import com.metrolist.music.ui.menu.LoadingScreen
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.viewmodels.BackupPreviewInfo
 import com.metrolist.music.viewmodels.BackupRestoreViewModel
-import com.metrolist.music.viewmodels.ConvertedSongLog
-import com.metrolist.music.viewmodels.CsvImportState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -85,29 +76,6 @@ fun BackupAndRestore(
     navController: NavController,
     viewModel: BackupRestoreViewModel = hiltViewModel(),
 ) {
-    var importedTitle by remember { mutableStateOf("") }
-    val importedSongs = remember { mutableStateListOf<Song>() }
-    var showChoosePlaylistDialogOnline by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    var currentImportSong by rememberSaveable { mutableStateOf("") }
-    var isProgressStarted by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    var progressPercentage by rememberSaveable {
-        mutableIntStateOf(0)
-    }
-
-    // CSV column mapping state
-    var csvImportState by remember { mutableStateOf<CsvImportState?>(null) }
-    var showCsvColumnMapping by rememberSaveable { mutableStateOf(false) }
-    var showCsvImportProgress by rememberSaveable { mutableStateOf(false) }
-    var csvImportProgress by rememberSaveable { mutableIntStateOf(0) }
-    val csvRecentLogs = remember { mutableStateListOf<ConvertedSongLog>() }
-    var pendingCsvUri by remember { mutableStateOf<android.net.Uri?>(null) }
-
     // Restore confirmation dialog state
     var showRestoreConfirmDialog by rememberSaveable { mutableStateOf(false) }
     var pendingRestoreUri by remember { mutableStateOf<android.net.Uri?>(null) }
@@ -148,26 +116,6 @@ fun BackupAndRestore(
                 }
             }
         }
-    val importPlaylistFromCsv =
-        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            if (uri == null) return@rememberLauncherForActivityResult
-            pendingCsvUri = uri
-            val previewState = viewModel.previewCsvFile(context, uri)
-            csvImportState = previewState
-            showCsvColumnMapping = true
-        }
-    val importM3uLauncherOnline =
-        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            if (uri == null) return@rememberLauncherForActivityResult
-            val result = viewModel.loadM3UOnline(context, uri)
-            importedSongs.clear()
-            importedSongs.addAll(result)
-
-            if (importedSongs.isNotEmpty()) {
-                showChoosePlaylistDialogOnline = true
-            }
-        }
-
     val (autoBackup, onAutoBackupChange) = rememberPreference(AutoBackupKey, defaultValue = true)
     val (lastAutoBackup) = rememberPreference(LastAutoBackupKey, defaultValue = 0L)
     val scrollState = rememberScrollState()
@@ -236,27 +184,12 @@ fun BackupAndRestore(
                             restoreLauncher.launch(arrayOf("application/octet-stream"))
                         },
                     ),
+                    // Playlists from other services, lists and files all come in through one screen.
                     Material3SettingsItem(
                         title = { Text(stringResource(R.string.playlist_import_title)) },
                         description = { Text(stringResource(R.string.playlist_import_entry_description)) },
-                        icon = painterResource(R.drawable.link),
+                        icon = painterResource(R.drawable.playlist_add),
                         onClick = { navController.navigate("playlist_import") },
-                    ),
-                    Material3SettingsItem(
-                        title = { Text(stringResource(R.string.import_online)) },
-                        icon = painterResource(R.drawable.music_note),
-                        onClick = {
-                            importM3uLauncherOnline.launch(arrayOf("audio/*"))
-                        },
-                    ),
-                    Material3SettingsItem(
-                        title = { Text(stringResource(R.string.import_csv)) },
-                        icon = painterResource(R.drawable.list),
-                        onClick = {
-                            importPlaylistFromCsv.launch(
-                                arrayOf("text/csv", "text/comma-separated-values", "application/csv", "text/plain"),
-                            )
-                        },
                     ),
                 ),
         )
@@ -274,75 +207,6 @@ fun BackupAndRestore(
                     contentDescription = stringResource(R.string.back),
                 )
             }
-        },
-    )
-
-    AddToPlaylistDialogOnline(
-        isVisible = showChoosePlaylistDialogOnline,
-        allowSyncing = false,
-        initialTextFieldValue = importedTitle,
-        songs = importedSongs,
-        onDismiss = { showChoosePlaylistDialogOnline = false },
-        onProgressStart = { newVal -> isProgressStarted = newVal },
-        onPercentageChange = { newPercentage -> progressPercentage = newPercentage },
-        onSongChange = { currentImportSong = it },
-    )
-
-    LoadingScreen(
-        isVisible = isProgressStarted,
-        value = progressPercentage,
-        songTitle = currentImportSong,
-    )
-
-    // CSV column mapping dialog
-    csvImportState?.let { state ->
-        CsvColumnMappingDialog(
-            isVisible = showCsvColumnMapping,
-            csvState = state,
-            onDismiss = {
-                showCsvColumnMapping = false
-                csvImportState = null
-            },
-            onConfirm = { mappingState ->
-                showCsvColumnMapping = false
-                csvImportState = mappingState
-                pendingCsvUri?.let { uri ->
-                    showCsvImportProgress = true
-                    coroutineScope.launch(Dispatchers.Default) {
-                        val result =
-                            viewModel.importPlaylistFromCsv(
-                                context,
-                                uri,
-                                mappingState,
-                                onProgress = { progress ->
-                                    csvImportProgress = progress
-                                },
-                                onLogUpdate = { logs ->
-                                    csvRecentLogs.clear()
-                                    csvRecentLogs.addAll(logs)
-                                },
-                            )
-                        importedSongs.clear()
-                        importedSongs.addAll(result)
-                        if (result.isNotEmpty()) {
-                            showCsvImportProgress = false
-                            csvImportProgress = 0
-                            csvRecentLogs.clear()
-                            showChoosePlaylistDialogOnline = true
-                        }
-                    }
-                }
-            },
-        )
-    }
-
-    // CSV import progress dialog
-    CsvImportProgressDialog(
-        isVisible = showCsvImportProgress,
-        progress = csvImportProgress,
-        recentLogs = csvRecentLogs.toList(),
-        onDismiss = {
-            // Cannot dismiss while importing
         },
     )
 

@@ -150,4 +150,46 @@ class ImportParsersTest {
         val tracks = parseTrackFile("tracks.txt", "1. Dua Lipa - Levitating\n2. Daft Punk - Get Lucky")
         assertEquals(listOf("Levitating", "Get Lucky"), tracks.map { it.title })
     }
+
+    @Test
+    fun `an exported M3U keeps video ids, titles, artists and order`() {
+        val m3u =
+            listOf(
+                "#EXTM3U",
+                "#EXTINF:215,Artist A;Artist B - First",
+                "https://youtube.com/watch?v=abcdefghijk",
+                "#EXTINF:180,Artist C - Second",
+                "https://music.youtube.com/watch?v=ABCDEFGHIJ_&list=RD",
+            ).joinToString("\n")
+        val tracks = parseTrackFile("export.m3u", m3u)
+        assertEquals(listOf("abcdefghijk", "ABCDEFGHIJ_"), tracks.map { it.videoId })
+        assertEquals(listOf("First", "Second"), tracks.map { it.title })
+        assertEquals(listOf("Artist A", "Artist B"), tracks.first().artists)
+    }
+
+    @Test
+    fun `a YTM tag wins over a local file path`() {
+        val tracks = parseTrackFile("a.m3u", "#EXTINF:100,Band - Song\n#YTM:zyxwvutsrqp\n/storage/Music/song.mp3")
+        assertEquals("zyxwvutsrqp", tracks.single().videoId)
+        assertEquals("Song", tracks.single().title)
+    }
+
+    @Test
+    fun `entries without a video id are kept for search`() {
+        val tracks = parseTrackFile("a.m3u", "#EXTINF:100,Band - Song\n/storage/Music/song.mp3\nshort.youtu.be/notanid")
+        assertEquals(listOf(null, null), tracks.map { it.videoId })
+        assertEquals(listOf("Song", "notanid"), tracks.map { it.title })
+    }
+
+    @Test
+    fun `a bare YouTube link in a playlist file is taken by its id`() {
+        val tracks = parseTrackFile("a.m3u8", "https://youtu.be/abcdefghijk?si=x")
+        assertEquals("abcdefghijk", tracks.single().videoId)
+    }
+
+    @Test
+    fun `a CSV cell with a YouTube link names the exact video`() {
+        val tracks = parseTrackFile("a.csv", "title,artist,url\nSong,Band,https://music.youtube.com/watch?v=abcdefghijk\n")
+        assertEquals("abcdefghijk", tracks.single().videoId)
+    }
 }

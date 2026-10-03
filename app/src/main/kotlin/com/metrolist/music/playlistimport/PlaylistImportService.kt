@@ -114,6 +114,7 @@ object PlaylistImportService {
         track: ImportedTrack,
         allowSwap: Boolean,
     ): SongItem? {
+        track.videoId?.let { id -> YouTube.queue(videoIds = listOf(id)).getOrNull()?.firstOrNull()?.let { return it } }
         val query = (track.artists.take(2) + track.title).joinToString(" ")
         for (filter in listOf(YouTube.SearchFilter.FILTER_SONG, YouTube.SearchFilter.FILTER_VIDEO)) {
             val results = search(query, filter)

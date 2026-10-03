@@ -7,6 +7,8 @@ data class ImportedTrack(
     val durationSec: Int? = null,
     val album: String? = null,
     val coverUrl: String? = null,
+    /** The exact YouTube video, when the source names it (a YouTube link or a `#YTM:` tag); no search is needed then. */
+    val videoId: String? = null,
 )
 
 enum class ImportSource { YANDEX_MUSIC, SPOTIFY, TEXT, FILE }

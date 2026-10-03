@@ -149,7 +149,7 @@ internal fun parseSpotifyEmbed(html: String): ImportedPlaylist {
 // Only a number followed by a mark is a list number: "7 Rings" is a title.
 private val LEADING_NUMBER = Regex("""^\s*\d{1,4}[.):]\s+""")
 private val DASH_SEPARATOR = Regex("""\s+[-–—]\s+""")
-private val LIST_ARTIST_SEPARATOR = Regex("""\s*(?:,|&|\bfeat\.?|\bft\.?)\s*""", RegexOption.IGNORE_CASE)
+private val LIST_ARTIST_SEPARATOR = Regex("""\s*(?:,|;|&|\bfeat\.?|\bft\.?)\s*""", RegexOption.IGNORE_CASE)
 
 /**
  * A pasted list, one track per line: "Artist — Title" (any dash), numbered or not. A line with no
@@ -190,9 +190,27 @@ fun parseTrackFile(
     }
 }
 
+private val YOUTUBE_ID_IN_URL = Regex("""(?:[?&]v=|youtu\.be/|/shorts/|/embed/)([A-Za-z0-9_-]{11})""")
+private val YTM_TAG = Regex("""^#YTM:\s*([A-Za-z0-9_-]{11})""")
+
+/**
+ * An M3U playlist in file order. A video id comes from a `#YTM:` tag (the app's own export) or a
+ * YouTube link; an entry without one is found by its `#EXTINF` name, else by its file's name.
+ */
 private fun parseM3u(text: String): List<ImportedTrack> {
     val tracks = mutableListOf<ImportedTrack>()
     var pending: ImportedTrack? = null
+    var taggedId: String? = null
+    fun flush(location: String?) {
+        val id = taggedId ?: location?.let { YOUTUBE_ID_IN_URL.find(it)?.groupValues?.get(1) }
+        val named = pending ?: location?.takeIf { id == null }?.let { trackFromName(it.substringAfterLast('/').substringAfterLast('\\').substringBeforeLast('.')) }
+        when {
+            named != null -> tracks += named.copy(videoId = id)
+            id != null -> tracks += ImportedTrack(title = id, artists = emptyList(), videoId = id)
+        }
+        pending = null
+        taggedId = null
+    }
     text.lines().map(String::trim).filter(String::isNotEmpty).forEach { line ->
         val info = EXTINF.find(line)
         when {
@@ -200,14 +218,13 @@ private fun parseM3u(text: String): List<ImportedTrack> {
                 val seconds = info.groupValues[1].toIntOrNull()?.takeIf { it > 0 }
                 pending = trackFromName(info.groupValues[2].trim())?.copy(durationSec = seconds)
             }
+            YTM_TAG.containsMatchIn(line) -> taggedId = YTM_TAG.find(line)?.groupValues?.get(1)
             line.startsWith("#") -> Unit
-            else -> {
-                // The entry itself: its #EXTINF name when it had one, else the file's own name.
-                (pending ?: trackFromName(line.substringAfterLast('/').substringAfterLast('\\').substringBeforeLast('.')))?.let(tracks::add)
-                pending = null
-            }
+            else -> flush(line)
         }
     }
+    // A last #EXTINF with no location line is still a usable entry.
+    if (pending != null || taggedId != null) flush(null)
     return tracks
 }
 
@@ -249,6 +266,8 @@ private fun parseCsvTracks(text: String): List<ImportedTrack> {
             title = title,
             artists = artistAt?.let { row.getOrNull(it) }?.split(CSV_ARTIST_SEPARATOR)?.map(String::trim)?.filter(String::isNotEmpty).orEmpty(),
             durationSec = durationAt?.let { row.getOrNull(it) }?.trim()?.toLongOrNull()?.let { (it / 1000).toInt() },
+            // A YouTube link in any cell names the exact video.
+            videoId = row.firstNotNullOfOrNull { cell -> YOUTUBE_ID_IN_URL.find(cell)?.groupValues?.get(1) },
         )
     }
 }
