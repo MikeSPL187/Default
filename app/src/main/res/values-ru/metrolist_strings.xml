@@ -1362,6 +1362,11 @@
     <string name="output_this_phone">Этот телефон</string>
     <string name="output_headphones">Наушники</string>
     <string name="output_bluetooth">Bluetooth</string>
+    <string name="output_picker_title">Где играет музыка</string>
+    <string name="output_kind_phone">Динамик телефона</string>
+    <string name="output_kind_wired">Проводные</string>
+    <string name="output_playing_here">Играет здесь</string>
+    <string name="output_connect_device">Подключить устройство</string>
     <string name="collection_play">Слушать</string>
     <string name="collection_album">Альбом</string>
     <string name="search_recognize">Распознать песню</string>

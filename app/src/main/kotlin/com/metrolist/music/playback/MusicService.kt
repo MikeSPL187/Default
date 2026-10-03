@@ -421,6 +421,17 @@ class MusicService :
         private set
     private var secondaryPlayer: ExoPlayer? = null
     private var fadingPlayer: ExoPlayer? = null
+
+    /** The output picked in the player, or null to play wherever the system sends media. */
+    val preferredOutput = MutableStateFlow<AudioDeviceInfo?>(null)
+
+    /** Sends the sound of every player, the crossfade's included, to [device]; null follows the system again. */
+    fun setPreferredOutput(device: AudioDeviceInfo?) {
+        preferredOutput.value = device
+        player.setPreferredAudioDevice(device)
+        secondaryPlayer?.setPreferredAudioDevice(device)
+        fadingPlayer?.setPreferredAudioDevice(device)
+    }
     private var isCrossfading = false
     private var crossfadeJob: Job? = null
     private var isRunning = false
@@ -1476,6 +1487,8 @@ class MusicService :
                 .setDeviceVolumeControlEnabled(true)
                 .build()
         createdPlayer = player
+        // A player made for a crossfade or a rebuild plays where the one before it did.
+        preferredOutput.value?.let(player::setPreferredAudioDevice)
 
         playerNormalizationProcessors[player] = normalizationProcessor
         playerSilenceProcessors[player] = silenceProcessor

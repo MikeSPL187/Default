@@ -1,12 +1,22 @@
 package com.metrolist.music.ui.player
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.metrolist.music.LocalPlayerConnection
+import kotlinx.coroutines.flow.MutableStateFlow
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
-import android.media.MediaRouter2
 import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.layout.Row
@@ -42,6 +52,8 @@ import timber.log.Timber
 data class AudioOutput(
     val kind: Kind,
     val name: String? = null,
+    /** The device itself, to send the sound to it; null for an output only described. */
+    val device: AudioDeviceInfo? = null,
 ) {
     enum class Kind { PHONE, WIRED, BLUETOOTH }
 }
@@ -58,87 +70,96 @@ private val bluetoothTypes =
 private val wiredTypes =
     setOf(AudioDeviceInfo.TYPE_WIRED_HEADSET, AudioDeviceInfo.TYPE_WIRED_HEADPHONES, AudioDeviceInfo.TYPE_USB_HEADSET)
 
-/** Media follows the last connected headset, so a connected one is where it plays. */
-private fun currentOutput(audioManager: AudioManager): AudioOutput {
-    val outputs = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-    outputs.firstOrNull { it.type in bluetoothTypes }?.let { return AudioOutput(AudioOutput.Kind.BLUETOOTH, it.productName?.toString()?.takeIf(String::isNotBlank)) }
-    if (outputs.any { it.type in wiredTypes }) return AudioOutput(AudioOutput.Kind.WIRED)
-    return AudioOutput(AudioOutput.Kind.PHONE)
+/**
+ * The outputs music can play on now: the phone's speaker, then wired headphones, then each
+ * Bluetooth device once (a headset is listed under several types).
+ */
+private fun availableOutputs(audioManager: AudioManager): List<AudioOutput> {
+    val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+    val speaker = devices.firstOrNull { it.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER }
+    val wired = devices.firstOrNull { it.type in wiredTypes }
+    val bluetooth =
+        devices
+            .filter { it.type in bluetoothTypes }
+            .distinctBy { it.productName?.toString() ?: it.address }
+    return buildList {
+        add(AudioOutput(AudioOutput.Kind.PHONE, device = speaker))
+        wired?.let { add(AudioOutput(AudioOutput.Kind.WIRED, it.productName?.toString()?.takeIf(String::isNotBlank)?.takeUnless { name -> name == Build.MODEL }, it)) }
+        bluetooth.forEach { add(AudioOutput(AudioOutput.Kind.BLUETOOTH, it.productName?.toString()?.takeIf(String::isNotBlank), it)) }
+    }
 }
 
-/** The output of the moment, kept up to date as headphones come and go. */
+/** Where media goes without a choice made in the app: the last connected headset, else the phone. */
+private fun systemOutput(outputs: List<AudioOutput>): AudioOutput =
+    outputs.firstOrNull { it.kind == AudioOutput.Kind.BLUETOOTH }
+        ?: outputs.firstOrNull { it.kind == AudioOutput.Kind.WIRED }
+        ?: outputs.first()
+
+/** The outputs of the moment, kept up to date as headphones come and go. */
 @Composable
-fun rememberAudioOutput(): AudioOutput {
+private fun rememberAudioOutputs(): List<AudioOutput> {
     val context = LocalContext.current
     val audioManager = remember { context.getSystemService(AudioManager::class.java) }
-    var output by remember { mutableStateOf(currentOutput(audioManager)) }
+    var outputs by remember { mutableStateOf(availableOutputs(audioManager)) }
     DisposableEffect(audioManager) {
         val callback =
             object : AudioDeviceCallback() {
                 override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) {
-                    output = currentOutput(audioManager)
+                    outputs = availableOutputs(audioManager)
                 }
 
                 override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) {
-                    output = currentOutput(audioManager)
+                    outputs = availableOutputs(audioManager)
                 }
             }
         audioManager.registerAudioDeviceCallback(callback, null)
         onDispose { audioManager.unregisterAudioDeviceCallback(callback) }
     }
-    return output
+    return outputs
 }
 
-/**
- * Opens the system's output switcher, where the user picks the phone, headphones or a speaker.
- * Before Android 14 SystemUI takes it as a broadcast; without either, the Bluetooth settings.
- */
-fun openOutputSwitcher(context: Context) {
-    val shown =
-        when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE ->
-                runCatching { MediaRouter2.getInstance(context).showSystemOutputSwitcher() }.getOrDefault(false)
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ->
-                runCatching {
-                    context.sendBroadcast(
-                        Intent("com.android.systemui.action.LAUNCH_MEDIA_OUTPUT_DIALOG")
-                            .setPackage("com.android.systemui")
-                            .putExtra("package_name", context.packageName),
-                    )
-                    true
-                }.getOrDefault(false)
-            else -> false
-        }
-    if (!shown) {
-        try {
-            context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        } catch (e: ActivityNotFoundException) {
-            Timber.w(e, "No Bluetooth settings")
-        }
+private fun openBluetoothSettings(context: Context) {
+    try {
+        context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    } catch (e: ActivityNotFoundException) {
+        Timber.w(e, "No Bluetooth settings")
     }
 }
 
-/** "Where it plays": a chip with the current output that opens the switcher. */
+@Composable
+private fun outputLabel(output: AudioOutput): String =
+    output.name ?: stringResource(
+        when (output.kind) {
+            AudioOutput.Kind.PHONE -> R.string.output_this_phone
+            AudioOutput.Kind.WIRED -> R.string.output_headphones
+            AudioOutput.Kind.BLUETOOTH -> R.string.output_bluetooth
+        },
+    )
+
+private fun outputIcon(output: AudioOutput) = if (output.kind == AudioOutput.Kind.PHONE) R.drawable.speaker else R.drawable.headphones
+
+/**
+ * "Where it plays": a chip with the current output that opens a sheet of the outputs at hand.
+ * The sheet is the app's own, as the system's output switcher is missing on many phones.
+ */
 @Composable
 fun AudioOutputChip(
     contentColor: Color,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
-    val output = rememberAudioOutput()
-    val label =
-        output.name ?: stringResource(
-            when (output.kind) {
-                AudioOutput.Kind.PHONE -> R.string.output_this_phone
-                AudioOutput.Kind.WIRED -> R.string.output_headphones
-                AudioOutput.Kind.BLUETOOTH -> R.string.output_bluetooth
-            },
-        )
+    val service = LocalPlayerConnection.current?.service
+    val outputs = rememberAudioOutputs()
+    val noPlayer = remember { MutableStateFlow<AudioDeviceInfo?>(null) }
+    val preferred by (service?.preferredOutput ?: noPlayer).collectAsStateWithLifecycle()
+    // A device picked here plays while it is connected; once it is gone, the system decides again.
+    val current = preferred?.let { device -> outputs.firstOrNull { it.device?.id == device.id } } ?: systemOutput(outputs)
+    var picking by rememberSaveable { mutableStateOf(false) }
+
     Surface(
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-            openOutputSwitcher(context)
+            picking = true
         },
         shape = CircleShape,
         color = contentColor.copy(alpha = 0.12f),
@@ -146,19 +167,100 @@ fun AudioOutputChip(
         modifier = modifier.widthIn(max = 240.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 12.dp, end = 14.dp, top = 7.dp, bottom = 7.dp)) {
-            Icon(
-                painterResource(if (output.kind == AudioOutput.Kind.PHONE) R.drawable.speaker else R.drawable.headphones),
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-            )
+            Icon(painterResource(outputIcon(current)), contentDescription = null, modifier = Modifier.size(18.dp))
             Text(
-                label,
+                outputLabel(current),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(start = 8.dp),
             )
+        }
+    }
+
+    if (picking) {
+        OutputSheet(
+            outputs = outputs,
+            current = current,
+            onPick = { output ->
+                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                // Picking where the system plays anyway is no choice to remember.
+                service?.setPreferredOutput(output.device.takeUnless { output == systemOutput(outputs) })
+                picking = false
+            },
+            onDismiss = { picking = false },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OutputSheet(
+    outputs: List<AudioOutput>,
+    current: AudioOutput,
+    onPick: (AudioOutput) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    val colors = MaterialTheme.colorScheme
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(Modifier.padding(horizontal = 16.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                stringResource(R.string.output_picker_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(start = 8.dp, bottom = 10.dp),
+            )
+            outputs.forEach { output ->
+                val selected = output == current
+                Surface(
+                    onClick = { onPick(output) },
+                    shape = RoundedCornerShape(20.dp),
+                    color = if (selected) colors.secondaryContainer else Color.Transparent,
+                    contentColor = if (selected) colors.onSecondaryContainer else colors.onSurface,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+                        Icon(painterResource(outputIcon(output)), contentDescription = null)
+                        Column(Modifier.weight(1f).padding(start = 16.dp)) {
+                            Text(outputLabel(output), style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(
+                                stringResource(
+                                    when (output.kind) {
+                                        AudioOutput.Kind.PHONE -> R.string.output_kind_phone
+                                        AudioOutput.Kind.WIRED -> R.string.output_kind_wired
+                                        AudioOutput.Kind.BLUETOOTH -> R.string.output_bluetooth
+                                    },
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (selected) colors.onSecondaryContainer.copy(alpha = 0.8f) else colors.onSurfaceVariant,
+                            )
+                        }
+                        if (selected) Icon(painterResource(R.drawable.check), contentDescription = stringResource(R.string.output_playing_here))
+                    }
+                }
+            }
+            HorizontalDivider(Modifier.padding(vertical = 6.dp))
+            Surface(
+                onClick = {
+                    onDismiss()
+                    openBluetoothSettings(context)
+                },
+                shape = RoundedCornerShape(20.dp),
+                color = Color.Transparent,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+                    Icon(painterResource(R.drawable.bluetooth), contentDescription = null, tint = colors.primary)
+                    Text(
+                        stringResource(R.string.output_connect_device),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = colors.primary,
+                        modifier = Modifier.padding(start = 16.dp),
+                    )
+                }
+            }
         }
     }
 }
