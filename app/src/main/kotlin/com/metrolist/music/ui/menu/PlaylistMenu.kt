@@ -167,7 +167,7 @@ fun PlaylistMenu(
                         Toast.makeText(context, removedMessage, Toast.LENGTH_SHORT).show()
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.ok))
+                    Text(text = stringResource(R.string.remove_action), color = MaterialTheme.colorScheme.error)
                 }
             },
         )
@@ -269,7 +269,7 @@ fun PlaylistMenu(
                         }
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.ok))
+                    Text(text = stringResource(R.string.remove_action), color = MaterialTheme.colorScheme.error)
                 }
             },
         )

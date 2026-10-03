@@ -234,7 +234,7 @@ fun TopPlaylistScreen(
                         }
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.ok))
+                    Text(text = stringResource(R.string.remove_action), color = MaterialTheme.colorScheme.error)
                 }
             },
         )

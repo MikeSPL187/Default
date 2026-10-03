@@ -189,7 +189,7 @@ fun SelectionSongMenu(
                         }
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.ok))
+                    Text(text = stringResource(R.string.remove_action), color = MaterialTheme.colorScheme.error)
                 }
             },
         )
@@ -754,7 +754,7 @@ fun SelectionMediaMetadataMenu(
                         }
                     },
                 ) {
-                    Text(text = stringResource(android.R.string.ok))
+                    Text(text = stringResource(R.string.remove_action), color = MaterialTheme.colorScheme.error)
                 }
             },
         )

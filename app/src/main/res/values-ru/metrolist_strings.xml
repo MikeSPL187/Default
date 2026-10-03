@@ -957,6 +957,7 @@
     <string name="remove_playlist_duplicates">Удалить повторяющиеся треки</string>
     <string name="remove_playlist_duplicates_desc">Найдено повторов: %1$d</string>
     <string name="remove_playlist_duplicates_confirm">Удалить повторы (%1$d), оставив первое вхождение каждого?</string>
+    <string name="remove_action">Удалить</string>
     <string name="playlist_duplicates_removed">Удалено повторяющихся треков: %1$d</string>
 
     <!-- Huawei Watch export (automation) -->

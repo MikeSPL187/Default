@@ -1068,6 +1068,7 @@
     <string name="remove_playlist_duplicates">Remove duplicate songs</string>
     <string name="remove_playlist_duplicates_desc">Duplicates found: %1$d</string>
     <string name="remove_playlist_duplicates_confirm">Remove duplicates (%1$d), keeping the first of each?</string>
+    <string name="remove_action">Remove</string>
     <string name="playlist_duplicates_removed">Duplicates removed: %1$d</string>
 
     <!-- Huawei Watch export (automation) -->
