@@ -1247,7 +1247,7 @@
     <string name="playlist_import_intro">Bring a playlist from Yandex Music or Spotify, or your own list of tracks: each track is found on YouTube Music and saved to your library.</string>
     <string name="playlist_import_by_link">By link</string>
     <string name="playlist_import_by_list">As a list</string>
-    <string name="playlist_import_link_label">Playlist or album link</string>
+    <string name="playlist_import_link_label">Link</string>
     <string name="playlist_import_link_hint">Yandex Music or Spotify. The playlist must be public.</string>
     <string name="playlist_import_link_playlist">%1$s · playlist</string>
     <string name="playlist_import_link_album">%1$s · album</string>

@@ -1138,7 +1138,7 @@
     <string name="playlist_import_intro">Перенесите плейлист из Яндекс Музыки или Spotify либо свой список треков: каждый трек найдётся в YouTube Music и сохранится в вашу медиатеку.</string>
     <string name="playlist_import_by_link">По ссылке</string>
     <string name="playlist_import_by_list">Списком</string>
-    <string name="playlist_import_link_label">Ссылка на плейлист или альбом</string>
+    <string name="playlist_import_link_label">Ссылка</string>
     <string name="playlist_import_link_hint">Яндекс Музыка или Spotify. Плейлист должен быть открытым.</string>
     <string name="playlist_import_link_playlist">%1$s · плейлист</string>
     <string name="playlist_import_link_album">%1$s · альбом</string>

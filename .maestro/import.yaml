@@ -29,7 +29,7 @@ appId: com.metrolist.music
 - waitForAnimationToEnd
 - takeScreenshot: import-01-form
 - tapOn:
-    text: "Playlist or album link"
+    text: "Link"
     optional: true
 - inputText: "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M"
 - hideKeyboard
