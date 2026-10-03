@@ -3,6 +3,7 @@ package com.metrolist.music.ui.screens.equalizer.wizard
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.metrolist.music.R
 import com.metrolist.music.eq.data.EQProfileRepository
 import com.metrolist.music.eq.data.GitHubAutoEqSearch
 import com.metrolist.music.eq.data.SavedEQProfile
@@ -49,7 +50,7 @@ class WizardViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        error = "Failed to load AutoEQ database"
+                        error = WizardError(R.string.wizard_error_database)
                     )
                 }
             } else {
@@ -93,11 +94,12 @@ class WizardViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
+                Timber.e(e, "AutoEQ model search failed")
                 _state.update {
                     it.copy(
                         models = emptyList(),
                         isLoading = false,
-                        error = "Failed to search models: ${e.message}"
+                        error = WizardError(R.string.wizard_error_search)
                     )
                 }
             }
@@ -123,7 +125,7 @@ class WizardViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            error = "No EQ profiles found for $modelName"
+                            error = WizardError(R.string.wizard_error_no_profiles, modelName)
                         )
                     }
                     return@launch
@@ -163,11 +165,12 @@ class WizardViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
+                Timber.e(e, "AutoEQ variants failed to load")
                 _state.update {
                     it.copy(
                         variants = emptyList(),
                         isLoading = false,
-                        error = "Failed to load variants: ${e.message}"
+                        error = WizardError(R.string.wizard_error_variants)
                     )
                 }
             }
@@ -276,15 +279,16 @@ class WizardViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            error = "Failed to load any EQ profiles for the selected variants"
+                            error = WizardError(R.string.wizard_error_selected)
                         )
                     }
                 }
             } catch (e: Exception) {
+                Timber.e(e, "AutoEQ profiles failed to save")
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        error = "Failed to save profiles: ${e.message}"
+                        error = WizardError(R.string.wizard_error_save)
                     )
                 }
             }

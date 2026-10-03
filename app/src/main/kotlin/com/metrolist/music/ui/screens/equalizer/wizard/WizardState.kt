@@ -1,5 +1,7 @@
 package com.metrolist.music.ui.screens.equalizer.wizard
 
+import androidx.annotation.StringRes
+
 /**
  * UI State for Wizard Screen
  * Manages the two-step device setup flow
@@ -19,7 +21,7 @@ data class WizardState(
     // UI state flags
     val isDatabaseReady: Boolean = false,
     val isLoading: Boolean = false,
-    val error: String? = null,
+    val error: WizardError? = null,
     val isComplete: Boolean = false
 ) {
     val canProceed: Boolean
@@ -31,6 +33,12 @@ data class WizardState(
     val canGoBack: Boolean
         get() = currentStep != WizardStep.MODEL_SELECTION
 }
+
+/** A failure to show the listener, worded in their language; [arg] fills the text's placeholder. */
+data class WizardError(
+    @StringRes val text: Int,
+    val arg: String = "",
+)
 
 enum class WizardStep {
     MODEL_SELECTION,

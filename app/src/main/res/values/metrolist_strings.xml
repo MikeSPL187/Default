@@ -524,6 +524,12 @@
     <string name="wizard_multiple_variants">Multiple variants available</string>
     <string name="wizard_select_eq_profiles">Select EQ profiles for %s</string>
     <string name="wizard_save_profiles">Save Profiles</string>
+    <string name="wizard_error_database">Couldn\'t download the AutoEQ database. Check your connection and try again</string>
+    <string name="wizard_error_search">Couldn\'t search the models</string>
+    <string name="wizard_error_no_profiles">No EQ profiles found for %s</string>
+    <string name="wizard_error_variants">Couldn\'t load the profiles for this model</string>
+    <string name="wizard_error_selected">Couldn\'t load the selected profiles</string>
+    <string name="wizard_error_save">Couldn\'t save the profiles</string>
 
     <!-- Hardcoded strings -->
     <string name="found_in_settings_content">Found in Settings &gt; Content</string>

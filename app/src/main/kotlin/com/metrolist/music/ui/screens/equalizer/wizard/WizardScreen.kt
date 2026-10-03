@@ -124,13 +124,13 @@ private fun WizardScreenContent(
                 }
             }
 
-            if (state.error != null) {
+            state.error?.let { error ->
                 Snackbar(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp)
                 ) {
-                    Text(state.error)
+                    Text(stringResource(error.text, error.arg))
                 }
             }
         }

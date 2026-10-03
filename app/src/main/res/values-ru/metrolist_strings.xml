@@ -817,6 +817,12 @@
     <string name="wizard_multiple_variants">Доступно несколько вариантов</string>
     <string name="wizard_select_eq_profiles">Выберите профили эквалайзера для %s</string>
     <string name="wizard_save_profiles">Сохранить профили</string>
+    <string name="wizard_error_database">Не удалось загрузить базу AutoEQ. Проверьте подключение и попробуйте снова</string>
+    <string name="wizard_error_search">Не удалось найти модели</string>
+    <string name="wizard_error_no_profiles">Для %s не нашлось профилей эквалайзера</string>
+    <string name="wizard_error_variants">Не удалось загрузить профили этой модели</string>
+    <string name="wizard_error_selected">Не удалось загрузить выбранные профили</string>
+    <string name="wizard_error_save">Не удалось сохранить профили</string>
     <string name="loudness_level">Уровень нормализации</string>
     <string name="loudness_level_aggressive">Агрессивный (-7 дБ)</string>
     <string name="loudness_level_loud">Громкий (-11 дБ)</string>
