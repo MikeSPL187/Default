@@ -808,6 +808,8 @@
     <string name="eq_download_db">Скачать базу данных AutoEQ (17 МБ)</string>
     <string name="eq_downloading">Скачивание…</string>
     <string name="import_from_file">Импорт из файла</string>
+    <string name="eq_add_profile">Добавить профиль</string>
+    <string name="eq_empty_hint">Найдите свои наушники, и AutoEQ подстроит звук под них, или импортируйте профиль из файла</string>
     <string name="wizard_select_model">Выберите модель</string>
     <string name="wizard_select_profiles">Выберите профили</string>
     <string name="wizard_search_model_hint">Найдите свою модель наушников</string>

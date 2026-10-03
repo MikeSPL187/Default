@@ -502,6 +502,8 @@
     <string name="eq_download_db">Download AutoEQ database (17 MB)</string>
     <string name="eq_downloading">Downloading…</string>
     <string name="import_from_file">Import from file</string>
+    <string name="eq_add_profile">Add profile</string>
+    <string name="eq_empty_hint">Find your headphones and AutoEQ tunes the sound to them, or import a profile from a file</string>
     <plurals name="band_count">
         <item quantity="one">%d band</item>
         <item quantity="other">%d bands</item>

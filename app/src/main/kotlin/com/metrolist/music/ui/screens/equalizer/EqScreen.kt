@@ -25,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -43,6 +44,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -202,7 +204,7 @@ private fun EqScreenContent(
                         IconButton(onClick = onAddClicked) {
                             Icon(
                                 painter = painterResource(R.drawable.add),
-                                contentDescription = stringResource(R.string.import_profile)
+                                contentDescription = stringResource(R.string.eq_add_profile)
                             )
                         }
                         DropdownMenu(
@@ -297,9 +299,19 @@ private fun EqScreenContent(
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Button(onClick = onAddClicked) {
-                                Text(stringResource(R.string.import_profile))
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(R.string.eq_empty_hint),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(onClick = onWizardClicked) {
+                                Text(stringResource(R.string.eq_wizard))
+                            }
+                            OutlinedButton(onClick = onImportClicked) {
+                                Text(stringResource(R.string.import_from_file))
                             }
                         }
                     }
