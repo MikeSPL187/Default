@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Icon
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.lerp
@@ -45,6 +46,9 @@ fun EmptyPlaceholder(
     hint: String? = null,
     action: String? = null,
     onAction: (() -> Unit)? = null,
+    /** A second way to fill the screen, drawn quieter than [action]. */
+    secondaryAction: String? = null,
+    onSecondaryAction: (() -> Unit)? = null,
 ) {
     val colors = MaterialTheme.colorScheme
     Column(
@@ -83,6 +87,9 @@ fun EmptyPlaceholder(
         }
         if (action != null && onAction != null) {
             Button(onClick = onAction, modifier = Modifier.padding(top = 22.dp)) { Text(action) }
+        }
+        if (secondaryAction != null && onSecondaryAction != null) {
+            OutlinedButton(onClick = onSecondaryAction, modifier = Modifier.padding(top = 8.dp)) { Text(secondaryAction) }
         }
     }
 }

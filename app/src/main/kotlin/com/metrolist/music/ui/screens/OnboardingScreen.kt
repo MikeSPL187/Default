@@ -182,15 +182,16 @@ fun OnboardingScreen(
                     Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        // The grid fades out under the button instead of stopping at a hard edge.
+                        // The grid fades out above the button and is solid behind it: a disabled
+                        // button is see-through and must not show the faces under it.
                         .background(
                             Brush.verticalGradient(
                                 0f to Color.Transparent,
-                                0.35f to MaterialTheme.colorScheme.surface,
+                                0.28f to MaterialTheme.colorScheme.surface,
                                 1f to MaterialTheme.colorScheme.surface,
                             ),
                         ).windowInsetsPadding(WindowInsets.navigationBars)
-                        .padding(start = 20.dp, end = 20.dp, top = 40.dp, bottom = 16.dp),
+                        .padding(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 16.dp),
             ) {
                 Button(
                     onClick = { viewModel.finish(onDone) },

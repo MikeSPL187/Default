@@ -51,6 +51,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.R
+import com.metrolist.music.ui.component.EmptyPlaceholder
 import com.metrolist.music.eq.data.SavedEQProfile
 import timber.log.Timber
 
@@ -275,46 +276,18 @@ private fun EqScreenContent(
                 }
             }
 
-            // Empty state
+            // Empty state, drawn as every other empty screen in the app
             if (customProfiles.isEmpty()) {
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.equalizer),
-                                contentDescription = null,
-                                modifier = Modifier.size(48.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = stringResource(R.string.no_profiles),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = stringResource(R.string.eq_empty_hint),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Button(onClick = onWizardClicked) {
-                                Text(stringResource(R.string.eq_wizard))
-                            }
-                            OutlinedButton(onClick = onImportClicked) {
-                                Text(stringResource(R.string.import_from_file))
-                            }
-                        }
-                    }
+                    EmptyPlaceholder(
+                        icon = R.drawable.equalizer,
+                        text = stringResource(R.string.no_profiles),
+                        hint = stringResource(R.string.eq_empty_hint),
+                        action = stringResource(R.string.eq_wizard),
+                        onAction = onWizardClicked,
+                        secondaryAction = stringResource(R.string.import_from_file),
+                        onSecondaryAction = onImportClicked,
+                    )
                 }
             }
         }
