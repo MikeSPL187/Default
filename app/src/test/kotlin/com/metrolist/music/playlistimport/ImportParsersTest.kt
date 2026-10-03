@@ -107,4 +107,47 @@ class ImportParsersTest {
         assertEquals("7 Rings", tracks[4].title)
         assertTrue(parseTrackList("  \n ").isEmpty())
     }
+
+    @Test
+    fun `an M3U playlist gives its EXTINF names and durations`() {
+        val m3u =
+            """
+            #EXTM3U
+            #EXTINF:203,Dua Lipa - Levitating
+            /storage/Music/levitating.mp3
+            #EXTINF:-1,Blinding Lights
+            https://example.com/stream
+            /storage/Music/Daft_Punk - Get Lucky.flac
+            """.trimIndent()
+        val tracks = parseTrackFile("Night.m3u8", m3u)
+        assertEquals(3, tracks.size)
+        assertEquals(ImportedTrack("Levitating", listOf("Dua Lipa"), durationSec = 203), tracks[0])
+        assertEquals(ImportedTrack("Blinding Lights", emptyList()), tracks[1])
+        assertEquals(ImportedTrack("Get Lucky", listOf("Daft Punk")), tracks[2])
+    }
+
+    @Test
+    fun `an Exportify CSV is read by its headers, quoted cells included`() {
+        val csv =
+            "\uFEFF\"Track URI\",\"Track Name\",\"Artist Name(s)\",\"Album Name\",\"Duration (ms)\"\r\n" +
+                "\"spotify:track:1\",\"Levitating (feat. DaBaby)\",\"Dua Lipa, DaBaby\",\"Future Nostalgia\",\"203064\"\r\n" +
+                "\"spotify:track:2\",\"Say \"\"Hi\"\"\",\"Someone\",\"A, B\",\"1000\"\r\n"
+        val tracks = parseTrackFile("export.csv", csv)
+        assertEquals(2, tracks.size)
+        assertEquals(ImportedTrack("Levitating (feat. DaBaby)", listOf("Dua Lipa", "DaBaby"), durationSec = 203), tracks[0])
+        assertEquals("Say \"Hi\"", tracks[1].title)
+    }
+
+    @Test
+    fun `a CSV without known headers is title then artist, and semicolons work`() {
+        val tracks = parseTrackFile("list.csv", "Levitating;Dua Lipa\nGet Lucky;Daft Punk\n")
+        assertEquals(listOf("Levitating", "Get Lucky"), tracks.map { it.title })
+        assertEquals(listOf("Daft Punk"), tracks[1].artists)
+    }
+
+    @Test
+    fun `any other file is a list, one track per line`() {
+        val tracks = parseTrackFile("tracks.txt", "1. Dua Lipa - Levitating\n2. Daft Punk - Get Lucky")
+        assertEquals(listOf("Levitating", "Get Lucky"), tracks.map { it.title })
+    }
 }

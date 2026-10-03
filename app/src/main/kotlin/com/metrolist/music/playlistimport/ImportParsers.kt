@@ -169,3 +169,125 @@ fun parseTrackList(text: String): List<ImportedTrack> =
             ImportedTrack(title = line, artists = emptyList())
         }
     }
+
+private val EXTINF = Regex("""^#EXTINF:\s*(-?\d+)[^,]*,(.*)$""", RegexOption.IGNORE_CASE)
+
+/**
+ * The tracks of a playlist file: an M3U/M3U8 playlist (its `#EXTINF` lines, else the file names it
+ * lists), a CSV table such as Exportify's (its title, artist and duration columns, found by their
+ * headers), or plain text, one track per line.
+ */
+fun parseTrackFile(
+    fileName: String,
+    text: String,
+): List<ImportedTrack> {
+    val body = text.removePrefix("﻿")
+    val extension = fileName.substringAfterLast('.', "").lowercase()
+    return when {
+        extension == "m3u" || extension == "m3u8" || body.trimStart().startsWith("#EXTM3U") -> parseM3u(body)
+        extension == "csv" -> parseCsvTracks(body)
+        else -> parseTrackList(body)
+    }
+}
+
+private fun parseM3u(text: String): List<ImportedTrack> {
+    val tracks = mutableListOf<ImportedTrack>()
+    var pending: ImportedTrack? = null
+    text.lines().map(String::trim).filter(String::isNotEmpty).forEach { line ->
+        val info = EXTINF.find(line)
+        when {
+            info != null -> {
+                val seconds = info.groupValues[1].toIntOrNull()?.takeIf { it > 0 }
+                pending = trackFromName(info.groupValues[2].trim())?.copy(durationSec = seconds)
+            }
+            line.startsWith("#") -> Unit
+            else -> {
+                // The entry itself: its #EXTINF name when it had one, else the file's own name.
+                (pending ?: trackFromName(line.substringAfterLast('/').substringAfterLast('\\').substringBeforeLast('.')))?.let(tracks::add)
+                pending = null
+            }
+        }
+    }
+    return tracks
+}
+
+/** "Artist - Title" (any dash) as a track; a name with no dash is a title alone. */
+private fun trackFromName(name: String): ImportedTrack? {
+    val clean = name.replace('_', ' ').trim()
+    if (clean.isEmpty()) return null
+    val parts = clean.split(DASH_SEPARATOR, limit = 2)
+    return if (parts.size == 2 && parts[0].isNotBlank() && parts[1].isNotBlank()) {
+        ImportedTrack(title = parts[1].trim(), artists = parts[0].split(LIST_ARTIST_SEPARATOR).map(String::trim).filter(String::isNotEmpty))
+    } else {
+        ImportedTrack(title = clean, artists = emptyList())
+    }
+}
+
+private val TITLE_HEADERS = listOf("track name", "title", "track", "song", "name", "название", "трек", "песня")
+private val ARTIST_HEADERS = listOf("artist name(s)", "artist names", "artist name", "artists", "artist", "исполнитель", "исполнители", "артист")
+private val DURATION_HEADERS = listOf("duration (ms)", "track duration (ms)", "duration_ms")
+private val CSV_ARTIST_SEPARATOR = Regex("""\s*[;,]\s*""")
+
+/**
+ * A CSV export: columns are found by their headers; a table without known headers is read as
+ * title, then artist. Exportify lists several artists in one cell, separated by commas.
+ */
+private fun parseCsvTracks(text: String): List<ImportedTrack> {
+    val rows = parseCsv(text).filter { row -> row.any { it.isNotBlank() } }
+    if (rows.isEmpty()) return emptyList()
+    val header = rows.first().map { it.trim().lowercase() }
+    fun column(names: List<String>) = names.firstNotNullOfOrNull { name -> header.indexOf(name).takeIf { it >= 0 } }
+    val titleColumn = column(TITLE_HEADERS)
+    val hasHeader = titleColumn != null
+    val titleAt = titleColumn ?: 0
+    val artistAt = if (hasHeader) column(ARTIST_HEADERS) else 1
+    val durationAt = if (hasHeader) column(DURATION_HEADERS) else null
+    return rows.drop(if (hasHeader) 1 else 0).mapNotNull { row ->
+        val title = row.getOrNull(titleAt)?.trim().orEmpty()
+        if (title.isEmpty()) return@mapNotNull null
+        ImportedTrack(
+            title = title,
+            artists = artistAt?.let { row.getOrNull(it) }?.split(CSV_ARTIST_SEPARATOR)?.map(String::trim)?.filter(String::isNotEmpty).orEmpty(),
+            durationSec = durationAt?.let { row.getOrNull(it) }?.trim()?.toLongOrNull()?.let { (it / 1000).toInt() },
+        )
+    }
+}
+
+/** RFC 4180 rows: quoted cells may hold commas, quotes ("") and line breaks; `;` tables work too. */
+internal fun parseCsv(text: String): List<List<String>> {
+    val firstLine = text.lineSequence().firstOrNull().orEmpty()
+    val delimiter = if (firstLine.count { it == ';' } > firstLine.count { it == ',' }) ';' else ','
+    val rows = mutableListOf<List<String>>()
+    var row = mutableListOf<String>()
+    val cell = StringBuilder()
+    var quoted = false
+    var i = 0
+    while (i < text.length) {
+        val c = text[i]
+        when {
+            quoted && c == '"' && text.getOrNull(i + 1) == '"' -> {
+                cell.append('"')
+                i++
+            }
+            c == '"' -> quoted = !quoted
+            !quoted && c == delimiter -> {
+                row += cell.toString()
+                cell.clear()
+            }
+            !quoted && (c == '\n' || c == '\r') -> {
+                if (c == '\r' && text.getOrNull(i + 1) == '\n') i++
+                row += cell.toString()
+                cell.clear()
+                rows += row
+                row = mutableListOf()
+            }
+            else -> cell.append(c)
+        }
+        i++
+    }
+    if (cell.isNotEmpty() || row.isNotEmpty()) {
+        row += cell.toString()
+        rows += row
+    }
+    return rows
+}

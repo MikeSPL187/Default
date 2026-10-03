@@ -14,9 +14,20 @@ appId: com.metrolist.music
     text: "Transfer playlists"
     optional: true
 - waitForAnimationToEnd
-- takeScreenshot: import-01-form
+- takeScreenshot: import-01-sources
+- scroll
+- takeScreenshot: import-01a-sources-2
+- scrollUntilVisible:
+    element: "Spotify"
+    direction: UP
+    optional: true
 
 # By link: a public Spotify playlist.
+- tapOn:
+    text: "Spotify"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: import-01-form
 - tapOn:
     text: "Playlist or album link"
     optional: true
@@ -90,8 +101,9 @@ appId: com.metrolist.music
 
 # As a list, typed line by line.
 - tapOn:
-    text: "As a list"
+    text: "Your own list"
     optional: true
+- waitForAnimationToEnd
 - tapOn:
     text: "Playlist name"
     optional: true

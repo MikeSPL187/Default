@@ -106,6 +106,21 @@ class PlaylistImporter
                 }
         }
 
+        /** Takes the tracks of a playlist file (M3U, CSV or text), named after the file. */
+        fun loadFile(
+            fileName: String,
+            text: String,
+        ) {
+            val tracks = parseTrackFile(fileName, text)
+            val title = fileName.substringBeforeLast('.').replace('_', ' ').trim()
+            _state.value =
+                if (tracks.isEmpty()) {
+                    ImportState(error = ImportError.EMPTY)
+                } else {
+                    preview(ImportedPlaylist(title = title, source = ImportSource.FILE, tracks = tracks))
+                }
+        }
+
         private fun preview(playlist: ImportedPlaylist) =
             ImportState(
                 phase = ImportState.Phase.PREVIEW,
@@ -171,6 +186,16 @@ class PlaylistImporter
             }
         }
 
+        /** A file that could not be opened or read, shown on the form. */
+        fun fileFailed() {
+            _state.value = ImportState(error = ImportError.FILE_UNREADABLE)
+        }
+
+        /** Forgets the last form error, once another way to transfer is chosen. */
+        fun clearError() {
+            _state.update { if (it.phase == ImportState.Phase.INPUT) it.copy(error = null) else it }
+        }
+
         /** Back to an empty form, for the next import. */
         fun reset() {
             job?.cancel()
@@ -180,7 +205,8 @@ class PlaylistImporter
         private suspend fun resolveAll(playlist: ImportedPlaylist) =
             coroutineScope {
                 val semaphore = Semaphore(PARALLEL_SEARCHES)
-                val allowSwap = playlist.source == ImportSource.TEXT
+                // A list or a file may name the artist and the title in either order.
+                val allowSwap = playlist.source == ImportSource.TEXT || playlist.source == ImportSource.FILE
                 playlist.tracks.mapIndexed { index, track ->
                     async {
                         semaphore.withPermit {

@@ -9,7 +9,7 @@ data class ImportedTrack(
     val coverUrl: String? = null,
 )
 
-enum class ImportSource { YANDEX_MUSIC, SPOTIFY, TEXT }
+enum class ImportSource { YANDEX_MUSIC, SPOTIFY, TEXT, FILE }
 
 data class ImportedPlaylist(
     val title: String,
@@ -35,6 +35,6 @@ sealed interface ImportLink {
 }
 
 /** Why a playlist could not be read, each shown to the user in its own words. */
-enum class ImportError { UNSUPPORTED_LINK, NOT_FOUND, NETWORK, EMPTY, UNREADABLE }
+enum class ImportError { UNSUPPORTED_LINK, NOT_FOUND, NETWORK, EMPTY, UNREADABLE, FILE_UNREADABLE }
 
 class ImportException(val error: ImportError, cause: Throwable? = null) : Exception(error.name, cause)
