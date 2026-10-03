@@ -7,9 +7,16 @@ appId: com.metrolist.music
     visible: "Library"
     timeout: 60000
 - tapOn: "Library"
-- tapOn:
-    text: "Playlists"
-    optional: true
+- waitForAnimationToEnd
+# The Playlists chip toggles and is remembered: tap it only when its list is not already shown.
+- runFlow:
+    when:
+      notVisible: "Transfer playlists"
+    commands:
+      - tapOn:
+          text: "Playlists"
+          optional: true
+      - waitForAnimationToEnd
 - tapOn:
     text: "Transfer playlists"
     optional: true
