@@ -40,7 +40,8 @@ import androidx.compose.ui.unit.dp
  */
 @Composable
 fun EmptyPlaceholder(
-    @DrawableRes icon: Int,
+    /** Null where the screen already shows the same picture above, as an empty playlist's cover. */
+    @DrawableRes icon: Int?,
     text: String,
     modifier: Modifier = Modifier,
     hint: String? = null,
@@ -58,15 +59,17 @@ fun EmptyPlaceholder(
                 .fillMaxWidth()
                 .padding(horizontal = 36.dp, vertical = 48.dp),
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier =
-                Modifier
-                    .size(96.dp)
-                    .clip(RoundedCornerShape(32.dp))
-                    .background(lerp(colors.surfaceContainerHigh, colors.primary, 0.18f)),
-        ) {
-            Icon(painterResource(icon), contentDescription = null, tint = colors.primary, modifier = Modifier.size(44.dp))
+        if (icon != null) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier =
+                    Modifier
+                        .size(96.dp)
+                        .clip(RoundedCornerShape(32.dp))
+                        .background(lerp(colors.surfaceContainerHigh, colors.primary, 0.18f)),
+            ) {
+                Icon(painterResource(icon), contentDescription = null, tint = colors.primary, modifier = Modifier.size(44.dp))
+            }
         }
         Text(
             text = text,
@@ -74,7 +77,7 @@ fun EmptyPlaceholder(
             style = MaterialTheme.typography.titleLarge.copy(lineBreak = LineBreak.Heading),
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 22.dp),
+            modifier = Modifier.padding(top = if (icon != null) 22.dp else 0.dp),
         )
         hint?.let {
             Text(

@@ -85,6 +85,7 @@ import coil3.compose.AsyncImage
 import com.metrolist.innertube.pages.HomePage
 import com.metrolist.music.R
 import com.metrolist.music.ui.component.SegmentLabel
+import com.metrolist.music.ui.component.SegmentPadding
 import com.metrolist.music.dj.DjMode
 import com.metrolist.music.dj.DjMood
 import com.metrolist.music.ui.component.PlayPauseIcon
@@ -543,6 +544,7 @@ fun DjTuneSheet(
                             onMode(option)
                         },
                         shape = SegmentedButtonDefaults.itemShape(index = index, count = DjMode.entries.size),
+                        contentPadding = SegmentPadding,
                         // The check mark would squeeze a long label ("Вперемешку") to a small size; the fill shows the choice.
                         icon = {},
                         label = { SegmentLabel(stringResource(option.label)) },

@@ -554,7 +554,7 @@ fun LocalPlaylistScreen(
                 if (playlist.songCount == 0 && (playlist.playlist.remoteSongCount ?: 0) == 0) {
                     item(key = "empty_placeholder") {
                         EmptyPlaceholder(
-                            icon = R.drawable.music_note,
+                            icon = null,
                             text = stringResource(R.string.playlist_is_empty),
                             hint = stringResource(R.string.playlist_empty_hint),
                             action = stringResource(R.string.empty_find_music),
@@ -1490,20 +1490,23 @@ fun LocalPlaylistHeader(
         val playbackState by playerConnection.playbackState.collectAsStateWithLifecycle()
         val playlistQueued =
             isPlaylistQueued(queueTitle, playlist.playlist.name, currentId?.id, playbackState) { id -> songs.any { it.song.id == id } }
-        CollectionPlayButtons(
-            onPlay = {
-                if (playlistQueued) {
-                    playerConnection.togglePlayPause()
-                } else {
-                    playerConnection.playQueue(ListQueue(title = playlist.playlist.name, items = songs.map { it.song.toMediaItem() }))
-                }
-            },
-            onShuffle = {
-                playerConnection.playQueue(ListQueue(title = playlist.playlist.name, items = songs.shuffled().map { it.song.toMediaItem() }))
-            },
-            enabled = songs.isNotEmpty(),
-            playing = playlistQueued && isPlaying,
-        )
+        // An empty playlist has nothing to play: its first action is finding music, just below.
+        if (playlist.songCount > 0 || (playlist.playlist.remoteSongCount ?: 0) > 0) {
+            CollectionPlayButtons(
+                onPlay = {
+                    if (playlistQueued) {
+                        playerConnection.togglePlayPause()
+                    } else {
+                        playerConnection.playQueue(ListQueue(title = playlist.playlist.name, items = songs.map { it.song.toMediaItem() }))
+                    }
+                },
+                onShuffle = {
+                    playerConnection.playQueue(ListQueue(title = playlist.playlist.name, items = songs.shuffled().map { it.song.toMediaItem() }))
+                },
+                enabled = songs.isNotEmpty(),
+                playing = playlistQueued && isPlaying,
+            )
+        }
 
         Row(
             modifier = Modifier.padding(top = 12.dp),

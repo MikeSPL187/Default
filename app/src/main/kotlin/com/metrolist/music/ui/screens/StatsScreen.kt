@@ -92,6 +92,7 @@ import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
 import com.metrolist.music.ui.component.SegmentLabel
+import com.metrolist.music.ui.component.SegmentPadding
 import com.metrolist.music.ui.component.LargeScreenTitle
 import com.metrolist.music.constants.CONTENT_TYPE_ARTIST
 import com.metrolist.music.constants.InnerTubeCookieKey
@@ -889,6 +890,7 @@ private fun StatsPeriodRow(
                         onSelect(period)
                     },
                     shape = SegmentedButtonDefaults.itemShape(index = index, count = StatsPeriods.size),
+                    contentPadding = SegmentPadding,
                     // Four segments leave no room for a check mark; the fill already shows the choice.
                     icon = {},
                     label = {

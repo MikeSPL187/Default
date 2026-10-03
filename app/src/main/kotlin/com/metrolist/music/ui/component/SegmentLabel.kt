@@ -6,6 +6,7 @@
 package com.metrolist.music.ui.component
 
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
@@ -15,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
 
@@ -45,3 +47,6 @@ fun FitText(
 /** The label of a segmented button: a segment is a third or a quarter of the row. */
 @Composable
 fun SegmentLabel(text: String) = FitText(text, textAlign = TextAlign.Center)
+
+/** Narrower than the default, so a quarter of a phone-wide row still fits a label like "Всё время" at full size. */
+val SegmentPadding = PaddingValues(horizontal = 6.dp)
