@@ -368,7 +368,7 @@ fun ListenTogetherSettings(navController: NavController) {
                 items =
                     listOf(
                         IntegrationCardItem(
-                            icon = painterResource(R.drawable.person),
+                            icon = painterResource(R.drawable.not_recommended),
                             title = { Text(stringResource(R.string.listen_together_blocked_users)) },
                             description = {
                                 Text(
@@ -421,7 +421,7 @@ fun ListenTogetherSettings(navController: NavController) {
                                 },
                         ),
                         IntegrationCardItem(
-                            icon = painterResource(R.drawable.done),
+                            icon = painterResource(R.drawable.group_add),
                             title = { Text(stringResource(R.string.listen_together_auto_approval_joins)) },
                             description = {
                                 Text(stringResource(R.string.listen_together_auto_approval_joins_desc))
@@ -448,7 +448,7 @@ fun ListenTogetherSettings(navController: NavController) {
                             onClick = { if (roomState == null || role != RoomRole.GUEST) autoApprovalJoins = !autoApprovalJoins },
                         ),
                         IntegrationCardItem(
-                            icon = painterResource(R.drawable.done),
+                            icon = painterResource(R.drawable.queue_music),
                             title = { Text(stringResource(R.string.listen_together_auto_approval_suggestions)) },
                             description = {
                                 Text(stringResource(R.string.listen_together_auto_approval_suggestions_desc))
@@ -797,7 +797,7 @@ fun BlockedUsersDialog(
 
     DefaultDialog(
         onDismiss = onDismiss,
-        icon = { Icon(painterResource(R.drawable.person), contentDescription = null) },
+        icon = { Icon(painterResource(R.drawable.not_recommended), contentDescription = null) },
         title = { Text(stringResource(R.string.listen_together_blocked_users)) },
         buttons = {
             Button(onClick = onDismiss) {
