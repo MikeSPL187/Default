@@ -1346,7 +1346,7 @@ fun AppearanceSettings(
                     if (!experimentalLyrics) {
                         add(
                             Material3SettingsItem(
-                                icon = painterResource(R.drawable.lyrics),
+                                icon = painterResource(R.drawable.auto_awesome),
                                 title = { Text(stringResource(R.string.lyrics_glow_effect)) },
                                 description = { Text(stringResource(R.string.lyrics_glow_effect_desc)) },
                                 trailingContent = {
@@ -1370,7 +1370,7 @@ fun AppearanceSettings(
                         )
                         add(
                             Material3SettingsItem(
-                                icon = painterResource(R.drawable.lyrics),
+                                icon = painterResource(R.drawable.slow_motion_video),
                                 title = { Text(stringResource(R.string.lyrics_animation_style_title)) },
                                 description = {
                                     Text(
@@ -1389,7 +1389,7 @@ fun AppearanceSettings(
                         )
                         add(
                             Material3SettingsItem(
-                                icon = painterResource(R.drawable.lyrics),
+                                icon = painterResource(R.drawable.format_size),
                                 title = { Text(stringResource(R.string.lyrics_text_size)) },
                                 description = { Text("${lyricsTextSize.roundToInt()} sp") },
                                 onClick = { showLyricsTextSizeDialog = true },
@@ -1397,7 +1397,7 @@ fun AppearanceSettings(
                         )
                         add(
                             Material3SettingsItem(
-                                icon = painterResource(R.drawable.lyrics),
+                                icon = painterResource(R.drawable.format_line_spacing),
                                 title = { Text(stringResource(R.string.lyrics_line_spacing)) },
                                 description = { Text(String.format(Locale.US, "%.1f", lyricsLineSpacing)) },
                                 onClick = { showLyricsLineSpacingDialog = true },
@@ -1407,7 +1407,7 @@ fun AppearanceSettings(
 
                     add(
                         Material3SettingsItem(
-                            icon = painterResource(R.drawable.lyrics),
+                            icon = painterResource(R.drawable.format_align_center),
                             title = { Text(stringResource(R.string.lyrics_text_position)) },
                             description = {
                                 Text(
@@ -1423,7 +1423,7 @@ fun AppearanceSettings(
                     )
                     add(
                         Material3SettingsItem(
-                            icon = painterResource(R.drawable.lyrics),
+                            icon = painterResource(R.drawable.person),
                             title = { Text(stringResource(R.string.respect_agent_positioning)) },
                             description = { Text(stringResource(R.string.respect_agent_positioning_desc)) },
                             trailingContent = {
@@ -1447,7 +1447,7 @@ fun AppearanceSettings(
                     )
                     add(
                         Material3SettingsItem(
-                            icon = painterResource(R.drawable.lyrics),
+                            icon = painterResource(R.drawable.touch_app),
                             title = { Text(stringResource(R.string.lyrics_click_change)) },
                             trailingContent = {
                                 Switch(
@@ -1470,7 +1470,7 @@ fun AppearanceSettings(
                     )
                     add(
                         Material3SettingsItem(
-                            icon = painterResource(R.drawable.lyrics),
+                            icon = painterResource(R.drawable.swap_vert),
                             title = { Text(stringResource(R.string.lyrics_auto_scroll)) },
                             trailingContent = {
                                 Switch(
@@ -1493,7 +1493,7 @@ fun AppearanceSettings(
                     )
                     add(
                         Material3SettingsItem(
-                            icon = painterResource(R.drawable.lyrics),
+                            icon = painterResource(R.drawable.fullscreen),
                             title = { Text(stringResource(R.string.hide_status_bar_fullscreen)) },
                             description = { Text(stringResource(R.string.hide_status_bar_fullscreen_desc)) },
                             trailingContent = {
