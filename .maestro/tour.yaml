@@ -69,6 +69,10 @@ appId: com.metrolist.music
           optional: true
       - waitForAnimationToEnd:
           timeout: 10000
+- extendedWaitUntil:
+    visible: "Top result"
+    timeout: 20000
+    optional: true
 - takeScreenshot: ${P}08-search-results
 - longPressOn:
     text: "Levitating.*"
@@ -131,6 +135,16 @@ appId: com.metrolist.music
 - tapOn:
     text: "Song"
     optional: true
+# Where it plays: the output chip opens the app's own picker.
+- runFlow:
+    when:
+      visible: "This phone"
+    commands:
+      - tapOn: "This phone"
+      - waitForAnimationToEnd
+      - takeScreenshot: ${P}11f-output
+      - back
+      - waitForAnimationToEnd
 # The player's own menu and the sleep timer, each opened and closed.
 - runFlow:
     when:
