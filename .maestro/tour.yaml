@@ -218,6 +218,16 @@ appId: com.metrolist.music
 - waitForAnimationToEnd:
     timeout: 10000
 - takeScreenshot: ${P}14-artist
+- runFlow:
+    when:
+      visible: "Top songs"
+    commands:
+      - tapOn: "Top songs"
+      - waitForAnimationToEnd:
+          timeout: 10000
+      - takeScreenshot: ${P}14b-artist-songs
+      - back
+      - waitForAnimationToEnd
 - scroll
 - takeScreenshot: ${P}15-artist-2
 
@@ -351,6 +361,17 @@ appId: com.metrolist.music
       - tapOn: "Equalizer"
       - waitForAnimationToEnd
       - takeScreenshot: ${P}21d-equalizer
+      - tapOn:
+          text: "AutoEQ Wizard"
+          optional: true
+      - waitForAnimationToEnd
+      - takeScreenshot: ${P}21e-eq-wizard
+      - runFlow:
+          when:
+            notVisible: "Equalizer"
+          commands:
+            - back
+            - waitForAnimationToEnd
       - back
       - waitForAnimationToEnd
 - tapOn:
@@ -414,6 +435,15 @@ appId: com.metrolist.music
     optional: true
 - waitForAnimationToEnd
 - takeScreenshot: ${P}24-appearance
+- runFlow:
+    when:
+      visible: "Theme & Colors"
+    commands:
+      - tapOn: "Theme & Colors"
+      - waitForAnimationToEnd
+      - takeScreenshot: ${P}24a-theme
+      - back
+      - waitForAnimationToEnd
 - scroll
 - takeScreenshot: ${P}24b-appearance-2
 - scroll
@@ -462,4 +492,16 @@ appId: com.metrolist.music
 - waitForAnimationToEnd:
     timeout: 10000
 - takeScreenshot: ${P}25-charts
+- back
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element: "New releases"
+    timeout: 20000
+    optional: true
+- tapOn:
+    text: "New releases"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: ${P}25b-new-releases
 - back
