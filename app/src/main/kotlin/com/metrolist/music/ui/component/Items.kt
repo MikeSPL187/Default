@@ -959,20 +959,16 @@ fun PlaylistListItem(
             thumbnails = playlist.thumbnails,
             size = ListThumbnailSize,
             placeHolder = {
-                val painter = when (playlist.playlist.name) {
-                    stringResource(R.string.liked) -> R.drawable.favorite_border
-                    stringResource(R.string.offline) -> R.drawable.offline
-                    stringResource(R.string.cached_playlist) -> R.drawable.cached
-                    // R.drawable.backup as placeholder
-                    stringResource(R.string.uploaded_playlist) -> R.drawable.backup
-                    else -> if (autoPlaylist) R.drawable.trending_up else R.drawable.queue_music
+                if (autoPlaylist) {
+                    CollectionTile(playlist.playlist.name, iconSize = ListThumbnailSize / 2)
+                } else {
+                    Icon(
+                        painter = painterResource(R.drawable.queue_music),
+                        contentDescription = null,
+                        tint = LocalContentColor.current.copy(alpha = 0.8f),
+                        modifier = Modifier.size(ListThumbnailSize / 2)
+                    )
                 }
-                Icon(
-                    painter = painterResource(painter),
-                    contentDescription = null,
-                    tint = LocalContentColor.current.copy(alpha = 0.8f),
-                    modifier = Modifier.size(ListThumbnailSize / 2)
-                )
             },
             shape = RoundedCornerShape(ThumbnailCornerRadius)
         )
@@ -1058,24 +1054,20 @@ fun PlaylistGridItem(
             thumbnails = playlist.thumbnails,
             size = width,
             placeHolder = {
-                val painter = when (playlist.playlist.name) {
-                    stringResource(R.string.liked) -> R.drawable.favorite_border
-                    stringResource(R.string.offline) -> R.drawable.offline
-                    stringResource(R.string.cached_playlist) -> R.drawable.cached
-                    // R.drawable.backup as placeholder
-                    stringResource(R.string.uploaded_playlist) -> R.drawable.backup
-                    else -> if (autoPlaylist) R.drawable.trending_up else R.drawable.queue_music
-                }
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Icon(
-                        painter = painterResource(painter),
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.8f),
-                        modifier = Modifier.size(width / 2)
-                    )
+                if (autoPlaylist) {
+                    CollectionTile(playlist.playlist.name, iconSize = width / 3)
+                } else {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.queue_music),
+                            contentDescription = null,
+                            tint = LocalContentColor.current.copy(alpha = 0.8f),
+                            modifier = Modifier.size(width / 2)
+                        )
+                    }
                 }
             },
             shape = RoundedCornerShape(GridThumbnailCornerRadius)
@@ -2063,6 +2055,37 @@ object Icon {
             modifier = Modifier
                 .size(18.dp)
                 .padding(end = 2.dp)
+        )
+    }
+}
+
+/**
+ * One of the library's own collections, known by its name, drawn as its tile at the top of the
+ * library is: the same icon on the same colour in every list and grid.
+ */
+@Composable
+private fun CollectionTile(
+    name: String,
+    iconSize: Dp,
+) {
+    val kind =
+        when (name) {
+            stringResource(R.string.liked) -> CollectionKind.LIKED
+            stringResource(R.string.offline) -> CollectionKind.DOWNLOADED
+            stringResource(R.string.cached_playlist) -> CollectionKind.CACHED
+            stringResource(R.string.uploaded_playlist) -> CollectionKind.UPLOADED
+            else -> CollectionKind.TOP
+        }
+    val look = collectionLook(kind)
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize().background(look.background),
+    ) {
+        Icon(
+            painter = painterResource(look.icon),
+            contentDescription = null,
+            tint = look.tint,
+            modifier = Modifier.size(iconSize),
         )
     }
 }

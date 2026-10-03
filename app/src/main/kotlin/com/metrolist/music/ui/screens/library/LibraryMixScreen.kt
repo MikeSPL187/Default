@@ -62,6 +62,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import com.metrolist.music.ui.component.CollectionKind
+import com.metrolist.music.ui.component.collectionLook
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 import com.metrolist.music.constants.SongSortType
@@ -194,23 +196,24 @@ fun LibraryMixScreen(
     val songsLabel: @Composable (Int) -> String? = { n -> if (n > 0) pluralStringResource(R.plurals.n_song, n, n) else null }
     val likedSub = songsLabel(likedCount)
     val downloadedSub = songsLabel(downloadedCount)
+    val looks = CollectionKind.entries.associateWith { collectionLook(it) }
     val autoCollections =
         if (!showAutoRow) {
             emptyList()
         } else {
-            // Each tile is the surface tinted with its accent, so all of them sit at the same depth in
-            // either theme; system colours can make one container light in the dark theme.
-            fun tile(accent: Color) = SolidColor(lerp(colors.surfaceContainerHighest, accent, 0.32f))
+            fun collection(
+                key: String,
+                name: String,
+                kind: CollectionKind,
+                route: String,
+                subtitle: String? = null,
+            ) = looks.getValue(kind).let { look -> AutoCollection(key, name, look.icon, look.background, look.tint, route, subtitle) }
             listOfNotNull(
-                AutoCollection("liked", likedPlaylist.playlist.name, R.drawable.favorite, LikedTileBrush, Color.White, "auto_playlist/liked", likedSub).takeIf { showLiked },
-                AutoCollection("downloaded", downloadPlaylist.playlist.name, R.drawable.offline, tile(colors.primary), colors.primary, "auto_playlist/downloaded", downloadedSub)
-                    .takeIf { showDownloaded },
-                AutoCollection("top", topPlaylist.playlist.name, R.drawable.trending_up, tile(colors.secondary), colors.secondary, "top_playlist/$topSize")
-                    .takeIf { showTop },
-                AutoCollection("cached", cachedPlaylist.playlist.name, R.drawable.cached, tile(colors.tertiary), colors.tertiary, "cache_playlist/cached")
-                    .takeIf { showCached },
-                AutoCollection("uploaded", uploadedPlaylist.playlist.name, R.drawable.cloud, SolidColor(colors.surfaceContainerHighest), colors.onSurfaceVariant, "auto_playlist/uploaded")
-                    .takeIf { showUploaded },
+                collection("liked", likedPlaylist.playlist.name, CollectionKind.LIKED, "auto_playlist/liked", likedSub).takeIf { showLiked },
+                collection("downloaded", downloadPlaylist.playlist.name, CollectionKind.DOWNLOADED, "auto_playlist/downloaded", downloadedSub).takeIf { showDownloaded },
+                collection("top", topPlaylist.playlist.name, CollectionKind.TOP, "top_playlist/$topSize").takeIf { showTop },
+                collection("cached", cachedPlaylist.playlist.name, CollectionKind.CACHED, "cache_playlist/cached").takeIf { showCached },
+                collection("uploaded", uploadedPlaylist.playlist.name, CollectionKind.UPLOADED, "auto_playlist/uploaded").takeIf { showUploaded },
             )
         }
     val showLikedPlaylist = !showAutoRow && showLiked && matchesNormalizedQuery(normalizedQuery, likedPlaylist.playlist.name)
@@ -1107,5 +1110,4 @@ fun LibraryMixScreen(
     }
 }
 
-private val LikedTileBrush = Brush.linearGradient(listOf(Color(0xFFFF8FA3), Color(0xFFC2185B)))
 
