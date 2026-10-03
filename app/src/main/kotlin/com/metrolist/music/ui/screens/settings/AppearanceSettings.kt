@@ -1069,7 +1069,7 @@ fun AppearanceSettings(
             items =
                 listOf(
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.palette),
+                        icon = painterResource(R.drawable.play),
                         title = { Text(stringResource(R.string.new_player_design)) },
                         trailingContent = {
                             Switch(
@@ -1148,7 +1148,7 @@ fun AppearanceSettings(
                         onClick = { onCropAlbumArtChange(!cropAlbumArt) },
                     ),
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.palette),
+                        icon = painterResource(R.drawable.radio_button_checked),
                         title = { Text(stringResource(R.string.player_buttons_style)) },
                         description = {
                             Text(
@@ -1525,7 +1525,7 @@ fun AppearanceSettings(
             items =
                 listOf(
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.nav_bar),
+                        icon = painterResource(R.drawable.home_outlined),
                         title = { Text(stringResource(R.string.default_open_tab)) },
                         description = {
                             Text(
@@ -1556,7 +1556,7 @@ fun AppearanceSettings(
                         onClick = { showDefaultChipDialog = true },
                     ),
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.swipe),
+                        icon = painterResource(R.drawable.queue_music),
                         title = { Text(stringResource(R.string.swipe_song_to_add)) },
                         trailingContent = {
                             Switch(
@@ -1577,7 +1577,7 @@ fun AppearanceSettings(
                         onClick = { onSwipeToSongChange(!swipeToSong) },
                     ),
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.swipe),
+                        icon = painterResource(R.drawable.remove),
                         title = { Text(stringResource(R.string.swipe_song_to_remove)) },
                         trailingContent = {
                             Switch(
@@ -1675,7 +1675,7 @@ fun AppearanceSettings(
                         onClick = { showGridSizeDialog = true },
                     ),
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.grid_view),
+                        icon = painterResource(R.drawable.tune),
                         title = { Text(stringResource(R.string.display_density)) },
                         description = {
                             Text(DensityScale.fromValue(densityScale).label)
