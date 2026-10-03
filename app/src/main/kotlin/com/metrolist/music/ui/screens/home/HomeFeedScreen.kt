@@ -97,6 +97,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -1535,8 +1536,9 @@ internal fun moodIcon(title: String): Int {
 }
 
 /**
- * Two lines of a tile title that never split a word: when the longest word is wider than the
- * tile (large font sizes, "Downloaded"), the text shrinks a little instead of breaking mid-word.
+ * Two lines of a tile title that never cut a word: when the longest word is a little wider than
+ * the tile (large font sizes, "Downloaded"), the text shrinks a little; a word far too long to
+ * shrink legibly ("Понравившиеся") is hyphenated onto the second line instead.
  */
 @Composable
 private fun WholeWordsText(
@@ -1553,12 +1555,15 @@ private fun WholeWordsText(
                     text
                         .split(' ')
                         .maxOfOrNull { measurer.measure(it, style, maxLines = 1, softWrap = false).size.width } ?: 0
-                if (longest <= width || longest == 0) {
-                    style
-                } else {
-                    style.copy(fontSize = style.fontSize * (width.toFloat() / longest).coerceAtLeast(0.7f))
+                val ratio = width.toFloat() / longest
+                when {
+                    longest <= width || longest == 0 -> style
+                    ratio >= MIN_TITLE_SCALE -> style.copy(fontSize = style.fontSize * ratio)
+                    else -> style.copy(fontSize = style.fontSize * MIN_TITLE_SCALE, hyphens = Hyphens.Auto)
                 }
             }
         Text(text, style = fitted, maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }
+
+private const val MIN_TITLE_SCALE = 0.85f

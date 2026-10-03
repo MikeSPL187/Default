@@ -38,6 +38,8 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.metrolist.music.ui.component.FitText
@@ -120,12 +122,13 @@ fun AutoCollectionsRow(
                 ) {
                     Icon(painterResource(collection.icon), contentDescription = null, tint = collection.tint, modifier = Modifier.size(34.dp))
                 }
-                // A tile is narrow; "Downloaded" at a large font shrinks a little rather than end in "…".
-                FitText(
+                // A tile is narrow: a word wider than it ("Понравившиеся") is hyphenated onto a
+                // second line rather than shrunk to fine print or cut with "…".
+                Text(
                     collection.title,
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                    // Low enough for "Понравившиеся" in a tile at the largest font.
-                    minFontSize = 8.sp,
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold, hyphens = Hyphens.Auto),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = 8.dp, start = 2.dp),
                 )
                 collection.subtitle?.let {
