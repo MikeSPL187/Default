@@ -1,0 +1,123 @@
+# Transferring playlists end to end, for design review: the form, a Spotify playlist by link and a
+# typed list, each through preview, transfer and the result. Every step is optional.
+appId: com.metrolist.music
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Library"
+    timeout: 60000
+- tapOn: "Library"
+- tapOn:
+    text: "Playlists"
+    optional: true
+- tapOn:
+    text: "Transfer playlists"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: import-01-form
+
+# By link: a public Spotify playlist.
+- tapOn:
+    text: "Playlist or album link"
+    optional: true
+- inputText: "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M"
+- hideKeyboard
+- tapOn:
+    text: "Find playlist"
+    optional: true
+- extendedWaitUntil:
+    visible: "Transfer \\d+ tracks?"
+    timeout: 40000
+    optional: true
+- takeScreenshot: import-02-link-preview
+- runFlow:
+    when:
+      visible: "Transfer \\d+ tracks?"
+    commands:
+      - scroll
+      - takeScreenshot: import-03-link-preview-2
+      - scrollUntilVisible:
+          element: "Transfer \\d+ tracks?"
+          direction: UP
+          optional: true
+      - tapOn: "Transfer \\d+ tracks?"
+      - extendedWaitUntil:
+          visible: "\\d+ of \\d+"
+          timeout: 15000
+          optional: true
+      - takeScreenshot: import-04-link-progress
+      - extendedWaitUntil:
+          visible: "Transfer another"
+          timeout: 300000
+          optional: true
+      - waitForAnimationToEnd
+      - takeScreenshot: import-05-link-done
+      - scroll
+      - takeScreenshot: import-06-link-done-2
+      - scrollUntilVisible:
+          element: "Transfer another"
+          direction: UP
+          optional: true
+      - tapOn:
+          text: "Not found \\d+"
+          optional: true
+      - waitForAnimationToEnd
+      - takeScreenshot: import-07-link-missing
+      - tapOn:
+          text: "Find manually"
+          optional: true
+      - extendedWaitUntil:
+          visible: "Choose the song"
+          timeout: 5000
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 10000
+      - takeScreenshot: import-08-pick
+      - runFlow:
+          when:
+            visible: "Choose the song"
+          commands:
+            - back
+      - scrollUntilVisible:
+          element: "Transfer another"
+          direction: UP
+          optional: true
+      - tapOn:
+          text: "Transfer another"
+          optional: true
+      - waitForAnimationToEnd
+
+# As a list, typed line by line.
+- tapOn:
+    text: "As a list"
+    optional: true
+- tapOn:
+    text: "Playlist name"
+    optional: true
+- inputText: "Night drive"
+- tapOn:
+    text: "Tracks, one per line"
+    optional: true
+- inputText: "Dua Lipa - Levitating"
+- pressKey: Enter
+- inputText: "The Weeknd - Blinding Lights"
+- pressKey: Enter
+- inputText: "Daft Punk - Get Lucky"
+- pressKey: Enter
+- inputText: "Nobody - No such song at all 12345"
+- hideKeyboard
+- takeScreenshot: import-09-list-form
+- tapOn:
+    text: "Continue"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: import-10-list-preview
+- tapOn:
+    text: "Transfer \\d+ tracks?"
+    optional: true
+- extendedWaitUntil:
+    visible: "Transfer another"
+    timeout: 90000
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: import-11-list-done

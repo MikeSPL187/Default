@@ -52,7 +52,12 @@ if [ $status -eq 0 ]; then
   adb shell settings put system font_scale 1.0 || true
   # The in-place language switch, there and back; a crash here is still caught from logcat below.
   maestro test .maestro/language.yaml --test-output-dir smoke-output/language > smoke-output/language.log 2>&1 || echo "::warning::Language switch flow did not finish, see language.log"
+  # A playlist transfer from start to finish, by link and as a list.
+  maestro test .maestro/import.yaml --test-output-dir smoke-output/import > smoke-output/import.log 2>&1 || true
   adb logcat -d > smoke-output/logcat.txt
+  echo "::group::Playlist transfer log"
+  grep "PlaylistImport" smoke-output/logcat.txt | tail -30 || true
+  echo "::endgroup::"
 fi
 
 if grep -A30 "FATAL EXCEPTION" smoke-output/logcat.txt | grep -q "com.metrolist.music"; then

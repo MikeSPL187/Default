@@ -83,6 +83,7 @@ class PlaylistImporter
                         } catch (e: CancellationException) {
                             throw e
                         } catch (e: ImportException) {
+                            Timber.tag("PlaylistImport").w(e.cause, "Could not read $link: ${e.error}")
                             ImportState(error = e.error)
                         } catch (e: Exception) {
                             Timber.tag("PlaylistImport").w(e, "Could not read $link")
