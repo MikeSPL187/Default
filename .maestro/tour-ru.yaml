@@ -100,6 +100,10 @@ appId: com.metrolist.music
 - takeScreenshot: ru-09-library
 # The transfer screen: its sources, then the form of one, and back out the way a person would.
 - tapOn:
+    text: "Плейлисты"
+    optional: true
+- waitForAnimationToEnd
+- tapOn:
     text: "Перенос плейлистов"
     optional: true
 - runFlow:

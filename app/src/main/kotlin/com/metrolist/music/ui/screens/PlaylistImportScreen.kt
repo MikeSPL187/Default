@@ -425,10 +425,12 @@ private fun SourceCard(
     onClick: () -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
+    // Cards stand out from the page: lighter than it in a light theme, a step up in a dark one.
+    val dark = colors.surface.luminance() < 0.5f
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(28.dp),
-        color = colors.surfaceContainerLow,
+        color = if (dark) colors.surfaceContainerHigh else colors.surfaceContainerLowest,
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
