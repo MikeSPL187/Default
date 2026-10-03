@@ -121,8 +121,8 @@
     <string name="new_mini_player_design">Новый дизайн мини‑плеера</string>
     <string name="now_playing">Сейчас играет</string>
     <string name="close">Закрыть</string>
-    <string name="hide_player_thumbnail">Скрыть миниатюру плеера</string>
-    <string name="hide_player_thumbnail_desc">Заменить обложку альбома в плеере на логотип приложения</string>
+    <string name="hide_player_thumbnail">Скрывать обложку в плеере</string>
+    <string name="hide_player_thumbnail_desc">Вместо обложки альбома — логотип приложения</string>
     <string name="seek_forward_dynamic">+%1$d секунд вперед</string>
     <string name="seek_backward_dynamic">-%1$d секунд назад</string>
     <string name="seek_seconds_addup">Накопительная перемотка</string>
@@ -307,7 +307,7 @@
     <string name="error_title">Ошибка</string>
     <string name="error_eq_apply_failed">Не удалось применить профиль эквалайзера: %1$s</string>
     <string name="crop_album_art">Обрезать обложку альбома</string>
-    <string name="crop_album_art_desc">Принудительно использовать квадратное соотношение сторон, обрезая миниатюры видео</string>
+    <string name="crop_album_art_desc">Обложки из видео обрезаются до квадрата</string>
     <string name="keep_screen_on_when_player_is_expanded">Не выключать экран при развернутом плеере</string>
     <string name="listen_together">Слушать вместе</string>
     <string name="listen_together_server_url">Адрес сервера</string>

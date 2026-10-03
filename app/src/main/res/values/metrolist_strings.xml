@@ -73,10 +73,10 @@
 
     <string name="lyrics">Lyrics</string>
     <string name="close">Close</string>
-    <string name="hide_player_thumbnail">Hide player thumbnail</string>
-    <string name="hide_player_thumbnail_desc">Replace the album artwork with the app logo in the player</string>
+    <string name="hide_player_thumbnail">Hide the cover in the player</string>
+    <string name="hide_player_thumbnail_desc">Show the app logo instead of the album cover</string>
     <string name="crop_album_art">Crop album art</string>
-    <string name="crop_album_art_desc">Force a square aspect ratio by cropping video thumbnails</string>
+    <string name="crop_album_art_desc">Covers taken from videos are cropped to a square</string>
 
     <string name="already_in_playlist">Already in playlist: </string>
 
