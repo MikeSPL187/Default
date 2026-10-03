@@ -153,7 +153,7 @@
     <string name="remove_custom_image">Удалить собственное изображение</string>
     <string name="choose_from_library">Выбрать из библиотеки</string>
     <string name="audio_offload">Аппаратное ускорение аудио</string>
-    <string name="audio_offload_description">Использует аппаратный путь вывода аудио для воспроизведения. Отключение может увеличить расход батареи, но может помочь при проблемах с воспроизведением или постобработкой звука</string>
+    <string name="audio_offload_description">Звук идёт через аппаратный тракт телефона, это бережёт батарею. Выключите, если воспроизведение или эффекты работают со сбоями</string>
     <string name="uploaded_playlist">Загруженные</string>
     <string name="filter_uploaded">Загруженные</string>
     <string name="show_uploaded_playlist">Показывать плейлист «Загруженные»</string>
@@ -833,8 +833,8 @@
     <string name="and">и</string>
     <string name="auto_radio_queue">Автоочередь радио</string>
     <string name="auto_radio_queue_desc">Автоматически создавать очередь радио при воспроизведении трека из поиска или с главного экрана</string>
-    <string name="audio_track_playback_params">Использовать аппаратную обработку аудио</string>
-    <string name="audio_track_playback_params_description">Использовать Android AudioTrack для изменения скорости/тона вместо программной обработки. Более надёжно при экстремальных значениях тона</string>
+    <string name="audio_track_playback_params">Аппаратная обработка звука</string>
+    <string name="audio_track_playback_params_description">Скорость и тон меняет Android, а не приложение. Устойчивее при сильном изменении тона</string>
     <string name="discord_status_connected">Подключено</string>
     <string name="discord_status_authorizing">Авторизация…</string>
     <string name="discord_status_authorized">Авторизовано</string>

@@ -483,7 +483,7 @@ fun PlayerSettings(
                 ))
                 if (audioNormalization) {
                     add(Material3SettingsItem(
-                        icon = painterResource(R.drawable.volume_up),
+                        icon = painterResource(R.drawable.sliders),
                         title = { Text(stringResource(R.string.loudness_level)) },
                         description = {
                             Text(getLoudnessLevelLabel(loudnessLevel))
@@ -492,7 +492,7 @@ fun PlayerSettings(
                     ))
                 }
                 add(Material3SettingsItem(
-                    icon = painterResource(R.drawable.graphic_eq),
+                    icon = painterResource(R.drawable.bolt),
                     title = { Text(stringResource(R.string.audio_offload)) },
                     description = {
                         Text(
@@ -519,7 +519,7 @@ fun PlayerSettings(
                     onClick = { if (!crossfadeEnabled) onAudioOffloadChange(!audioOffload) }
                 ))
                 add(Material3SettingsItem(
-                    icon = painterResource(R.drawable.graphic_eq),
+                    icon = painterResource(R.drawable.slow_motion_video),
                     title = { Text(stringResource(R.string.varispeed)) },
                     description = {
                         Text(
@@ -855,7 +855,7 @@ fun PlayerSettings(
                     onClick = { onAutoRadioQueueChange(!autoRadioQueue) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.skip_next),
+                    icon = painterResource(R.drawable.playlist_play),
                     title = { Text(stringResource(R.string.autoplay)) },
                     description = { Text(stringResource(R.string.autoplay_desc)) },
                     trailingContent = {
