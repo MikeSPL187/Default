@@ -1389,6 +1389,8 @@
     <string name="empty_liked_hint">Нажмите ♡ у любого трека — он появится здесь.</string>
     <string name="empty_downloaded_hint">Скачивайте треки и плейлисты, чтобы слушать без интернета.</string>
     <string name="empty_find_music">Найти музыку</string>
+    <string name="top_playlist_empty_hint">Здесь соберутся треки, которые вы слушаете чаще всего.</string>
+    <string name="cached_playlist_empty_hint">Здесь на время сохраняются прослушанные треки, чтобы они включались без ожидания.</string>
     <string name="library_album_empty_hint">Сохраните альбом на его странице — и он появится здесь</string>
     <string name="library_song_empty_hint">Отметьте песню ♡ или добавьте её в медиатеку — и она появится здесь</string>
     <string name="library_artist_empty_hint">Подпишитесь на исполнителя на его странице — и он появится здесь</string>

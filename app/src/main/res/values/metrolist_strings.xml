@@ -1491,6 +1491,8 @@
     <string name="empty_liked_hint">Tap ♡ on any song and it will appear here.</string>
     <string name="empty_downloaded_hint">Download songs and playlists to listen without internet.</string>
     <string name="empty_find_music">Find music</string>
+    <string name="top_playlist_empty_hint">The songs you play most will gather here.</string>
+    <string name="cached_playlist_empty_hint">Songs you play are kept here for a while, so they start without waiting.</string>
     <string name="library_album_empty_hint">Save an album from its page and it will appear here</string>
     <string name="library_song_empty_hint">Like a song or add it to your library and it will appear here</string>
     <string name="library_artist_empty_hint">Subscribe to an artist on their page and they will appear here</string>

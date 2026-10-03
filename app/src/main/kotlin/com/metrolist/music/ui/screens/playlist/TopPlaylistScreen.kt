@@ -88,6 +88,7 @@ import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.ui.component.DefaultDialog
 import com.metrolist.music.ui.component.DraggableScrollbar
 import com.metrolist.music.ui.component.EmptyPlaceholder
+import com.metrolist.music.ui.screens.Screens
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.component.SongListItem
@@ -253,8 +254,11 @@ fun TopPlaylistScreen(
                 if (songs!!.isEmpty()) {
                     item(key = "empty_placeholder") {
                         EmptyPlaceholder(
-                            icon = R.drawable.music_note,
-                            text = stringResource(R.string.playlist_is_empty),
+                            icon = R.drawable.trending_up,
+                            text = stringResource(R.string.empty_nothing_yet),
+                            hint = stringResource(R.string.top_playlist_empty_hint),
+                            action = stringResource(R.string.empty_find_music),
+                            onAction = { navController.navigate(Screens.Search.route) },
                         )
                     }
                 } else {

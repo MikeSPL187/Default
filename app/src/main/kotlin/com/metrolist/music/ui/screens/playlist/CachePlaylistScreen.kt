@@ -198,7 +198,8 @@ fun CachePlaylistScreen(
                 item(key = "empty_placeholder") {
                     EmptyPlaceholder(
                         icon = R.drawable.music_note,
-                        text = stringResource(R.string.playlist_is_empty),
+                        text = stringResource(R.string.empty_nothing_yet),
+                        hint = stringResource(R.string.cached_playlist_empty_hint),
                         modifier = Modifier.animateItem()
                     )
                 }
