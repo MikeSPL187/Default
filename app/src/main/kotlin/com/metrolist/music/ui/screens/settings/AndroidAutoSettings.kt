@@ -10,6 +10,7 @@ import com.metrolist.music.ui.component.TITLE_SCROLL_PX
 import com.metrolist.music.ui.component.LargeScreenTitle
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -184,7 +185,8 @@ fun AndroidAutoSettings(
             state = lazyListState,
             modifier = Modifier
                 .fillMaxWidth()
-                .height((sections.size * 80).dp),
+                // Bounded only from above, so the list is as tall as its rows at any font size.
+                .heightIn(max = (sections.size * 160).dp),
             userScrollEnabled = false,
         ) {
             items(sections, key = { (section, _) -> section.id }) { (section, enabled) ->
