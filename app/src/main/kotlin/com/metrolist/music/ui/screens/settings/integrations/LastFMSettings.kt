@@ -343,7 +343,8 @@ fun LastFMSettings(
                         )
                     },
                     enabled = isLoggedIn,
-                    icon = painterResource(R.drawable.queue_music)
+                    icon = painterResource(R.drawable.queue_music),
+                    onClick = { onlastfmScrobblingChange(!lastfmScrobbling) }
                 ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.lastfm_now_playing)) },
@@ -364,11 +365,12 @@ fun LastFMSettings(
                         )
                     },
                     enabled = isLoggedIn && lastfmScrobbling,
-                    icon = painterResource(R.drawable.play)
+                    icon = painterResource(R.drawable.play),
+                    onClick = { onUseNowPlayingChange(!useNowPlaying) }
                 ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.last_fm_send_likes)) },
-                    description = { stringResource(R.string.last_fm_send_likes_description) },
+                    description = { Text(stringResource(R.string.last_fm_send_likes_description)) },
                     trailingContent = {
                         Switch(
                             checked = useSendLikes,
@@ -386,7 +388,8 @@ fun LastFMSettings(
                         )
                     },
                     enabled = isLoggedIn,
-                    icon = painterResource(R.drawable.media3_icon_thumb_up_unfilled)
+                    icon = painterResource(R.drawable.media3_icon_thumb_up_unfilled),
+                    onClick = { onUseSendLikes(!useSendLikes) }
                 )
             )
         )

@@ -135,7 +135,8 @@ fun RomanizationSettings(
                             }
                         )
                     },
-                    icon = painterResource(R.drawable.queue_music)
+                    icon = painterResource(R.drawable.language_korean_latin),
+                    onClick = { onLyricsRomanizeAsMainChange(!lyricsRomanizeAsMain) }
                 ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.line_by_line_option_title)) },
@@ -154,43 +155,48 @@ fun RomanizationSettings(
                             }
                         )
                     },
-                    icon = painterResource(R.drawable.info)
+                    icon = painterResource(R.drawable.list),
+                    onClick = { onLyricsRomanizeCyrillicByLineChange(!lyricsRomanizeCyrillicByLine) }
                 )
             )
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        val toggleAll: () -> Unit = {
+            val newState = parentState != ToggleableState.On
+            states.forEachIndexed { index, (language, _) ->
+                states[index] = Pair(language, newState)
+            }
+            prefValue(states.joinToString(",") { (lang, c) -> "$lang:$c" })
+        }
         checkboxesList += Material3SettingsItem(
             title = { Text(stringResource(R.string.select)) },
             trailingContent = {
                 TriStateCheckbox(
                     state = parentState,
-                    onClick = {
-                        val newState = parentState != ToggleableState.On
-                        states.forEachIndexed { index, (language, _) ->
-                            states[index] = Pair(language, newState)
-                        }
-                        prefValue(states.joinToString(",") { (lang, c) -> "$lang:$c" })
-                    }
+                    onClick = toggleAll
                 )
             },
-            icon = painterResource(R.drawable.info)
+            icon = painterResource(R.drawable.select_all),
+            onClick = toggleAll
         )
 
         states.forEachIndexed { index, (language, checked) ->
+            val check: (Boolean) -> Unit = { isChecked ->
+                states[index] = Pair(language, isChecked)
+                prefValue(states.joinToString(",") { (lang, c) -> "$lang:$c" })
+            }
             checkboxesList += Material3SettingsItem(
                 title = { Text(language) },
                 trailingContent = {
                     Checkbox(
                         checked = checked,
-                        onCheckedChange = { isChecked ->
-                            states[index] = Pair(language, isChecked)
-                            prefValue(states.joinToString(",") { (lang, c) -> "$lang:$c" })
-                        }
+                        onCheckedChange = check
                     )
                 },
-                icon = painterResource(R.drawable.language)
+                icon = painterResource(R.drawable.language),
+                onClick = { check(!checked) }
             )
         }
 
