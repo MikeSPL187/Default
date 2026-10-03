@@ -5,6 +5,7 @@
 
 package com.metrolist.music.ui.component
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
@@ -48,12 +49,16 @@ inline fun <reified T : Enum<T>> SortHeader(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier.padding(vertical = 8.dp),
     ) {
+        // A long sort name at a large font gives way with "…" instead of pushing the buttons beside it off screen.
         Text(
             text = stringResource(sortTypeText(sortType)),
             color = MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.labelLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier =
             Modifier
+                .weight(1f, fill = false)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = ripple(bounded = false),

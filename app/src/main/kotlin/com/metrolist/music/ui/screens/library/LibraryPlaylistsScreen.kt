@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -295,6 +294,7 @@ fun LibraryPlaylistsScreen(
             keyboardController = keyboardController,
             modifier = Modifier.padding(start = 16.dp),
         ) {
+            // The sort takes what the buttons leave, so they always fit, whatever the language and font size.
             SortHeader(
                 sortType = sortType,
                 sortDescending = sortDescending,
@@ -308,9 +308,8 @@ fun LibraryPlaylistsScreen(
                         PlaylistSortType.LAST_UPDATED -> R.string.sort_by_last_updated
                     }
                 },
+                modifier = Modifier.weight(1f),
             )
-
-            Spacer(Modifier.weight(1f))
 
             // Counts the user's own playlists; with none yet, "0 playlists" next to Liked and Downloaded only confuses.
             val ownCount = visibleResults.count { !it.autoPlaylist }
