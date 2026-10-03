@@ -819,7 +819,7 @@ fun ThemeMockupPortrait(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f)
+                        .aspectRatio(1.3f)
                         .background(colors.primaryContainer, RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -829,17 +829,17 @@ fun ThemeMockupPortrait(
                             .background(colors.primary, CircleShape)
                     )
                 }
-                repeat(2) { row ->
+                repeat(3) { row ->
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Box(
                             modifier = Modifier
                                 .size(22.dp)
-                                .background(if (row == 0) colors.secondaryContainer else colors.tertiaryContainer, RoundedCornerShape(6.dp))
+                                .background(if (row == 1) colors.tertiaryContainer else colors.secondaryContainer, RoundedCornerShape(6.dp))
                         )
                         Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                             Box(
                                 modifier = Modifier
-                                    .fillMaxWidth(if (row == 0) 0.8f else 0.6f)
+                                    .fillMaxWidth(if (row == 1) 0.6f else 0.8f)
                                     .height(5.dp)
                                     .background(colors.onSurface.copy(alpha = 0.7f), RoundedCornerShape(3.dp))
                             )
@@ -852,6 +852,7 @@ fun ThemeMockupPortrait(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.weight(1f))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()

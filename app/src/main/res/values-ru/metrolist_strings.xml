@@ -766,6 +766,8 @@
     <string name="android_auto_youtube_playlists">Показывать предложенные плейлисты YouTube</string>
     <string name="android_auto_youtube_playlists_desc">Показывать рекомендованные плейлисты YouTube Music в разделе плейлистов при просмотре через Android Auto</string>
     <string name="android_auto_target_playlist">Плейлист для быстрого добавления</string>
+    <string name="android_auto_quick_add">Быстрое добавление</string>
+    <string name="android_auto_quick_add_to">Куда добавлять треки</string>
     <string name="android_auto_target_playlist_auto">Не выбрано</string>
     <string name="android_auto_target_playlist_not_set">Плейлист не выбран. Выберите его в настройках Android Auto</string>
     <string name="mini_player_background_style">Стиль фона мини‑плеера</string>
@@ -806,7 +808,7 @@
     <string name="autoplay_desc">Автоматически воспроизводить следующий трек после окончания текущего</string>
     <string name="system_equalizer_desc">Открыть встроенный эквалайзер Android</string>
     <string name="eq_wizard">Мастер AutoEQ</string>
-    <string name="eq_download_db">Скачать базу данных AutoEQ (17 МБ)</string>
+    <string name="eq_download_db">Скачать базу данных AutoEQ (17\u00A0МБ)</string>
     <string name="eq_downloading">Скачивание…</string>
     <string name="import_from_file">Импорт из файла</string>
     <string name="eq_add_profile">Добавить профиль</string>

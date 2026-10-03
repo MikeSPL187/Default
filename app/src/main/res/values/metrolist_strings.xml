@@ -502,7 +502,7 @@
     <string name="system_equalizer_desc">Open Android\'s built-in equalizer</string>
     <string name="eq_disabled">Disabled</string>
     <string name="eq_wizard">AutoEQ Wizard</string>
-    <string name="eq_download_db">Download AutoEQ database (17 MB)</string>
+    <string name="eq_download_db">Download AutoEQ database (17\u00A0MB)</string>
     <string name="eq_downloading">Downloading…</string>
     <string name="import_from_file">Import from file</string>
     <string name="eq_add_profile">Add profile</string>
@@ -964,6 +964,8 @@
     <string name="android_auto_youtube_playlists">Show YouTube suggested playlists</string>
     <string name="android_auto_youtube_playlists_desc">Show YouTube Music recommended playlists in the playlists section while browsing with Android Auto</string>
     <string name="android_auto_target_playlist">Quick-add destination</string>
+    <string name="android_auto_quick_add">Quick add</string>
+    <string name="android_auto_quick_add_to">Add songs to</string>
     <string name="android_auto_target_playlist_auto">Not set</string>
     <string name="android_auto_target_playlist_not_set">No playlist selected. Choose one in Android Auto settings</string>
     <string name="android_auto_search_options">Search options</string>

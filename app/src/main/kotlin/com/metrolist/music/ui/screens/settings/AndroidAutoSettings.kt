@@ -39,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -164,15 +165,19 @@ fun AndroidAutoSettings(
     ) {
         LargeScreenTitle(stringResource(R.string.android_auto), horizontalPadding = 4.dp)
         // Visible sections
-        Material3SettingsGroup(
-            title = stringResource(R.string.android_auto_visible_sections),
-            items = listOf(
-                Material3SettingsItem(
-                    title = {},
-                    description = { Text(stringResource(R.string.android_auto_reorder_hint)) },
-                    onClick = null
-                )
-            )
+        // The section title of every settings group, with how to use the list as plain text under it.
+        Text(
+            stringResource(R.string.android_auto_visible_sections),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(start = 4.dp, top = 12.dp, bottom = 4.dp),
+        )
+        Text(
+            stringResource(R.string.android_auto_reorder_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 8.dp),
         )
 
         LazyColumn(
@@ -291,11 +296,11 @@ fun AndroidAutoSettings(
         }
         
         Material3SettingsGroup(
-            title = stringResource(R.string.android_auto_target_playlist),
+            title = stringResource(R.string.android_auto_quick_add),
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.playlist_add),
-                    title = { Text(stringResource(R.string.android_auto_target_playlist)) },
+                    title = { Text(stringResource(R.string.android_auto_quick_add_to)) },
                     description = { Text(playlistLabels(targetPlaylist)) },
                     onClick = { showTargetPlaylistDialog = true }
                 )
