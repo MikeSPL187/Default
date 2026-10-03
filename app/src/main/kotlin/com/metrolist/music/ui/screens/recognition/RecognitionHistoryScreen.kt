@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -33,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +57,7 @@ import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.R
 import com.metrolist.music.ui.component.EmptyPlaceholder
+import com.metrolist.music.ui.component.LargeScreenTitle
 import com.metrolist.music.constants.ThumbnailCornerRadius
 import com.metrolist.music.db.entities.RecognitionHistory
 import com.metrolist.music.ui.component.DefaultDialog
@@ -148,10 +151,12 @@ fun RecognitionHistoryScreen(navController: NavController) {
         }
     }
 
+    val listState = rememberLazyListState()
+    val titleInBar by remember { derivedStateOf { historyItems.isNotEmpty() && listState.firstVisibleItemIndex > 0 } }
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.recognition_history)) },
+                title = { if (titleInBar) Text(stringResource(R.string.recognition_history)) },
                 navigationIcon = {
                     IconButton(
                         onClick = { navController.navigateUp() },
@@ -185,22 +190,26 @@ fun RecognitionHistoryScreen(navController: NavController) {
                 // At the top, where every other empty screen in the app says it.
                 contentAlignment = Alignment.TopCenter,
             ) {
-                EmptyPlaceholder(
-                    icon = R.drawable.mic,
-                    text = stringResource(R.string.no_recognition_history),
-                    action = stringResource(R.string.recognize_music),
-                    onAction = {
-                        // Back to the recognizer when this was opened from it, rather than a second one on top.
-                        if (navController.previousBackStackEntry?.destination?.route?.startsWith("recognition?") == true) {
-                            navController.navigateUp()
-                        } else {
-                            navController.navigate("recognition")
-                        }
-                    },
-                )
+                Column {
+                    LargeScreenTitle(stringResource(R.string.recognition_history))
+                    EmptyPlaceholder(
+                        icon = R.drawable.mic,
+                        text = stringResource(R.string.no_recognition_history),
+                        action = stringResource(R.string.recognize_music),
+                        onAction = {
+                            // Back to the recognizer when this was opened from it, rather than a second one on top.
+                            if (navController.previousBackStackEntry?.destination?.route?.startsWith("recognition?") == true) {
+                                navController.navigateUp()
+                            } else {
+                                navController.navigate("recognition")
+                            }
+                        },
+                    )
+                }
             }
         } else {
             LazyColumn(
+                state = listState,
                 modifier =
                     Modifier
                         .fillMaxSize()
@@ -210,6 +219,7 @@ fun RecognitionHistoryScreen(navController: NavController) {
                         .only(WindowInsetsSides.Bottom)
                         .asPaddingValues(),
             ) {
+                item(key = "large_title") { LargeScreenTitle(stringResource(R.string.recognition_history)) }
                 items(
                     items = historyItems,
                     key = { "recognition_${it.id}" },

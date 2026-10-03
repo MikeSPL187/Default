@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -32,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,6 +54,7 @@ import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.R
 import com.metrolist.music.ui.component.EmptyPlaceholder
+import com.metrolist.music.ui.component.LargeScreenTitle
 import com.metrolist.music.eq.data.SavedEQProfile
 import timber.log.Timber
 
@@ -188,10 +191,12 @@ private fun EqScreenContent(
     onImportClicked: () -> Unit,
     onDeleteProfile: (String) -> Unit
 ) {
+    val listState = rememberLazyListState()
+    val titleInBar by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.equalizer_header)) },
+                title = { if (titleInBar) Text(stringResource(R.string.equalizer_header)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -240,12 +245,15 @@ private fun EqScreenContent(
     ) { paddingValues ->
         // Profile list
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(paddingValues),
             contentPadding = PaddingValues(bottom = LocalPlayerAwareWindowInsets.current
                 .asPaddingValues().calculateBottomPadding())
         ) {
+            item(key = "large_title") { LargeScreenTitle(stringResource(R.string.equalizer_header)) }
+
             // Frequency response graph
             item {
                 EqFrequencyResponseGraph(
