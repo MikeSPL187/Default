@@ -81,7 +81,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -205,7 +204,6 @@ import com.metrolist.music.ui.player.PlayerVideoFullscreen
 import com.metrolist.music.ui.screens.Screens
 import com.metrolist.music.ui.screens.home.HomeEvents
 import com.metrolist.music.ui.screens.navigationBuilder
-import com.metrolist.music.ui.screens.settings.ChangelogScreen
 import com.metrolist.music.ui.screens.settings.DarkMode
 import com.metrolist.music.ui.screens.settings.NavigationTab
 import com.metrolist.music.ui.screens.wrapped.WRAPPED_ROUTE
@@ -658,8 +656,6 @@ class MainActivity : FragmentActivity() {
         val (selectedThemeColorInt) = rememberPreference(SelectedThemeColorKey, defaultValue = DefaultThemeColor.toArgb())
         val selectedThemeColor = Color(selectedThemeColorInt)
 
-        val showChangelog = rememberSaveable { mutableStateOf(false) }
-
         var themeColor by rememberSaveable(stateSaver = ColorSaver) {
             mutableStateOf(selectedThemeColor)
         }
@@ -765,14 +761,6 @@ class MainActivity : FragmentActivity() {
                 val bottomInsetDp = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
 
                 val navController = rememberNavController()
-
-                LaunchedEffect(Unit) {
-                    val lastSeenVersion = dataStore.data.first()[LastSeenVersionKey] ?: ""
-                    val currentVersion = BuildConfig.BASE_VERSION_NAME
-                    if (lastSeenVersion != currentVersion) {
-                        showChangelog.value = true
-                    }
-                }
 
                 val homeViewModel: HomeViewModel = hiltViewModel()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -1120,15 +1108,10 @@ class MainActivity : FragmentActivity() {
                     LocalShimmerTheme provides ShimmerTheme,
                     LocalSyncUtils provides syncUtils,
                     LocalListenTogetherManager provides listenTogetherManager,
-                    LocalChangelogState provides showChangelog,
                     LocalArtistNameAliases provides artistNameAliases,
                     LocalCropAlbumArt provides cropAlbumArt,
                     LocalSwipeToSong provides swipeToSong,
                 ) {
-                    if (showChangelog.value) {
-                        ChangelogScreen(onDismiss = { showChangelog.value = false })
-                    }
-
                     Scaffold(
                         snackbarHost = { SnackbarHost(snackbarHostState) },
                         topBar = {
@@ -1549,79 +1532,77 @@ class MainActivity : FragmentActivity() {
                         }
                     }
 
-                    if (!showChangelog.value) {
-                        WatchUpdatePrompt()
-                        availableUpdate?.let { update ->
-                            val dismissUpdate: () -> Unit = {
-                                availableUpdate = null
-                                lifecycleScope.launch {
-                                    safeDataStoreEdit {
-                                        it[update.dismissalKey] = update.release.tagName
-                                    }
+                    WatchUpdatePrompt()
+                    availableUpdate?.let { update ->
+                        val dismissUpdate: () -> Unit = {
+                            availableUpdate = null
+                            lifecycleScope.launch {
+                                safeDataStoreEdit {
+                                    it[update.dismissalKey] = update.release.tagName
                                 }
                             }
-                            AlertDialog(
-                                onDismissRequest = dismissUpdate,
-                                title = { Text(stringResource(R.string.update_available_title)) },
-                                text = {
-                                    Column(
-                                        modifier =
-                                            Modifier
-                                                .heightIn(max = 480.dp)
-                                                .verticalScroll(rememberScrollState()),
-                                    ) {
-                                        Text(
-                                            text =
-                                                stringResource(
-                                                    if (update.isKmp) {
-                                                        R.string.kmp_upgrade_title
-                                                    } else {
-                                                        R.string.update_available_message
-                                                    },
-                                                    update.release.versionName,
-                                                ),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                        )
-                                        if (update.isKmp) {
-                                            Text(
-                                                text = stringResource(R.string.kmp_upgrade_warning),
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = MaterialTheme.colorScheme.error,
-                                                modifier = Modifier.padding(top = 12.dp),
-                                            )
-                                        }
-                                        Text(
-                                            text = stringResource(R.string.changelog),
-                                            style = MaterialTheme.typography.titleSmall,
-                                            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
-                                        )
-                                        Text(
-                                            text = update.release.description.ifBlank { stringResource(R.string.changelog_empty) },
-                                            style = MaterialTheme.typography.bodySmall,
-                                        )
-                                    }
-                                },
-                                confirmButton = {
-                                    TextButton(
-                                        onClick = {
-                                            dismissUpdate()
-                                            startActivity(Intent(Intent.ACTION_VIEW, update.downloadUrl.toUri()))
-                                        },
-                                    ) {
-                                        Text(
-                                            stringResource(
-                                                if (update.isKmp) R.string.kmp_upgrade_action else R.string.update_action,
-                                            ),
-                                        )
-                                    }
-                                },
-                                dismissButton = {
-                                    TextButton(onClick = dismissUpdate) {
-                                        Text(stringResource(R.string.kmp_upgrade_later))
-                                    }
-                                },
-                            )
                         }
+                        AlertDialog(
+                            onDismissRequest = dismissUpdate,
+                            title = { Text(stringResource(R.string.update_available_title)) },
+                            text = {
+                                Column(
+                                    modifier =
+                                        Modifier
+                                            .heightIn(max = 480.dp)
+                                            .verticalScroll(rememberScrollState()),
+                                ) {
+                                    Text(
+                                        text =
+                                            stringResource(
+                                                if (update.isKmp) {
+                                                    R.string.kmp_upgrade_title
+                                                } else {
+                                                    R.string.update_available_message
+                                                },
+                                                update.release.versionName,
+                                            ),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                    if (update.isKmp) {
+                                        Text(
+                                            text = stringResource(R.string.kmp_upgrade_warning),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.padding(top = 12.dp),
+                                        )
+                                    }
+                                    Text(
+                                        text = stringResource(R.string.changelog),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+                                    )
+                                    Text(
+                                        text = update.release.description.ifBlank { stringResource(R.string.changelog_empty) },
+                                        style = MaterialTheme.typography.bodySmall,
+                                    )
+                                }
+                            },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        dismissUpdate()
+                                        startActivity(Intent(Intent.ACTION_VIEW, update.downloadUrl.toUri()))
+                                    },
+                                ) {
+                                    Text(
+                                        stringResource(
+                                            if (update.isKmp) R.string.kmp_upgrade_action else R.string.update_action,
+                                        ),
+                                    )
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = dismissUpdate) {
+                                    Text(stringResource(R.string.kmp_upgrade_later))
+                                }
+                            },
+                        )
                     }
                 }
             }
@@ -1825,7 +1806,6 @@ val LocalPlayerAwareWindowInsets = compositionLocalOf<WindowInsets> { error("No 
 val LocalDownloadUtil = staticCompositionLocalOf<DownloadUtil> { error("No DownloadUtil provided") }
 val LocalSyncUtils = staticCompositionLocalOf<SyncUtils> { error("No SyncUtils provided") }
 val LocalListenTogetherManager = staticCompositionLocalOf<com.metrolist.music.listentogether.ListenTogetherManager?> { null }
-val LocalChangelogState = staticCompositionLocalOf<MutableState<Boolean>> { error("No LocalChangelogState provided") }
 val LocalArtistNameAliases = staticCompositionLocalOf<Map<String, String>> { emptyMap() }
 val LocalIsPlayerExpanded = compositionLocalOf { false }
 

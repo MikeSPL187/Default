@@ -391,23 +391,6 @@ appId: com.metrolist.music
 - takeScreenshot: ${P}23b-updater
 - back
 # The rest of System & About, each opened once.
-- runFlow:
-    when:
-      visible: "Changelog"
-    commands:
-      - tapOn: "Changelog"
-      - waitForAnimationToEnd:
-          timeout: 10000
-      - takeScreenshot: ${P}23c-changelog
-      - back
-      - waitForAnimationToEnd
-      # A back pressed while the sheet still opens can be swallowed.
-      - runFlow:
-          when:
-            visible: "View on GitHub"
-          commands:
-            - back
-            - waitForAnimationToEnd
 - scrollUntilVisible:
     element: "About"
     optional: true
