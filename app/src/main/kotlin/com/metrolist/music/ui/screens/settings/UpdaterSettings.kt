@@ -249,11 +249,12 @@ fun UpdaterScreen(navController: NavController) {
 
         if (releases.isNotEmpty()) {
             Text(
-                stringResource(R.string.updates_history).uppercase(),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
+                stringResource(R.string.updates_history),
+                // As every section title in settings.
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
                 color = colors.primary,
-                modifier = Modifier.padding(start = 8.dp, top = 24.dp, bottom = 8.dp),
+                modifier = Modifier.padding(start = 4.dp, top = 24.dp, bottom = 8.dp),
             )
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 releases.take(HISTORY).forEach { release ->
